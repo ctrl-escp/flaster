@@ -6,10 +6,11 @@
 	"main": "flast-pkg-builder/build-flast.js",
 	"scripts": {
 		"dev": "npm run build-flast && vite",
-		"build": "npm run build-flast && vite build",
+		"build": "npm run build-flast && vite build && npm run post-build-edit",
 		"preview": "npm run build-flast && vite preview",
 		"lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
-		"build-flast": "node flast-pkg-builder/build-flast.js"
+		"build-flast": "node flast-pkg-builder/build-flast.js",
+		"post-build-edit": " sed -i s/\"\\/assets/\"assets/g dist/index.html && echo Fixed assets links"
 	},
 	"dependencies": {
 		"browserify": "^17.0.0",
