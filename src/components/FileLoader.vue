@@ -34,7 +34,7 @@ function fileChanged(el) {
 
 <template>
 	<div>
-		<button class="btn-load-file">
+		<button class="btn btn-load-file">
 			<label>
 				<span class="file-status" ref="status"></span>
 				<input class="inputFile" type="file" @change="fileChanged">
@@ -46,9 +46,6 @@ function fileChanged(el) {
 
 <style scoped>
 .btn-load-file {
-	border-radius: 8px;
-	padding: 3px 8px;
-	font-size: large;
 	background-color: #a892cb;
 }
 

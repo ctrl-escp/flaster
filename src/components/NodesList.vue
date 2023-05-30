@@ -52,6 +52,7 @@ onMounted(() => {
 
 <style scoped>
 .ast-list-wrapper {
+	flex: 1;
 	padding: 5px;
 	width: 100%;
 	height: 50vh;

@@ -21,6 +21,8 @@ const initialValue = `// This is the default code for flASTer
 
 <style scoped>
 .code-editor-wrapper {
+	flex: 1;
+	min-width: 0;
 	padding: 0;
 	width: 100%;
 	height: 50vh;

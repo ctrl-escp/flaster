@@ -90,10 +90,12 @@ nav {
 }
 
 .pane-lower {
+	flex: 1;
 	display: flex;
 }
 
 .pane-upper {
+	flex: 1;
 	display: flex;
 	margin-bottom: 5px;
 }
@@ -101,5 +103,6 @@ nav {
 .panes {
 	display: flex;
 	flex-direction: column;
+	height: 90vh;
 }
 </style>

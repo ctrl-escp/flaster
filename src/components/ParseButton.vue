@@ -58,15 +58,10 @@ function parseContent() {
 </script>
 
 <template>
-	<button ref="parsedStatus" class="btn-parse unparsed" @click="parseContent"></button>
+	<button ref="parsedStatus" class="btn unparsed" @click="parseContent"></button>
 </template>
 
 <style scoped>
-.btn-parse {
-	border-radius: 8px;
-	padding: 3px 8px;
-	font-size: large;
-}
 
 .unparsed {
 	background-color: #d05858;

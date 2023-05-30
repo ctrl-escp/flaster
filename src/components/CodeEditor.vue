@@ -57,24 +57,21 @@ onMounted(() => {
 		state: EditorState.create({
 			doc: props.initialValue,
 			extensions: [
-				oneDark,
-				lineNumbers(),
-				highlightActiveLineGutter(),
-				highlightSpecialChars(),
-				history(),
-				foldGutter(),
+				autocompletion(),
+				bracketMatching(),
+				closeBrackets(),
+				crosshairCursor(),
 				drawSelection(),
 				dropCursor(),
 				EditorState.allowMultipleSelections.of(true),
-				indentOnInput(),
-				syntaxHighlighting(oneDarkHighlightStyle, {fallback: true}),
-				bracketMatching(),
-				closeBrackets(),
-				autocompletion(),
-				rectangularSelection(),
-				crosshairCursor(),
+				foldGutter(),
 				highlightActiveLine(),
+				highlightActiveLineGutter(),
 				highlightSelectionMatches(),
+				highlightSpecialChars(),
+				history(),
+				indentOnInput(),
+				javascript(),
 				keymap.of([
 					...closeBracketsKeymap,
 					...defaultKeymap,
@@ -84,7 +81,10 @@ onMounted(() => {
 					...completionKeymap,
 					...lintKeymap,
 				]),
-				javascript(),
+				lineNumbers(),
+				oneDark,
+				rectangularSelection(),
+				syntaxHighlighting(oneDarkHighlightStyle, {fallback: true}),
 			],
 		}),
 	});
@@ -94,8 +94,13 @@ onMounted(() => {
 </script>
 
 <template>
-	<div ref="editorElement"></div>
+	<div ref="editorElement" class="code-editor"></div>
 </template>
 
 <style scoped>
+.code-editor {
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+}
 </style>
