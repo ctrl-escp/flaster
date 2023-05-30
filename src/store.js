@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import {reactive} from 'vue';
 
 export const store = reactive({
 	// editor
@@ -21,4 +21,4 @@ export const store = reactive({
 	updateNodesInfoMsg() {},
 	resetParsedState() {},
 	parseContent() {},
-})
+});

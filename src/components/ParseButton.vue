@@ -58,7 +58,7 @@ function parseContent() {
 </script>
 
 <template>
-		<button ref="parsedStatus" class="btn-parse unparsed" @click="parseContent"></button>
+	<button ref="parsedStatus" class="btn-parse unparsed" @click="parseContent"></button>
 </template>
 
 <style scoped>

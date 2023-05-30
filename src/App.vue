@@ -8,8 +8,8 @@ import NodesList from './components/NodesList.vue';
 import FilterEditor from './components/FilterEditor.vue';
 
 const navItems = [
-    FileLoader,
-    ParseButton,
+	FileLoader,
+	ParseButton,
 ];
 </script>
 
@@ -18,11 +18,11 @@ const navItems = [
 		<nav>
 			<span class="nav-left">
 				<a href="#">
-          <icon-bandaid />
+          <icon-bandaid/>
 				</a>
 				<span class="nav-title">fl<b>AST</b>er</span>
 			</span>
-      <span class="nav-items">
+			<span class="nav-items">
         <span v-for="navItem of navItems" :key="navItem" class="nav-items">
           <span class="nav-sep">|</span>
           <component :is="navItem"></component>
@@ -32,64 +32,74 @@ const navItems = [
 			<span title="View code on GitHub">
 				<a class="mr-5" href="https://github.com/ctrl-escp/flaster" title="flASTer">
 					<span class="github-text">View on GitHub</span>
-          <icon-github />
+          <icon-github/>
 				</a>
 			</span>
 		</nav>
 	</header>
-  <div class="panes">
-    <div class="pane-upper">
-      <input-code-editor/>
-      <nodes-list/>
-    </div>
-    <div class="pane-lower">
-      <filter-editor/>
-    </div>
-  </div>
+	<div class="panes">
+		<div class="pane-upper">
+			<input-code-editor/>
+			<nodes-list/>
+		</div>
+		<div class="pane-lower">
+			<filter-editor/>
+		</div>
+	</div>
 </template>
 
 <style scoped>
 a {
-  display: flex;
-  align-items: center;
+	display: flex;
+	align-items: center;
 }
+
 a:link {
-  text-decoration: none;
+	text-decoration: none;
 }
+
 .github-text {
-  color: white;
-  margin-right: 10px;
+	color: white;
+	margin-right: 10px;
 }
+
 nav {
-  background-color: #212121;
-  display: flex;
-  align-items: center;
-  border-radius: 10px;
-  justify-content: space-between;
+	background-color: #212121;
+	display: flex;
+	align-items: center;
+	border-radius: 10px;
+	justify-content: space-between;
 }
+
 .nav-items {
-  display: flex;
-  flex-direction: row;
+	display: flex;
+	flex-direction: row;
 }
+
 .nav-left {
-  display: flex;
-  align-items: center;
+	display: flex;
+	align-items: center;
 }
+
 .nav-sep {
-  margin: 0 5px;
+	margin: 0 5px;
 }
+
 .nav-title {
-  font-size: 2.4rem;
+	font-size: 2.4rem;
 }
+
 .pane-lower {
-  display: flex;
+	display: flex;
 }
+
 .pane-upper {
-  display: flex;
-  margin-bottom: 5px;
+	display: flex;
+	margin-bottom: 5px;
 }
+
 .panes {
-  display: flex;
-  flex-direction: column;
+	display: flex;
+	flex-direction: column;
 }
 </style>
