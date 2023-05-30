@@ -1,0 +1,1 @@
+window.flast = require('../node_modules/flast/src/flast');

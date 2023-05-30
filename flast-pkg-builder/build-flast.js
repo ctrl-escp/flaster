@@ -1,0 +1,10 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const targetOutputFile = path.resolve(__dirname + '/..' + '/public/flast.js');
+const browserify = require('browserify');
+const b = browserify();
+const timeMsg = `Created ${targetOutputFile} in`;
+console.time(timeMsg);
+b.add(__dirname + '/flast-src.js');
+b.bundle().pipe(fs.createWriteStream(targetOutputFile));
+console.timeEnd(timeMsg);
