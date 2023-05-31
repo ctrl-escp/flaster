@@ -7,16 +7,17 @@ let nodesToDisplay = [];
 let highlightedNodeId = null;
 
 function highlightCode(node) {
+	const editor = store.getEditor(store.editorIds.inputCodeEditor);
 	if (node.nodeId === highlightedNodeId) {
 		highlightedNodeId = null;
-		store.getEditor(store.editorIds.inputCodeEditor).highlightRange();
+		editor.highlightRange(editor);
 	} else {
 		if (highlightedNodeId !== null) {
 			const previouslyHighlighted = document.querySelector(`div[data-nodeId="${highlightedNodeId}"]`);
 			if (previouslyHighlighted) previouslyHighlighted.classList.remove('highlight');
 		}
 		highlightedNodeId = node.nodeId;
-		store.getEditor(store.editorIds.inputCodeEditor).highlightRange(node.range[0], node.range[1]);
+		editor.highlightRange(editor, node.range[0], node.range[1]);
 	}
 	document.querySelector(`div[data-nodeid="${node.nodeId}"]`).classList.toggle('highlight');
 }
@@ -38,8 +39,7 @@ onMounted(() => {
 <template>
 	<fieldset class="ast-list-wrapper">
 		<legend>{{ numberOfDisplayedNodes }} nodes</legend>
-		<div v-for="node of (store.areFiltersActive ? nodesToDisplay : store.ast)" :key="node.nodeId" class="node-container"
-		     :data-nodeid="node.nodeId" @click="highlightCode(node)">
+		<div v-for="node of (store.areFiltersActive ? nodesToDisplay : store.ast)" :key="node.nodeId" class="node-container" :data-nodeid="node.nodeId" @click="highlightCode(node)">
       <span class="node-type" :title="'NodeId: ' + node.nodeId">
         [<span class="node-parent-type"
                title="Parent node type">{{ node.parentNode ? node.parentNode.type + '=>' : '' }}</span>{{ node.type }}]
