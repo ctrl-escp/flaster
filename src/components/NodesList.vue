@@ -8,18 +8,18 @@ let highlightedNodeId = null;
 
 function highlightCode(node) {
 	const editor = store.getEditor(store.editorIds.inputCodeEditor);
+	if (highlightedNodeId !== null) {
+		const previouslyHighlighted = document.querySelector(`div[data-nodeId="${highlightedNodeId}"]`);
+		if (previouslyHighlighted) previouslyHighlighted.classList.remove('highlight-node');
+	}
 	if (node.nodeId === highlightedNodeId) {
 		highlightedNodeId = null;
-		editor.highlightRange(editor);
+		editor.highlightRange();
 	} else {
-		if (highlightedNodeId !== null) {
-			const previouslyHighlighted = document.querySelector(`div[data-nodeId="${highlightedNodeId}"]`);
-			if (previouslyHighlighted) previouslyHighlighted.classList.remove('highlight');
-		}
 		highlightedNodeId = node.nodeId;
-		editor.highlightRange(editor, node.range[0], node.range[1]);
+		editor.highlightRange(node.range[0], node.range[1]);
+		document.querySelector(`div[data-nodeid="${node.nodeId}"]`).classList.add('highlight-node');
 	}
-	document.querySelector(`div[data-nodeid="${node.nodeId}"]`).classList.toggle('highlight');
 }
 
 const numberOfDisplayedNodes = computed(() => {
@@ -60,7 +60,7 @@ onMounted(() => {
 }
 
 /*noinspection CssUnusedSymbol*/
-.highlight {
+.highlight-node {
 	background-color: rgba(255, 234, 0, 0.27);
 }
 

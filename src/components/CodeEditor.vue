@@ -70,16 +70,17 @@ const highlight_decoration = Decoration.mark({
 	class: 'highlighted-code',
 });
 
-function highlightRange(editor, start, end) {
-	let targetRange = [start, end];
-	if (arguments.length < 3) {
+function highlightRange(start, end) {
+	if (!arguments.length) {
 		document.querySelectorAll('.highlighted-code').forEach(el => el.classList.remove('highlighted-code'));
 	} else {
 		// noinspection JSCheckFunctionSignatures
-		editor.dispatch({
-			effects: highlightEffect.of([highlight_decoration.range(...targetRange)]),
+		this.dispatch({
+			effects: highlightEffect.of([highlight_decoration.range(start, end)]),
 		});
-		// editor.scrollIntoView({from: start, to:end}, 20);
+		// const fromPos = this.state.doc.sliceString(0, start).length;
+		// const toPos = this.state.doc.sliceString(0, end).length;
+		// this.scrollIntoView({from: fromPos, to: toPos}, 20);
 	}
 }
 
