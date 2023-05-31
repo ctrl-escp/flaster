@@ -78,9 +78,12 @@ function highlightRange(start, end) {
 		this.dispatch({
 			effects: highlightEffect.of([highlight_decoration.range(start, end)]),
 		});
-		// const fromPos = this.state.doc.sliceString(0, start).length;
-		// const toPos = this.state.doc.sliceString(0, end).length;
-		// this.scrollIntoView({from: fromPos, to: toPos}, 20);
+		const lineNumber = this.state.doc.lineAt(start).number;
+		this.scrollDOM.scroll({
+			top: 20 * lineNumber,
+			left: 0,
+			behavior: 'smooth',
+		});
 	}
 }
 
