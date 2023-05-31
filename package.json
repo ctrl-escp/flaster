@@ -1,6 +1,6 @@
 {
 	"name": "flaster",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "A web interface for exploring JS code structures",
 	"license": "MIT",
 	"main": "flast-pkg-builder/build-flast.js",
