@@ -69,6 +69,7 @@ nav {
 	align-items: center;
 	border-radius: 10px;
 	justify-content: space-between;
+	height: var(--nav-height);
 }
 
 .nav-items {
@@ -103,6 +104,6 @@ nav {
 .panes {
 	display: flex;
 	flex-direction: column;
-	height: 90vh;
+	height: calc(95vh - var(--nav-height));
 }
 </style>
