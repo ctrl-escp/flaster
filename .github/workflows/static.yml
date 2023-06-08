@@ -37,11 +37,13 @@ jobs:
         run: |
           npm install
           npm run build
+      - name: Dereference any symlinks
+        run: echo "UPLOAD_PATH=$(readlink -f dist)" >> $GITHUB_ENV
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
           # Upload entire repository
-          path: 'dist/'
+          path: ${{ env.UPLOAD_PATH }}
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
