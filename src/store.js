@@ -1,15 +1,14 @@
-import { reactive } from 'vue';
+import {reactive} from 'vue';
 
 export const store = reactive({
 	// editor
-	monaco: undefined,
+	editors: [],
 	editorIds: {
 		inputCodeEditor: 'inputCodeEditor',
 		filterEditor: 'filterEditor',
 	},
 	getEditor(editorId) {
-		// noinspection JSUnresolvedReference
-		return this.monaco.editor.getModels().find(m => m.editorId === editorId);
+		return this.editors.find(e => e.editorId === editorId);
 	},
 	// parsing
 	ast: [],
@@ -22,4 +21,4 @@ export const store = reactive({
 	updateNodesInfoMsg() {},
 	resetParsedState() {},
 	parseContent() {},
-})
+});
