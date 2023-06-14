@@ -79,10 +79,11 @@ function highlightRange(start, end) {
 			effects: highlightEffect.of([highlight_decoration.range(start, end)]),
 		});
 		const lineNumber = this.state.doc.lineAt(start).number;
-		this.scrollDOM.scroll({
-			top: 20 * lineNumber,
-			left: 0,
+		const line = document.querySelectorAll('.cm-line')[lineNumber];
+		if (line) line.scrollIntoView({
 			behavior: 'smooth',
+			block: 'center',
+			inline: 'center',
 		});
 	}
 }

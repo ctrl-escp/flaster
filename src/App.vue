@@ -24,11 +24,9 @@ const navItems = [
 				<span class="nav-title">fl<b>AST</b>er</span>
 			</span>
 			<span class="nav-items">
-        <span v-for="navItem of navItems" :key="navItem" class="nav-items">
-          <span class="nav-sep">|</span>
+        <span v-for="navItem of navItems" :key="navItem" class="nav-item">
           <component :is="navItem"></component>
         </span>
-        <span class="nav-sep">|</span>
       </span>
 			<span title="View code on GitHub">
 				<a class="mr-5" href="https://github.com/ctrl-escp/flaster" title="flASTer">
@@ -79,13 +77,13 @@ nav {
 	flex-direction: row;
 }
 
+.nav-item {
+	margin: 0 5px;
+}
+
 .nav-left {
 	display: flex;
 	align-items: center;
-}
-
-.nav-sep {
-	margin: 0 5px;
 }
 
 .nav-title {
