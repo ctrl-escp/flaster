@@ -39,13 +39,12 @@ onMounted(() => {
 <template>
 	<fieldset class="ast-list-wrapper">
 		<legend>{{ numberOfDisplayedNodes }} nodes</legend>
-		<div v-for="node of (store.areFiltersActive ? nodesToDisplay : store.ast)" :key="node.nodeId" class="node-container" :data-nodeid="node.nodeId" @click="highlightCode(node)">
+		<div v-for="node of (store.ast)" :key="node.nodeId" v-show="nodesToDisplay.includes(node)" class="node-container" :data-nodeid="node.nodeId" @click="highlightCode(node)">
       <span class="node-type" :title="'NodeId: ' + node.nodeId">
         [<span class="node-parent-type"
                title="Parent node type">{{ node.parentNode ? node.parentNode.type + '=>' : '' }}</span>{{ node.type }}]
       </span>
-			<span class="node-src" :title="node.src">{{ node.src.substring(0, 100) }}</span>
-			<span class="node-length" :title="'length: ' + node.src.length">[<span>{{ node.src.length }}</span>]</span>
+			<span class="node-src" title="Click to show node in code">{{ node.src?.substring ? node.src.substring(0, 100) : 'N/A' }}</span>
 		</div>
 	</fieldset>
 </template>
@@ -74,10 +73,6 @@ legend {
 
 .node-container > * {
 	margin-right: 2px;
-}
-
-.node-length {
-	float: right;
 }
 
 .node-parent-type {

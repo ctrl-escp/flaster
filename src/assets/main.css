@@ -23,5 +23,6 @@ body {
 }
 
 .cm-scroller {
+    height: 47vh;
     max-height: 47vh;
 }
