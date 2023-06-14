@@ -6,6 +6,7 @@ import FileLoader from './components/FileLoader.vue';
 import ParseButton from './components/ParseButton.vue';
 import NodesList from './components/NodesList.vue';
 import FilterEditor from './components/FilterEditor.vue';
+import ToasterView from './components/ToasterView.vue';
 
 const navItems = [
 	FileLoader,
@@ -46,6 +47,7 @@ const navItems = [
 			<filter-editor/>
 		</div>
 	</div>
+	<toaster-view/>
 </template>
 
 <style scoped>
