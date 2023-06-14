@@ -21,7 +21,7 @@ function fileChanged(el) {
 	if (file) {
 		file.text().then(c => {
 			store.getEditor(inputCodeEditorId).dispatch({changes: {from: 0, insert: c}});
-			store.parseContent();
+			store.resetParsedState();
 		});
 		status.value.innerText = messages.loaded + file.name.substring(0, 30);
 	} else {
