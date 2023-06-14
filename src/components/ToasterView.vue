@@ -6,9 +6,6 @@ import ToasterMessage from './ToasterMessage.vue';
 const TOAST_TIMEOUT = 3.5 * 1000;
 
 const toastQueue = reactive({});
-logMessage('success message', 'success');
-logMessage('info message', 'info');
-logMessage('error message', 'error');
 
 function logMessage(text, level) {
 	const key = level + text;

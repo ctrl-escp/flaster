@@ -21,4 +21,5 @@ export const store = reactive({
 	updateNodesInfoMsg() {},
 	resetParsedState() {},
 	parseContent() {},
+	logMessage(text, level) {},
 });
