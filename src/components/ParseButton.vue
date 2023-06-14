@@ -14,17 +14,15 @@ const parsedStatus = ref(null);
 function setContentParsed() {
 	parsedStatus.value.classList.add('parsed');
 	parsedStatus.value.classList.remove('unparsed');
-	parsedStatus.value.innerText = messages.contentParsed;
+	store.logMessage(messages.contentParsed, 'success');
 }
 
 function setContentUnparsed() {
 	parsedStatus.value.classList.add('unparsed');
 	parsedStatus.value.classList.remove('parsed');
-	parsedStatus.value.innerText = store.parsingError || messages.parseContent;
 }
 
 function resetParsedState() {
-	store.parsingError = '';
 	store.isContentParsed = false;
 	store.ast = [];
 	store.matchingNodes = [];
@@ -42,23 +40,30 @@ function parseContent() {
 	try {
 		resetParsedState();
 		const code = store.getEditor(store.editorIds.inputCodeEditor).state.doc.toString();
-		if (!code.length) store.parsingError = messages.emptyCode;
+		if (!code.length) store.logMessage(messages.emptyCode, 'error');
 		else {
-			// eslint-disable-next-line no-undef
+			new Promise(() => {
+				store.filteredNodes = store.ast = [];
 			// noinspection JSValidateTypes
-			store.ast = window.flast.generateFlatAST(code);
-			if (!store.ast.length) store.parsingError = messages.astParseFail;
+				store.ast = window.flast.generateFlatAST(code, {detailed: false});
+				if (!store.ast.length) store.logMessage(messages.astParseFail, 'error');
+				else store.logMessage(`Parsed ${code.length} chars into ${store.ast.length} nodes`, 'success');
+				store.filteredNodes = store.ast;
+			})
+					.then(() => {
+						debugger;
+
+					})
+					.catch(e => store.logMessage(e.message, 'error'));
 		}
 	} catch (e) {
-		store.parsingError = e.message;
+		store.logMessage(e.message, 'error')
 	}
-	store.parsingError ? setContentUnparsed() : setContentParsed();
-	store.filteredNodes = store.ast;
 }
 </script>
 
 <template>
-	<button ref="parsedStatus" class="btn unparsed" @click="parseContent"></button>
+	<button ref="parsedStatus" class="btn unparsed" @click="parseContent">{{ messages.parseContent}}</button>
 </template>
 
 <style scoped>

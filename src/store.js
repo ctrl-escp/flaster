@@ -16,7 +16,6 @@ export const store = reactive({
 	filteredNodes: [],
 	filters: [],
 	areFiltersActive: true,
-	parsingError: '',
 	// placeholders
 	updateNodesInfoMsg() {},
 	resetParsedState() {},
