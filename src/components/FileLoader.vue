@@ -20,7 +20,11 @@ function fileChanged(el) {
 	if (files.length) file = files[0];
 	if (file) {
 		file.text().then(c => {
-			store.getEditor(inputCodeEditorId).dispatch({changes: {from: 0, insert: c}});
+			const editor = store.getEditor(inputCodeEditorId);
+			editor.dispatch({changes: [
+				{from: 0, to: editor.state.doc.length},
+				{from: 0, insert: c},
+			]});
 			store.resetParsedState();
 		});
 		status.value.innerText = messages.loaded + file.name.substring(0, 30);
