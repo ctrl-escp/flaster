@@ -758,15 +758,18 @@ module.exports = {
   var astralIdentifierCodes = [509, 0, 227, 0, 150, 4, 294, 9, 1368, 2, 2, 1, 6, 3, 41, 2, 5, 0, 166, 1, 574, 3, 9, 9, 370, 1, 81, 2, 71, 10, 50, 3, 123, 2, 54, 14, 32, 10, 3, 1, 11, 3, 46, 10, 8, 0, 46, 9, 7, 2, 37, 13, 2, 9, 6, 1, 45, 0, 13, 2, 49, 13, 9, 3, 2, 11, 83, 11, 7, 0, 3, 0, 158, 11, 6, 9, 7, 3, 56, 1, 2, 6, 3, 1, 3, 2, 10, 0, 11, 1, 3, 6, 4, 4, 193, 17, 10, 9, 5, 0, 82, 19, 13, 9, 214, 6, 3, 8, 28, 1, 83, 16, 16, 9, 82, 12, 9, 9, 84, 14, 5, 9, 243, 14, 166, 9, 71, 5, 2, 1, 3, 3, 2, 0, 2, 1, 13, 9, 120, 6, 3, 6, 4, 0, 29, 9, 41, 6, 2, 3, 9, 0, 10, 10, 47, 15, 406, 7, 2, 7, 17, 9, 57, 21, 2, 13, 123, 5, 4, 0, 2, 1, 2, 6, 2, 0, 9, 9, 49, 4, 2, 1, 2, 4, 9, 9, 330, 3, 10, 1, 2, 0, 49, 6, 4, 4, 14, 9, 5351, 0, 7, 14, 13835, 9, 87, 9, 39, 4, 60, 6, 26, 9, 1014, 0, 2, 54, 8, 3, 82, 0, 12, 1, 19628, 1, 4706, 45, 3, 22, 543, 4, 4, 5, 9, 7, 3, 6, 31, 3, 149, 2, 1418, 49, 513, 54, 5, 49, 9, 0, 15, 0, 23, 4, 2, 14, 1361, 6, 2, 16, 3, 6, 2, 1, 2, 4, 101, 0, 161, 6, 10, 9, 357, 0, 62, 13, 499, 13, 983, 6, 110, 6, 6, 9, 4759, 9, 787719, 239];
 
   // This file was generated. Do not modify manually!
-  var astralIdentifierStartCodes = [0, 11, 2, 25, 2, 18, 2, 1, 2, 14, 3, 13, 35, 122, 70, 52, 268, 28, 4, 48, 48, 31, 14, 29, 6, 37, 11, 29, 3, 35, 5, 7, 2, 4, 43, 157, 19, 35, 5, 35, 5, 39, 9, 51, 13, 10, 2, 14, 2, 6, 2, 1, 2, 10, 2, 14, 2, 6, 2, 1, 68, 310, 10, 21, 11, 7, 25, 5, 2, 41, 2, 8, 70, 5, 3, 0, 2, 43, 2, 1, 4, 0, 3, 22, 11, 22, 10, 30, 66, 18, 2, 1, 11, 21, 11, 25, 71, 55, 7, 1, 65, 0, 16, 3, 2, 2, 2, 28, 43, 28, 4, 28, 36, 7, 2, 27, 28, 53, 11, 21, 11, 18, 14, 17, 111, 72, 56, 50, 14, 50, 14, 35, 349, 41, 7, 1, 79, 28, 11, 0, 9, 21, 43, 17, 47, 20, 28, 22, 13, 52, 58, 1, 3, 0, 14, 44, 33, 24, 27, 35, 30, 0, 3, 0, 9, 34, 4, 0, 13, 47, 15, 3, 22, 0, 2, 0, 36, 17, 2, 24, 20, 1, 64, 6, 2, 0, 2, 3, 2, 14, 2, 9, 8, 46, 39, 7, 3, 1, 3, 21, 2, 6, 2, 1, 2, 4, 4, 0, 19, 0, 13, 4, 159, 52, 19, 3, 21, 2, 31, 47, 21, 1, 2, 0, 185, 46, 42, 3, 37, 47, 21, 0, 60, 42, 14, 0, 72, 26, 38, 6, 186, 43, 117, 63, 32, 7, 3, 0, 3, 7, 2, 1, 2, 23, 16, 0, 2, 0, 95, 7, 3, 38, 17, 0, 2, 0, 29, 0, 11, 39, 8, 0, 22, 0, 12, 45, 20, 0, 19, 72, 264, 8, 2, 36, 18, 0, 50, 29, 113, 6, 2, 1, 2, 37, 22, 0, 26, 5, 2, 1, 2, 31, 15, 0, 328, 18, 16, 0, 2, 12, 2, 33, 125, 0, 80, 921, 103, 110, 18, 195, 2637, 96, 16, 1071, 18, 5, 4026, 582, 8634, 568, 8, 30, 18, 78, 18, 29, 19, 47, 17, 3, 32, 20, 6, 18, 689, 63, 129, 74, 6, 0, 67, 12, 65, 1, 2, 0, 29, 6135, 9, 1237, 43, 8, 8936, 3, 2, 6, 2, 1, 2, 290, 16, 0, 30, 2, 3, 0, 15, 3, 9, 395, 2309, 106, 6, 12, 4, 8, 8, 9, 5991, 84, 2, 70, 2, 1, 3, 0, 3, 1, 3, 3, 2, 11, 2, 0, 2, 6, 2, 64, 2, 3, 3, 7, 2, 6, 2, 27, 2, 3, 2, 4, 2, 0, 4, 6, 2, 339, 3, 24, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 7, 1845, 30, 7, 5, 262, 61, 147, 44, 11, 6, 17, 0, 322, 29, 19, 43, 485, 27, 757, 6, 2, 3, 2, 1, 2, 14, 2, 196, 60, 67, 8, 0, 1205, 3, 2, 26, 2, 1, 2, 0, 3, 0, 2, 9, 2, 3, 2, 0, 2, 0, 7, 0, 5, 0, 2, 0, 2, 0, 2, 2, 2, 1, 2, 0, 3, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 1, 2, 0, 3, 3, 2, 6, 2, 3, 2, 3, 2, 0, 2, 9, 2, 16, 6, 2, 2, 4, 2, 16, 4421, 42719, 33, 4153, 7, 221, 3, 5761, 15, 7472, 3104, 541, 1507, 4938, 6, 4191];
+  var astralIdentifierStartCodes = [0, 11, 2, 25, 2, 18, 2, 1, 2, 14, 3, 13, 35, 122, 70, 52, 268, 28, 4, 48, 48, 31, 14, 29, 6, 37, 11, 29, 3, 35, 5, 7, 2, 4, 43, 157, 19, 35, 5, 35, 5, 39, 9, 51, 13, 10, 2, 14, 2, 6, 2, 1, 2, 10, 2, 14, 2, 6, 2, 1, 68, 310, 10, 21, 11, 7, 25, 5, 2, 41, 2, 8, 70, 5, 3, 0, 2, 43, 2, 1, 4, 0, 3, 22, 11, 22, 10, 30, 66, 18, 2, 1, 11, 21, 11, 25, 71, 55, 7, 1, 65, 0, 16, 3, 2, 2, 2, 28, 43, 28, 4, 28, 36, 7, 2, 27, 28, 53, 11, 21, 11, 18, 14, 17, 111, 72, 56, 50, 14, 50, 14, 35, 349, 41, 7, 1, 79, 28, 11, 0, 9, 21, 43, 17, 47, 20, 28, 22, 13, 52, 58, 1, 3, 0, 14, 44, 33, 24, 27, 35, 30, 0, 3, 0, 9, 34, 4, 0, 13, 47, 15, 3, 22, 0, 2, 0, 36, 17, 2, 24, 20, 1, 64, 6, 2, 0, 2, 3, 2, 14, 2, 9, 8, 46, 39, 7, 3, 1, 3, 21, 2, 6, 2, 1, 2, 4, 4, 0, 19, 0, 13, 4, 159, 52, 19, 3, 21, 2, 31, 47, 21, 1, 2, 0, 185, 46, 42, 3, 37, 47, 21, 0, 60, 42, 14, 0, 72, 26, 38, 6, 186, 43, 117, 63, 32, 7, 3, 0, 3, 7, 2, 1, 2, 23, 16, 0, 2, 0, 95, 7, 3, 38, 17, 0, 2, 0, 29, 0, 11, 39, 8, 0, 22, 0, 12, 45, 20, 0, 19, 72, 264, 8, 2, 36, 18, 0, 50, 29, 113, 6, 2, 1, 2, 37, 22, 0, 26, 5, 2, 1, 2, 31, 15, 0, 328, 18, 16, 0, 2, 12, 2, 33, 125, 0, 80, 921, 103, 110, 18, 195, 2637, 96, 16, 1071, 18, 5, 4026, 582, 8634, 568, 8, 30, 18, 78, 18, 29, 19, 47, 17, 3, 32, 20, 6, 18, 689, 63, 129, 74, 6, 0, 67, 12, 65, 1, 2, 0, 29, 6135, 9, 1237, 43, 8, 8936, 3, 2, 6, 2, 1, 2, 290, 16, 0, 30, 2, 3, 0, 15, 3, 9, 395, 2309, 106, 6, 12, 4, 8, 8, 9, 5991, 84, 2, 70, 2, 1, 3, 0, 3, 1, 3, 3, 2, 11, 2, 0, 2, 6, 2, 64, 2, 3, 3, 7, 2, 6, 2, 27, 2, 3, 2, 4, 2, 0, 4, 6, 2, 339, 3, 24, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 30, 2, 24, 2, 7, 1845, 30, 7, 5, 262, 61, 147, 44, 11, 6, 17, 0, 322, 29, 19, 43, 485, 27, 757, 6, 2, 3, 2, 1, 2, 14, 2, 196, 60, 67, 8, 0, 1205, 3, 2, 26, 2, 1, 2, 0, 3, 0, 2, 9, 2, 3, 2, 0, 2, 0, 7, 0, 5, 0, 2, 0, 2, 0, 2, 2, 2, 1, 2, 0, 3, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 1, 2, 0, 3, 3, 2, 6, 2, 3, 2, 3, 2, 0, 2, 9, 2, 16, 6, 2, 2, 4, 2, 16, 4421, 42719, 33, 4153, 7, 221, 3, 5761, 15, 7472, 16, 621, 2467, 541, 1507, 4938, 6, 4191];
 
   // This file was generated. Do not modify manually!
-  var nonASCIIidentifierChars = "\u200c\u200d\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0898-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1ace\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f";
+  var nonASCIIidentifierChars = "\u200c\u200d\xb7\u0300-\u036f\u0387\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u064b-\u0669\u0670\u06d6-\u06dc\u06df-\u06e4\u06e7\u06e8\u06ea-\u06ed\u06f0-\u06f9\u0711\u0730-\u074a\u07a6-\u07b0\u07c0-\u07c9\u07eb-\u07f3\u07fd\u0816-\u0819\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0859-\u085b\u0898-\u089f\u08ca-\u08e1\u08e3-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09cb-\u09cd\u09d7\u09e2\u09e3\u09e6-\u09ef\u09fe\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2\u0ae3\u0ae6-\u0aef\u0afa-\u0aff\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b55-\u0b57\u0b62\u0b63\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c00-\u0c04\u0c3c\u0c3e-\u0c44\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62\u0c63\u0c66-\u0c6f\u0c81-\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2\u0ce3\u0ce6-\u0cef\u0cf3\u0d00-\u0d03\u0d3b\u0d3c\u0d3e-\u0d44\u0d46-\u0d48\u0d4a-\u0d4d\u0d57\u0d62\u0d63\u0d66-\u0d6f\u0d81-\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0de6-\u0def\u0df2\u0df3\u0e31\u0e34-\u0e3a\u0e47-\u0e4e\u0e50-\u0e59\u0eb1\u0eb4-\u0ebc\u0ec8-\u0ece\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f3e\u0f3f\u0f71-\u0f84\u0f86\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u102b-\u103e\u1040-\u1049\u1056-\u1059\u105e-\u1060\u1062-\u1064\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u1369-\u1371\u1712-\u1715\u1732-\u1734\u1752\u1753\u1772\u1773\u17b4-\u17d3\u17dd\u17e0-\u17e9\u180b-\u180d\u180f-\u1819\u18a9\u1920-\u192b\u1930-\u193b\u1946-\u194f\u19d0-\u19da\u1a17-\u1a1b\u1a55-\u1a5e\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1ab0-\u1abd\u1abf-\u1ace\u1b00-\u1b04\u1b34-\u1b44\u1b50-\u1b59\u1b6b-\u1b73\u1b80-\u1b82\u1ba1-\u1bad\u1bb0-\u1bb9\u1be6-\u1bf3\u1c24-\u1c37\u1c40-\u1c49\u1c50-\u1c59\u1cd0-\u1cd2\u1cd4-\u1ce8\u1ced\u1cf4\u1cf7-\u1cf9\u1dc0-\u1dff\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2cef-\u2cf1\u2d7f\u2de0-\u2dff\u302a-\u302f\u3099\u309a\u30fb\ua620-\ua629\ua66f\ua674-\ua67d\ua69e\ua69f\ua6f0\ua6f1\ua802\ua806\ua80b\ua823-\ua827\ua82c\ua880\ua881\ua8b4-\ua8c5\ua8d0-\ua8d9\ua8e0-\ua8f1\ua8ff-\ua909\ua926-\ua92d\ua947-\ua953\ua980-\ua983\ua9b3-\ua9c0\ua9d0-\ua9d9\ua9e5\ua9f0-\ua9f9\uaa29-\uaa36\uaa43\uaa4c\uaa4d\uaa50-\uaa59\uaa7b-\uaa7d\uaab0\uaab2-\uaab4\uaab7\uaab8\uaabe\uaabf\uaac1\uaaeb-\uaaef\uaaf5\uaaf6\uabe3-\uabea\uabec\uabed\uabf0-\uabf9\ufb1e\ufe00-\ufe0f\ufe20-\ufe2f\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f\uff65";
 
   // This file was generated. Do not modify manually!
   var nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u037f\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u052f\u0531-\u0556\u0559\u0560-\u0588\u05d0-\u05ea\u05ef-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u0860-\u086a\u0870-\u0887\u0889-\u088e\u08a0-\u08c9\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0980\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u09fc\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0af9\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c39\u0c3d\u0c58-\u0c5a\u0c5d\u0c60\u0c61\u0c80\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cdd\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d04-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d54-\u0d56\u0d5f-\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e86-\u0e8a\u0e8c-\u0ea3\u0ea5\u0ea7-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f5\u13f8-\u13fd\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f8\u1700-\u1711\u171f-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1878\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191e\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19b0-\u19c9\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4c\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1c80-\u1c88\u1c90-\u1cba\u1cbd-\u1cbf\u1ce9-\u1cec\u1cee-\u1cf3\u1cf5\u1cf6\u1cfa\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2118-\u211d\u2124\u2126\u2128\u212a-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309b-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312f\u3131-\u318e\u31a0-\u31bf\u31f0-\u31ff\u3400-\u4dbf\u4e00-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua69d\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua7ca\ua7d0\ua7d1\ua7d3\ua7d5-\ua7d9\ua7f2-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua8fd\ua8fe\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\ua9e0-\ua9e4\ua9e6-\ua9ef\ua9fa-\ua9fe\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa7e-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uab30-\uab5a\uab5c-\uab69\uab70-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
 
   // These are a run-length and offset encoded representation of the
+  // >0xffff code points that are a valid part of identifiers. The
+  // offset starts at 0x10000, and each pair of numbers represents an
+  // offset to the next range, and then a size of the range.
 
   // Reserved word lists for various dialects of the language
 
@@ -1026,8 +1029,10 @@ module.exports = {
     toString.call(obj) === "[object Array]"
   ); });
 
+  var regexpCache = Object.create(null);
+
   function wordsRegexp(words) {
-    return new RegExp("^(?:" + words.replace(/ /g, "|") + ")$")
+    return regexpCache[words] || (regexpCache[words] = new RegExp("^(?:" + words.replace(/ /g, "|") + ")$"))
   }
 
   function codePointToString(code) {
@@ -1087,11 +1092,11 @@ module.exports = {
     // Can be either `"script"` or `"module"`. This influences global
     // strict mode and parsing of `import` and `export` declarations.
     sourceType: "script",
-    // `onInsertedSemicolon` can be a callback that will be called
-    // when a semicolon is automatically inserted. It will be passed
-    // the position of the comma as an offset, and if `locations` is
-    // enabled, it is given the location as a `{line, column}` object
-    // as second argument.
+    // `onInsertedSemicolon` can be a callback that will be called when
+    // a semicolon is automatically inserted. It will be passed the
+    // position of the inserted semicolon as an offset, and if
+    // `locations` is enabled, it is given the location as a `{line,
+    // column}` object as second argument.
     onInsertedSemicolon: null,
     // `onTrailingComma` is similar to `onInsertedSemicolon`, but for
     // trailing commas.
@@ -1119,6 +1124,10 @@ module.exports = {
     // allowed and treated as a line comment. Enabled by default when
     // `ecmaVersion` >= 2023.
     allowHashBang: false,
+    // By default, the parser will verify that private properties are
+    // only used in places where they are valid and have been declared.
+    // Set this to false to turn such checks off.
+    checkPrivateFields: true,
     // When `locations` is on, `loc` properties holding objects with
     // `start` and `end` properties in `{line, column}` form (with
     // line being 1-based and column 0-based) will be attached to the
@@ -1140,6 +1149,8 @@ module.exports = {
     // passed, the full `{line, column}` locations of the start and
     // end of the comments. Note that you are not allowed to call the
     // parser from the callback—that will corrupt its internal state.
+    // When this option has an array as value, objects representing the
+    // comments are pushed to it.
     onComment: null,
     // Nodes have their start and end characters offsets recorded in
     // `start` and `end` properties (directly on the node, rather than
@@ -1885,6 +1896,16 @@ module.exports = {
 
   var empty$1 = [];
 
+  pp$8.parseCatchClauseParam = function() {
+    var param = this.parseBindingAtom();
+    var simple = param.type === "Identifier";
+    this.enterScope(simple ? SCOPE_SIMPLE_CATCH : 0);
+    this.checkLValPattern(param, simple ? BIND_SIMPLE_CATCH : BIND_LEXICAL);
+    this.expect(types$1.parenR);
+
+    return param
+  };
+
   pp$8.parseTryStatement = function(node) {
     this.next();
     node.block = this.parseBlock();
@@ -1893,11 +1914,7 @@ module.exports = {
       var clause = this.startNode();
       this.next();
       if (this.eat(types$1.parenL)) {
-        clause.param = this.parseBindingAtom();
-        var simple = clause.param.type === "Identifier";
-        this.enterScope(simple ? SCOPE_SIMPLE_CATCH : 0);
-        this.checkLValPattern(clause.param, simple ? BIND_SIMPLE_CATCH : BIND_LEXICAL);
-        this.expect(types$1.parenR);
+        clause.param = this.parseCatchClauseParam();
       } else {
         if (this.options.ecmaVersion < 10) { this.unexpected(); }
         clause.param = null;
@@ -1913,9 +1930,9 @@ module.exports = {
     return this.finishNode(node, "TryStatement")
   };
 
-  pp$8.parseVarStatement = function(node, kind) {
+  pp$8.parseVarStatement = function(node, kind, allowMissingInitializer) {
     this.next();
-    this.parseVar(node, false, kind);
+    this.parseVar(node, false, kind, allowMissingInitializer);
     this.semicolon();
     return this.finishNode(node, "VariableDeclaration")
   };
@@ -2044,7 +2061,7 @@ module.exports = {
 
   // Parse a list of variable declarations.
 
-  pp$8.parseVar = function(node, isFor, kind) {
+  pp$8.parseVar = function(node, isFor, kind, allowMissingInitializer) {
     node.declarations = [];
     node.kind = kind;
     for (;;) {
@@ -2052,9 +2069,9 @@ module.exports = {
       this.parseVarId(decl, kind);
       if (this.eat(types$1.eq)) {
         decl.init = this.parseMaybeAssign(isFor);
-      } else if (kind === "const" && !(this.type === types$1._in || (this.options.ecmaVersion >= 6 && this.isContextual("of")))) {
+      } else if (!allowMissingInitializer && kind === "const" && !(this.type === types$1._in || (this.options.ecmaVersion >= 6 && this.isContextual("of")))) {
         this.unexpected();
-      } else if (decl.id.type !== "Identifier" && !(isFor && (this.type === types$1._in || this.isContextual("of")))) {
+      } else if (!allowMissingInitializer && decl.id.type !== "Identifier" && !(isFor && (this.type === types$1._in || this.isContextual("of")))) {
         this.raise(this.lastTokEnd, "Complex binding patterns require an initialization value");
       } else {
         decl.init = null;
@@ -2143,7 +2160,7 @@ module.exports = {
       if (element) {
         classBody.body.push(element);
         if (element.type === "MethodDefinition" && element.kind === "constructor") {
-          if (hadConstructor) { this.raise(element.start, "Duplicate constructor in the same class"); }
+          if (hadConstructor) { this.raiseRecoverable(element.start, "Duplicate constructor in the same class"); }
           hadConstructor = true;
         } else if (element.key && element.key.type === "PrivateIdentifier" && isPrivateNameConflicted(privateNameMap, element)) {
           this.raiseRecoverable(element.key.start, ("Identifier '#" + (element.key.name) + "' has already been declared"));
@@ -2341,6 +2358,7 @@ module.exports = {
     var ref = this.privateNameStack.pop();
     var declared = ref.declared;
     var used = ref.used;
+    if (!this.options.checkPrivateFields) { return }
     var len = this.privateNameStack.length;
     var parent = len === 0 ? null : this.privateNameStack[len - 1];
     for (var i = 0; i < used.length; ++i) {
@@ -2392,44 +2410,36 @@ module.exports = {
 
   // Parses module export declaration.
 
+  pp$8.parseExportAllDeclaration = function(node, exports) {
+    if (this.options.ecmaVersion >= 11) {
+      if (this.eatContextual("as")) {
+        node.exported = this.parseModuleExportName();
+        this.checkExport(exports, node.exported, this.lastTokStart);
+      } else {
+        node.exported = null;
+      }
+    }
+    this.expectContextual("from");
+    if (this.type !== types$1.string) { this.unexpected(); }
+    node.source = this.parseExprAtom();
+    this.semicolon();
+    return this.finishNode(node, "ExportAllDeclaration")
+  };
+
   pp$8.parseExport = function(node, exports) {
     this.next();
     // export * from '...'
     if (this.eat(types$1.star)) {
-      if (this.options.ecmaVersion >= 11) {
-        if (this.eatContextual("as")) {
-          node.exported = this.parseModuleExportName();
-          this.checkExport(exports, node.exported, this.lastTokStart);
-        } else {
-          node.exported = null;
-        }
-      }
-      this.expectContextual("from");
-      if (this.type !== types$1.string) { this.unexpected(); }
-      node.source = this.parseExprAtom();
-      this.semicolon();
-      return this.finishNode(node, "ExportAllDeclaration")
+      return this.parseExportAllDeclaration(node, exports)
     }
     if (this.eat(types$1._default)) { // export default ...
       this.checkExport(exports, "default", this.lastTokStart);
-      var isAsync;
-      if (this.type === types$1._function || (isAsync = this.isAsyncFunction())) {
-        var fNode = this.startNode();
-        this.next();
-        if (isAsync) { this.next(); }
-        node.declaration = this.parseFunction(fNode, FUNC_STATEMENT | FUNC_NULLABLE_ID, false, isAsync);
-      } else if (this.type === types$1._class) {
-        var cNode = this.startNode();
-        node.declaration = this.parseClass(cNode, "nullableID");
-      } else {
-        node.declaration = this.parseMaybeAssign();
-        this.semicolon();
-      }
+      node.declaration = this.parseExportDefaultDeclaration();
       return this.finishNode(node, "ExportDefaultDeclaration")
     }
     // export var|const|let|function|class ...
     if (this.shouldParseExportStatement()) {
-      node.declaration = this.parseStatement(null);
+      node.declaration = this.parseExportDeclaration(node);
       if (node.declaration.type === "VariableDeclaration")
         { this.checkVariableExport(exports, node.declaration.declarations); }
       else
@@ -2461,6 +2471,27 @@ module.exports = {
       this.semicolon();
     }
     return this.finishNode(node, "ExportNamedDeclaration")
+  };
+
+  pp$8.parseExportDeclaration = function(node) {
+    return this.parseStatement(null)
+  };
+
+  pp$8.parseExportDefaultDeclaration = function() {
+    var isAsync;
+    if (this.type === types$1._function || (isAsync = this.isAsyncFunction())) {
+      var fNode = this.startNode();
+      this.next();
+      if (isAsync) { this.next(); }
+      return this.parseFunction(fNode, FUNC_STATEMENT | FUNC_NULLABLE_ID, false, isAsync)
+    } else if (this.type === types$1._class) {
+      var cNode = this.startNode();
+      return this.parseClass(cNode, "nullableID")
+    } else {
+      var declaration = this.parseMaybeAssign();
+      this.semicolon();
+      return declaration
+    }
   };
 
   pp$8.checkExport = function(exports, name, pos) {
@@ -2495,8 +2526,6 @@ module.exports = {
       { this.checkPatternExport(exports, pat.left); }
     else if (type === "RestElement")
       { this.checkPatternExport(exports, pat.argument); }
-    else if (type === "ParenthesizedExpression")
-      { this.checkPatternExport(exports, pat.expression); }
   };
 
   pp$8.checkVariableExport = function(exports, decls) {
@@ -2520,6 +2549,20 @@ module.exports = {
 
   // Parses a comma-separated list of module exports.
 
+  pp$8.parseExportSpecifier = function(exports) {
+    var node = this.startNode();
+    node.local = this.parseModuleExportName();
+
+    node.exported = this.eatContextual("as") ? this.parseModuleExportName() : node.local;
+    this.checkExport(
+      exports,
+      node.exported,
+      node.exported.start
+    );
+
+    return this.finishNode(node, "ExportSpecifier")
+  };
+
   pp$8.parseExportSpecifiers = function(exports) {
     var nodes = [], first = true;
     // export { x, y as z } [from '...']
@@ -2530,15 +2573,7 @@ module.exports = {
         if (this.afterTrailingComma(types$1.braceR)) { break }
       } else { first = false; }
 
-      var node = this.startNode();
-      node.local = this.parseModuleExportName();
-      node.exported = this.eatContextual("as") ? this.parseModuleExportName() : node.local;
-      this.checkExport(
-        exports,
-        node.exported,
-        node.exported.start
-      );
-      nodes.push(this.finishNode(node, "ExportSpecifier"));
+      nodes.push(this.parseExportSpecifier(exports));
     }
     return nodes
   };
@@ -2547,6 +2582,7 @@ module.exports = {
 
   pp$8.parseImport = function(node) {
     this.next();
+
     // import '...'
     if (this.type === types$1.string) {
       node.specifiers = empty$1;
@@ -2562,23 +2598,46 @@ module.exports = {
 
   // Parses a comma-separated list of module imports.
 
+  pp$8.parseImportSpecifier = function() {
+    var node = this.startNode();
+    node.imported = this.parseModuleExportName();
+
+    if (this.eatContextual("as")) {
+      node.local = this.parseIdent();
+    } else {
+      this.checkUnreserved(node.imported);
+      node.local = node.imported;
+    }
+    this.checkLValSimple(node.local, BIND_LEXICAL);
+
+    return this.finishNode(node, "ImportSpecifier")
+  };
+
+  pp$8.parseImportDefaultSpecifier = function() {
+    // import defaultObj, { x, y as z } from '...'
+    var node = this.startNode();
+    node.local = this.parseIdent();
+    this.checkLValSimple(node.local, BIND_LEXICAL);
+    return this.finishNode(node, "ImportDefaultSpecifier")
+  };
+
+  pp$8.parseImportNamespaceSpecifier = function() {
+    var node = this.startNode();
+    this.next();
+    this.expectContextual("as");
+    node.local = this.parseIdent();
+    this.checkLValSimple(node.local, BIND_LEXICAL);
+    return this.finishNode(node, "ImportNamespaceSpecifier")
+  };
+
   pp$8.parseImportSpecifiers = function() {
     var nodes = [], first = true;
     if (this.type === types$1.name) {
-      // import defaultObj, { x, y as z } from '...'
-      var node = this.startNode();
-      node.local = this.parseIdent();
-      this.checkLValSimple(node.local, BIND_LEXICAL);
-      nodes.push(this.finishNode(node, "ImportDefaultSpecifier"));
+      nodes.push(this.parseImportDefaultSpecifier());
       if (!this.eat(types$1.comma)) { return nodes }
     }
     if (this.type === types$1.star) {
-      var node$1 = this.startNode();
-      this.next();
-      this.expectContextual("as");
-      node$1.local = this.parseIdent();
-      this.checkLValSimple(node$1.local, BIND_LEXICAL);
-      nodes.push(this.finishNode(node$1, "ImportNamespaceSpecifier"));
+      nodes.push(this.parseImportNamespaceSpecifier());
       return nodes
     }
     this.expect(types$1.braceL);
@@ -2588,16 +2647,7 @@ module.exports = {
         if (this.afterTrailingComma(types$1.braceR)) { break }
       } else { first = false; }
 
-      var node$2 = this.startNode();
-      node$2.imported = this.parseModuleExportName();
-      if (this.eatContextual("as")) {
-        node$2.local = this.parseIdent();
-      } else {
-        this.checkUnreserved(node$2.imported);
-        node$2.local = node$2.imported;
-      }
-      this.checkLValSimple(node$2.local, BIND_LEXICAL);
-      nodes.push(this.finishNode(node$2, "ImportSpecifier"));
+      nodes.push(this.parseImportSpecifier());
     }
     return nodes
   };
@@ -2770,7 +2820,7 @@ module.exports = {
     return this.parseIdent()
   };
 
-  pp$7.parseBindingList = function(close, allowEmpty, allowTrailingComma) {
+  pp$7.parseBindingList = function(close, allowEmpty, allowTrailingComma, allowModifiers) {
     var elts = [], first = true;
     while (!this.eat(close)) {
       if (first) { first = false; }
@@ -2783,16 +2833,20 @@ module.exports = {
         var rest = this.parseRestBinding();
         this.parseBindingListItem(rest);
         elts.push(rest);
-        if (this.type === types$1.comma) { this.raise(this.start, "Comma is not permitted after the rest element"); }
+        if (this.type === types$1.comma) { this.raiseRecoverable(this.start, "Comma is not permitted after the rest element"); }
         this.expect(close);
         break
       } else {
-        var elem = this.parseMaybeDefault(this.start, this.startLoc);
-        this.parseBindingListItem(elem);
-        elts.push(elem);
+        elts.push(this.parseAssignableListItem(allowModifiers));
       }
     }
     return elts
+  };
+
+  pp$7.parseAssignableListItem = function(allowModifiers) {
+    var elem = this.parseMaybeDefault(this.start, this.startLoc);
+    this.parseBindingListItem(elem);
+    return elem
   };
 
   pp$7.parseBindingListItem = function(param) {
@@ -2960,6 +3014,9 @@ module.exports = {
   };
 
   // The algorithm used to determine whether a regexp can appear at a
+  // given point in the program is loosely based on sweet.js' approach.
+  // See https://github.com/mozilla/sweet.js/wiki/design
+
 
   var TokContext = function TokContext(token, isExpr, preserveSpace, override, generator) {
     this.token = token;
@@ -3032,7 +3089,7 @@ module.exports = {
       { this.exprAllowed = type.beforeExpr; }
   };
 
-  // Used to handle egde cases when token context could not be inferred correctly during tokenization phase
+  // Used to handle edge cases when token context could not be inferred correctly during tokenization phase
 
   pp$6.overrideContext = function(tokenCtx) {
     if (this.curContext() !== tokenCtx) {
@@ -3085,6 +3142,11 @@ module.exports = {
     this.exprAllowed = false;
   };
 
+  types$1.colon.updateContext = function() {
+    if (this.curContext().token === "function") { this.context.pop(); }
+    this.exprAllowed = true;
+  };
+
   types$1.backQuote.updateContext = function() {
     if (this.curContext() === types.q_tmpl)
       { this.context.pop(); }
@@ -3115,6 +3177,23 @@ module.exports = {
   };
 
   // A recursive descent parser operates by defining functions for all
+  // syntactic elements, and recursively calling those, each function
+  // advancing the input stream and returning an AST node. Precedence
+  // of constructs (for example, the fact that `!x[1]` means `!(x[1])`
+  // instead of `(!x)[1]` is handled by the fact that the parser
+  // function that parses unary prefix operators is called first, and
+  // in turn calls the function that parses `[]` subscripts — that
+  // way, it'll receive the node for `x[1]` already parsed, and wraps
+  // *that* in the unary operator node.
+  //
+  // Acorn uses an [operator precedence parser][opp] to handle binary
+  // operator precedence, because it is much more compact than using
+  // the technique outlined above, which uses different, nesting
+  // functions to specify precedence, for all of the ten binary
+  // precedence levels that JavaScript defines.
+  //
+  // [opp]: http://en.wikipedia.org/wiki/Operator-precedence_parser
+
 
   var pp$5 = Parser.prototype;
 
@@ -3344,7 +3423,7 @@ module.exports = {
       else { sawUnary = true; }
       expr = this.finishNode(node, update ? "UpdateExpression" : "UnaryExpression");
     } else if (!sawUnary && this.type === types$1.privateId) {
-      if (forInit || this.privateNameStack.length === 0) { this.unexpected(); }
+      if ((forInit || this.privateNameStack.length === 0) && this.options.checkPrivateFields) { this.unexpected(); }
       expr = this.parsePrivateIdent();
       // only could be private fields in 'in', such as #x in obj
       if (this.type !== types$1._in) { this.unexpected(); }
@@ -3418,6 +3497,14 @@ module.exports = {
     }
   };
 
+  pp$5.shouldParseAsyncArrow = function() {
+    return !this.canInsertSemicolon() && this.eat(types$1.arrow)
+  };
+
+  pp$5.parseSubscriptAsyncArrow = function(startPos, startLoc, exprList, forInit) {
+    return this.parseArrowExpression(this.startNodeAt(startPos, startLoc), exprList, true, forInit)
+  };
+
   pp$5.parseSubscript = function(base, startPos, startLoc, noCalls, maybeAsyncArrow, optionalChained, forInit) {
     var optionalSupported = this.options.ecmaVersion >= 11;
     var optional = optionalSupported && this.eat(types$1.questionDot);
@@ -3446,7 +3533,7 @@ module.exports = {
       this.awaitPos = 0;
       this.awaitIdentPos = 0;
       var exprList = this.parseExprList(types$1.parenR, this.options.ecmaVersion >= 8, false, refDestructuringErrors);
-      if (maybeAsyncArrow && !optional && !this.canInsertSemicolon() && this.eat(types$1.arrow)) {
+      if (maybeAsyncArrow && !optional && this.shouldParseAsyncArrow()) {
         this.checkPatternErrors(refDestructuringErrors, false);
         this.checkYieldAwaitInDefaultParams();
         if (this.awaitIdentPos > 0)
@@ -3454,7 +3541,7 @@ module.exports = {
         this.yieldPos = oldYieldPos;
         this.awaitPos = oldAwaitPos;
         this.awaitIdentPos = oldAwaitIdentPos;
-        return this.parseArrowExpression(this.startNodeAt(startPos, startLoc), exprList, true, forInit)
+        return this.parseSubscriptAsyncArrow(startPos, startLoc, exprList, forInit)
       }
       this.checkExpressionErrors(refDestructuringErrors, true);
       this.yieldPos = oldYieldPos || this.yieldPos;
@@ -3484,7 +3571,7 @@ module.exports = {
   // `new`, or an expression wrapped in punctuation like `()`, `[]`,
   // or `{}`.
 
-  pp$5.parseExprAtom = function(refDestructuringErrors, forInit) {
+  pp$5.parseExprAtom = function(refDestructuringErrors, forInit, forNew) {
     // If a division operator appears in an expression position, the
     // tokenizer got confused, and we force it to read a regexp instead.
     if (this.type === types$1.slash) { this.readRegexp(); }
@@ -3585,31 +3672,36 @@ module.exports = {
 
     case types$1._import:
       if (this.options.ecmaVersion >= 11) {
-        return this.parseExprImport()
+        return this.parseExprImport(forNew)
       } else {
         return this.unexpected()
       }
 
     default:
-      this.unexpected();
+      return this.parseExprAtomDefault()
     }
   };
 
-  pp$5.parseExprImport = function() {
+  pp$5.parseExprAtomDefault = function() {
+    this.unexpected();
+  };
+
+  pp$5.parseExprImport = function(forNew) {
     var node = this.startNode();
 
     // Consume `import` as an identifier for `import.meta`.
     // Because `this.parseIdent(true)` doesn't check escape sequences, it needs the check of `this.containsEsc`.
     if (this.containsEsc) { this.raiseRecoverable(this.start, "Escape sequence in keyword import"); }
-    var meta = this.parseIdent(true);
+    this.next();
 
-    switch (this.type) {
-    case types$1.parenL:
+    if (this.type === types$1.parenL && !forNew) {
       return this.parseDynamicImport(node)
-    case types$1.dot:
-      node.meta = meta;
+    } else if (this.type === types$1.dot) {
+      var meta = this.startNodeAt(node.start, node.loc && node.loc.start);
+      meta.name = "import";
+      node.meta = this.finishNode(meta, "Identifier");
       return this.parseImportMeta(node)
-    default:
+    } else {
       this.unexpected();
     }
   };
@@ -3665,6 +3757,10 @@ module.exports = {
     return val
   };
 
+  pp$5.shouldParseArrow = function(exprList) {
+    return !this.canInsertSemicolon()
+  };
+
   pp$5.parseParenAndDistinguishExpression = function(canBeArrow, forInit) {
     var startPos = this.start, startLoc = this.startLoc, val, allowTrailingComma = this.options.ecmaVersion >= 8;
     if (this.options.ecmaVersion >= 6) {
@@ -3684,7 +3780,12 @@ module.exports = {
         } else if (this.type === types$1.ellipsis) {
           spreadStart = this.start;
           exprList.push(this.parseParenItem(this.parseRestBinding()));
-          if (this.type === types$1.comma) { this.raise(this.start, "Comma is not permitted after the rest element"); }
+          if (this.type === types$1.comma) {
+            this.raiseRecoverable(
+              this.start,
+              "Comma is not permitted after the rest element"
+            );
+          }
           break
         } else {
           exprList.push(this.parseMaybeAssign(false, refDestructuringErrors, this.parseParenItem));
@@ -3693,7 +3794,7 @@ module.exports = {
       var innerEndPos = this.lastTokEnd, innerEndLoc = this.lastTokEndLoc;
       this.expect(types$1.parenR);
 
-      if (canBeArrow && !this.canInsertSemicolon() && this.eat(types$1.arrow)) {
+      if (canBeArrow && this.shouldParseArrow(exprList) && this.eat(types$1.arrow)) {
         this.checkPatternErrors(refDestructuringErrors, false);
         this.checkYieldAwaitInDefaultParams();
         this.yieldPos = oldYieldPos;
@@ -3746,9 +3847,12 @@ module.exports = {
   pp$5.parseNew = function() {
     if (this.containsEsc) { this.raiseRecoverable(this.start, "Escape sequence in keyword new"); }
     var node = this.startNode();
-    var meta = this.parseIdent(true);
-    if (this.options.ecmaVersion >= 6 && this.eat(types$1.dot)) {
-      node.meta = meta;
+    this.next();
+    if (this.options.ecmaVersion >= 6 && this.type === types$1.dot) {
+      var meta = this.startNodeAt(node.start, node.loc && node.loc.start);
+      meta.name = "new";
+      node.meta = this.finishNode(meta, "Identifier");
+      this.next();
       var containsEsc = this.containsEsc;
       node.property = this.parseIdent(true);
       if (node.property.name !== "target")
@@ -3759,11 +3863,8 @@ module.exports = {
         { this.raiseRecoverable(node.start, "'new.target' can only be used in functions and class static block"); }
       return this.finishNode(node, "MetaProperty")
     }
-    var startPos = this.start, startLoc = this.startLoc, isImport = this.type === types$1._import;
-    node.callee = this.parseSubscripts(this.parseExprAtom(), startPos, startLoc, true, false);
-    if (isImport && node.callee.type === "ImportExpression") {
-      this.raise(startPos, "Cannot use new with import()");
-    }
+    var startPos = this.start, startLoc = this.startLoc;
+    node.callee = this.parseSubscripts(this.parseExprAtom(null, false, true), startPos, startLoc, true, false);
     if (this.eat(types$1.parenL)) { node.arguments = this.parseExprList(types$1.parenR, this.options.ecmaVersion >= 8, false); }
     else { node.arguments = empty; }
     return this.finishNode(node, "NewExpression")
@@ -3845,7 +3946,7 @@ module.exports = {
       if (isPattern) {
         prop.argument = this.parseIdent(false);
         if (this.type === types$1.comma) {
-          this.raise(this.start, "Comma is not permitted after the rest element");
+          this.raiseRecoverable(this.start, "Comma is not permitted after the rest element");
         }
         return this.finishNode(prop, "RestElement")
       }
@@ -3881,6 +3982,23 @@ module.exports = {
     return this.finishNode(prop, "Property")
   };
 
+  pp$5.parseGetterSetter = function(prop) {
+    prop.kind = prop.key.name;
+    this.parsePropertyName(prop);
+    prop.value = this.parseMethod(false);
+    var paramCount = prop.kind === "get" ? 0 : 1;
+    if (prop.value.params.length !== paramCount) {
+      var start = prop.value.start;
+      if (prop.kind === "get")
+        { this.raiseRecoverable(start, "getter should have no params"); }
+      else
+        { this.raiseRecoverable(start, "setter should have exactly one param"); }
+    } else {
+      if (prop.kind === "set" && prop.value.params[0].type === "RestElement")
+        { this.raiseRecoverable(prop.value.params[0].start, "Setter cannot use rest params"); }
+    }
+  };
+
   pp$5.parsePropertyValue = function(prop, isPattern, isGenerator, isAsync, startPos, startLoc, refDestructuringErrors, containsEsc) {
     if ((isGenerator || isAsync) && this.type === types$1.colon)
       { this.unexpected(); }
@@ -3898,20 +4016,7 @@ module.exports = {
                (prop.key.name === "get" || prop.key.name === "set") &&
                (this.type !== types$1.comma && this.type !== types$1.braceR && this.type !== types$1.eq)) {
       if (isGenerator || isAsync) { this.unexpected(); }
-      prop.kind = prop.key.name;
-      this.parsePropertyName(prop);
-      prop.value = this.parseMethod(false);
-      var paramCount = prop.kind === "get" ? 0 : 1;
-      if (prop.value.params.length !== paramCount) {
-        var start = prop.value.start;
-        if (prop.kind === "get")
-          { this.raiseRecoverable(start, "getter should have no params"); }
-        else
-          { this.raiseRecoverable(start, "setter should have exactly one param"); }
-      } else {
-        if (prop.kind === "set" && prop.value.params[0].type === "RestElement")
-          { this.raiseRecoverable(prop.value.params[0].start, "Setter cannot use rest params"); }
-      }
+      this.parseGetterSetter(prop);
     } else if (this.options.ecmaVersion >= 6 && !prop.computed && prop.key.type === "Identifier") {
       if (isGenerator || isAsync) { this.unexpected(); }
       this.checkUnreserved(prop.key);
@@ -4123,6 +4228,18 @@ module.exports = {
   // identifiers.
 
   pp$5.parseIdent = function(liberal) {
+    var node = this.parseIdentNode();
+    this.next(!!liberal);
+    this.finishNode(node, "Identifier");
+    if (!liberal) {
+      this.checkUnreserved(node);
+      if (node.name === "await" && !this.awaitIdentPos)
+        { this.awaitIdentPos = node.start; }
+    }
+    return node
+  };
+
+  pp$5.parseIdentNode = function() {
     var node = this.startNode();
     if (this.type === types$1.name) {
       node.name = this.value;
@@ -4134,18 +4251,12 @@ module.exports = {
       // But there is no chance to pop the context if the keyword is consumed as an identifier such as a property name.
       // If the previous token is a dot, this does not apply because the context-managing code already ignored the keyword
       if ((node.name === "class" || node.name === "function") &&
-          (this.lastTokEnd !== this.lastTokStart + 1 || this.input.charCodeAt(this.lastTokStart) !== 46)) {
+        (this.lastTokEnd !== this.lastTokStart + 1 || this.input.charCodeAt(this.lastTokStart) !== 46)) {
         this.context.pop();
       }
+      this.type = types$1.name;
     } else {
       this.unexpected();
-    }
-    this.next(!!liberal);
-    this.finishNode(node, "Identifier");
-    if (!liberal) {
-      this.checkUnreserved(node);
-      if (node.name === "await" && !this.awaitIdentPos)
-        { this.awaitIdentPos = node.start; }
     }
     return node
   };
@@ -4161,10 +4272,12 @@ module.exports = {
     this.finishNode(node, "PrivateIdentifier");
 
     // For validating existence
-    if (this.privateNameStack.length === 0) {
-      this.raise(node.start, ("Private field '#" + (node.name) + "' must be declared in an enclosing class"));
-    } else {
-      this.privateNameStack[this.privateNameStack.length - 1].used.push(node);
+    if (this.options.checkPrivateFields) {
+      if (this.privateNameStack.length === 0) {
+        this.raise(node.start, ("Private field '#" + (node.name) + "' must be declared in an enclosing class"));
+      } else {
+        this.privateNameStack[this.privateNameStack.length - 1].used.push(node);
+      }
     }
 
     return node
@@ -4386,6 +4499,18 @@ module.exports = {
     14: ecma14BinaryProperties
   };
 
+  // #table-binary-unicode-properties-of-strings
+  var ecma14BinaryPropertiesOfStrings = "Basic_Emoji Emoji_Keycap_Sequence RGI_Emoji_Modifier_Sequence RGI_Emoji_Flag_Sequence RGI_Emoji_Tag_Sequence RGI_Emoji_ZWJ_Sequence RGI_Emoji";
+
+  var unicodeBinaryPropertiesOfStrings = {
+    9: "",
+    10: "",
+    11: "",
+    12: "",
+    13: "",
+    14: ecma14BinaryPropertiesOfStrings
+  };
+
   // #table-unicode-general-category-values
   var unicodeGeneralCategoryValues = "Cased_Letter LC Close_Punctuation Pe Connector_Punctuation Pc Control Cc cntrl Currency_Symbol Sc Dash_Punctuation Pd Decimal_Number Nd digit Enclosing_Mark Me Final_Punctuation Pf Format Cf Initial_Punctuation Pi Letter L Letter_Number Nl Line_Separator Zl Lowercase_Letter Ll Mark M Combining_Mark Math_Symbol Sm Modifier_Letter Lm Modifier_Symbol Sk Nonspacing_Mark Mn Number N Open_Punctuation Ps Other C Other_Letter Lo Other_Number No Other_Punctuation Po Other_Symbol So Paragraph_Separator Zp Private_Use Co Punctuation P punct Separator Z Space_Separator Zs Spacing_Mark Mc Surrogate Cs Symbol S Titlecase_Letter Lt Unassigned Cn Uppercase_Letter Lu";
 
@@ -4395,7 +4520,7 @@ module.exports = {
   var ecma11ScriptValues = ecma10ScriptValues + " Elymaic Elym Nandinagari Nand Nyiakeng_Puachue_Hmong Hmnp Wancho Wcho";
   var ecma12ScriptValues = ecma11ScriptValues + " Chorasmian Chrs Diak Dives_Akuru Khitan_Small_Script Kits Yezi Yezidi";
   var ecma13ScriptValues = ecma12ScriptValues + " Cypro_Minoan Cpmn Old_Uyghur Ougr Tangsa Tnsa Toto Vithkuqi Vith";
-  var ecma14ScriptValues = ecma13ScriptValues + " Kawi Nag_Mundari Nagm";
+  var ecma14ScriptValues = ecma13ScriptValues + " Hrkt Katakana_Or_Hiragana Kawi Nag_Mundari Nagm Unknown Zzzz";
 
   var unicodeScriptValues = {
     9: ecma9ScriptValues,
@@ -4410,6 +4535,7 @@ module.exports = {
   function buildUnicodeData(ecmaVersion) {
     var d = data[ecmaVersion] = {
       binary: wordsRegexp(unicodeBinaryProperties[ecmaVersion] + " " + unicodeGeneralCategoryValues),
+      binaryOfStrings: wordsRegexp(unicodeBinaryPropertiesOfStrings[ecmaVersion]),
       nonBinary: {
         General_Category: wordsRegexp(unicodeGeneralCategoryValues),
         Script: wordsRegexp(unicodeScriptValues[ecmaVersion])
@@ -4432,12 +4558,13 @@ module.exports = {
 
   var RegExpValidationState = function RegExpValidationState(parser) {
     this.parser = parser;
-    this.validFlags = "gim" + (parser.options.ecmaVersion >= 6 ? "uy" : "") + (parser.options.ecmaVersion >= 9 ? "s" : "") + (parser.options.ecmaVersion >= 13 ? "d" : "");
+    this.validFlags = "gim" + (parser.options.ecmaVersion >= 6 ? "uy" : "") + (parser.options.ecmaVersion >= 9 ? "s" : "") + (parser.options.ecmaVersion >= 13 ? "d" : "") + (parser.options.ecmaVersion >= 15 ? "v" : "");
     this.unicodeProperties = data[parser.options.ecmaVersion >= 14 ? 14 : parser.options.ecmaVersion];
     this.source = "";
     this.flags = "";
     this.start = 0;
     this.switchU = false;
+    this.switchV = false;
     this.switchN = false;
     this.pos = 0;
     this.lastIntValue = 0;
@@ -4450,12 +4577,20 @@ module.exports = {
   };
 
   RegExpValidationState.prototype.reset = function reset (start, pattern, flags) {
+    var unicodeSets = flags.indexOf("v") !== -1;
     var unicode = flags.indexOf("u") !== -1;
     this.start = start | 0;
     this.source = pattern + "";
     this.flags = flags;
-    this.switchU = unicode && this.parser.options.ecmaVersion >= 6;
-    this.switchN = unicode && this.parser.options.ecmaVersion >= 9;
+    if (unicodeSets && this.parser.options.ecmaVersion >= 15) {
+      this.switchU = true;
+      this.switchV = true;
+      this.switchN = true;
+    } else {
+      this.switchU = unicode && this.parser.options.ecmaVersion >= 6;
+      this.switchV = false;
+      this.switchN = unicode && this.parser.options.ecmaVersion >= 9;
+    }
   };
 
   RegExpValidationState.prototype.raise = function raise (message) {
@@ -4524,6 +4659,23 @@ module.exports = {
     return false
   };
 
+  RegExpValidationState.prototype.eatChars = function eatChars (chs, forceU) {
+      if ( forceU === void 0 ) forceU = false;
+
+    var pos = this.pos;
+    for (var i = 0, list = chs; i < list.length; i += 1) {
+      var ch = list[i];
+
+        var current = this.at(pos, forceU);
+      if (current === -1 || current !== ch) {
+        return false
+      }
+      pos = this.nextIndex(pos, forceU);
+    }
+    this.pos = pos;
+    return true
+  };
+
   /**
    * Validate the flags part of a given RegExpLiteral.
    *
@@ -4534,6 +4686,9 @@ module.exports = {
     var validFlags = state.validFlags;
     var flags = state.flags;
 
+    var u = false;
+    var v = false;
+
     for (var i = 0; i < flags.length; i++) {
       var flag = flags.charAt(i);
       if (validFlags.indexOf(flag) === -1) {
@@ -4542,6 +4697,11 @@ module.exports = {
       if (flags.indexOf(flag, i + 1) > -1) {
         this.raise(state.start, "Duplicate regular expression flag");
       }
+      if (flag === "u") { u = true; }
+      if (flag === "v") { v = true; }
+    }
+    if (this.options.ecmaVersion >= 15 && u && v) {
+      this.raise(state.start, "Invalid regular expression flag");
     }
   };
 
@@ -5160,6 +5320,12 @@ module.exports = {
     return false
   };
 
+  // Return values used by character set parsing methods, needed to
+  // forbid negation of sets that can match strings.
+  var CharSetNone = 0; // Nothing parsed
+  var CharSetOk = 1; // Construct parsed, cannot contain strings
+  var CharSetString = 2; // Construct parsed, can contain strings
+
   // https://www.ecma-international.org/ecma-262/8.0/#prod-CharacterClassEscape
   pp$1.regexp_eatCharacterClassEscape = function(state) {
     var ch = state.current();
@@ -5167,28 +5333,32 @@ module.exports = {
     if (isCharacterClassEscape(ch)) {
       state.lastIntValue = -1;
       state.advance();
-      return true
+      return CharSetOk
     }
 
+    var negate = false;
     if (
       state.switchU &&
       this.options.ecmaVersion >= 9 &&
-      (ch === 0x50 /* P */ || ch === 0x70 /* p */)
+      ((negate = ch === 0x50 /* P */) || ch === 0x70 /* p */)
     ) {
       state.lastIntValue = -1;
       state.advance();
+      var result;
       if (
         state.eat(0x7B /* { */) &&
-        this.regexp_eatUnicodePropertyValueExpression(state) &&
+        (result = this.regexp_eatUnicodePropertyValueExpression(state)) &&
         state.eat(0x7D /* } */)
       ) {
-        return true
+        if (negate && result === CharSetString) { state.raise("Invalid property name"); }
+        return result
       }
       state.raise("Invalid property name");
     }
 
-    return false
+    return CharSetNone
   };
+
   function isCharacterClassEscape(ch) {
     return (
       ch === 0x64 /* d */ ||
@@ -5212,7 +5382,7 @@ module.exports = {
       if (this.regexp_eatUnicodePropertyValue(state)) {
         var value = state.lastStringValue;
         this.regexp_validateUnicodePropertyNameAndValue(state, name, value);
-        return true
+        return CharSetOk
       }
     }
     state.pos = start;
@@ -5220,20 +5390,22 @@ module.exports = {
     // LoneUnicodePropertyNameOrValue
     if (this.regexp_eatLoneUnicodePropertyNameOrValue(state)) {
       var nameOrValue = state.lastStringValue;
-      this.regexp_validateUnicodePropertyNameOrValue(state, nameOrValue);
-      return true
+      return this.regexp_validateUnicodePropertyNameOrValue(state, nameOrValue)
     }
-    return false
+    return CharSetNone
   };
+
   pp$1.regexp_validateUnicodePropertyNameAndValue = function(state, name, value) {
     if (!hasOwn(state.unicodeProperties.nonBinary, name))
       { state.raise("Invalid property name"); }
     if (!state.unicodeProperties.nonBinary[name].test(value))
       { state.raise("Invalid property value"); }
   };
+
   pp$1.regexp_validateUnicodePropertyNameOrValue = function(state, nameOrValue) {
-    if (!state.unicodeProperties.binary.test(nameOrValue))
-      { state.raise("Invalid property name"); }
+    if (state.unicodeProperties.binary.test(nameOrValue)) { return CharSetOk }
+    if (state.switchV && state.unicodeProperties.binaryOfStrings.test(nameOrValue)) { return CharSetString }
+    state.raise("Invalid property name");
   };
 
   // UnicodePropertyName ::
@@ -5247,6 +5419,7 @@ module.exports = {
     }
     return state.lastStringValue !== ""
   };
+
   function isUnicodePropertyNameCharacter(ch) {
     return isControlLetter(ch) || ch === 0x5F /* _ */
   }
@@ -5275,21 +5448,29 @@ module.exports = {
   // https://www.ecma-international.org/ecma-262/8.0/#prod-CharacterClass
   pp$1.regexp_eatCharacterClass = function(state) {
     if (state.eat(0x5B /* [ */)) {
-      state.eat(0x5E /* ^ */);
-      this.regexp_classRanges(state);
-      if (state.eat(0x5D /* ] */)) {
-        return true
-      }
-      // Unreachable since it threw "unterminated regular expression" error before.
-      state.raise("Unterminated character class");
+      var negate = state.eat(0x5E /* ^ */);
+      var result = this.regexp_classContents(state);
+      if (!state.eat(0x5D /* ] */))
+        { state.raise("Unterminated character class"); }
+      if (negate && result === CharSetString)
+        { state.raise("Negated character class may contain strings"); }
+      return true
     }
     return false
   };
 
+  // https://tc39.es/ecma262/#prod-ClassContents
   // https://www.ecma-international.org/ecma-262/8.0/#prod-ClassRanges
+  pp$1.regexp_classContents = function(state) {
+    if (state.current() === 0x5D /* ] */) { return CharSetOk }
+    if (state.switchV) { return this.regexp_classSetExpression(state) }
+    this.regexp_nonEmptyClassRanges(state);
+    return CharSetOk
+  };
+
   // https://www.ecma-international.org/ecma-262/8.0/#prod-NonemptyClassRanges
   // https://www.ecma-international.org/ecma-262/8.0/#prod-NonemptyClassRangesNoDash
-  pp$1.regexp_classRanges = function(state) {
+  pp$1.regexp_nonEmptyClassRanges = function(state) {
     while (this.regexp_eatClassAtom(state)) {
       var left = state.lastIntValue;
       if (state.eat(0x2D /* - */) && this.regexp_eatClassAtom(state)) {
@@ -5360,6 +5541,205 @@ module.exports = {
       this.regexp_eatCharacterEscape(state)
     )
   };
+
+  // https://tc39.es/ecma262/#prod-ClassSetExpression
+  // https://tc39.es/ecma262/#prod-ClassUnion
+  // https://tc39.es/ecma262/#prod-ClassIntersection
+  // https://tc39.es/ecma262/#prod-ClassSubtraction
+  pp$1.regexp_classSetExpression = function(state) {
+    var result = CharSetOk, subResult;
+    if (this.regexp_eatClassSetRange(state)) ; else if (subResult = this.regexp_eatClassSetOperand(state)) {
+      if (subResult === CharSetString) { result = CharSetString; }
+      // https://tc39.es/ecma262/#prod-ClassIntersection
+      var start = state.pos;
+      while (state.eatChars([0x26, 0x26] /* && */)) {
+        if (
+          state.current() !== 0x26 /* & */ &&
+          (subResult = this.regexp_eatClassSetOperand(state))
+        ) {
+          if (subResult !== CharSetString) { result = CharSetOk; }
+          continue
+        }
+        state.raise("Invalid character in character class");
+      }
+      if (start !== state.pos) { return result }
+      // https://tc39.es/ecma262/#prod-ClassSubtraction
+      while (state.eatChars([0x2D, 0x2D] /* -- */)) {
+        if (this.regexp_eatClassSetOperand(state)) { continue }
+        state.raise("Invalid character in character class");
+      }
+      if (start !== state.pos) { return result }
+    } else {
+      state.raise("Invalid character in character class");
+    }
+    // https://tc39.es/ecma262/#prod-ClassUnion
+    for (;;) {
+      if (this.regexp_eatClassSetRange(state)) { continue }
+      subResult = this.regexp_eatClassSetOperand(state);
+      if (!subResult) { return result }
+      if (subResult === CharSetString) { result = CharSetString; }
+    }
+  };
+
+  // https://tc39.es/ecma262/#prod-ClassSetRange
+  pp$1.regexp_eatClassSetRange = function(state) {
+    var start = state.pos;
+    if (this.regexp_eatClassSetCharacter(state)) {
+      var left = state.lastIntValue;
+      if (state.eat(0x2D /* - */) && this.regexp_eatClassSetCharacter(state)) {
+        var right = state.lastIntValue;
+        if (left !== -1 && right !== -1 && left > right) {
+          state.raise("Range out of order in character class");
+        }
+        return true
+      }
+      state.pos = start;
+    }
+    return false
+  };
+
+  // https://tc39.es/ecma262/#prod-ClassSetOperand
+  pp$1.regexp_eatClassSetOperand = function(state) {
+    if (this.regexp_eatClassSetCharacter(state)) { return CharSetOk }
+    return this.regexp_eatClassStringDisjunction(state) || this.regexp_eatNestedClass(state)
+  };
+
+  // https://tc39.es/ecma262/#prod-NestedClass
+  pp$1.regexp_eatNestedClass = function(state) {
+    var start = state.pos;
+    if (state.eat(0x5B /* [ */)) {
+      var negate = state.eat(0x5E /* ^ */);
+      var result = this.regexp_classContents(state);
+      if (state.eat(0x5D /* ] */)) {
+        if (negate && result === CharSetString) {
+          state.raise("Negated character class may contain strings");
+        }
+        return result
+      }
+      state.pos = start;
+    }
+    if (state.eat(0x5C /* \ */)) {
+      var result$1 = this.regexp_eatCharacterClassEscape(state);
+      if (result$1) {
+        return result$1
+      }
+      state.pos = start;
+    }
+    return null
+  };
+
+  // https://tc39.es/ecma262/#prod-ClassStringDisjunction
+  pp$1.regexp_eatClassStringDisjunction = function(state) {
+    var start = state.pos;
+    if (state.eatChars([0x5C, 0x71] /* \q */)) {
+      if (state.eat(0x7B /* { */)) {
+        var result = this.regexp_classStringDisjunctionContents(state);
+        if (state.eat(0x7D /* } */)) {
+          return result
+        }
+      } else {
+        // Make the same message as V8.
+        state.raise("Invalid escape");
+      }
+      state.pos = start;
+    }
+    return null
+  };
+
+  // https://tc39.es/ecma262/#prod-ClassStringDisjunctionContents
+  pp$1.regexp_classStringDisjunctionContents = function(state) {
+    var result = this.regexp_classString(state);
+    while (state.eat(0x7C /* | */)) {
+      if (this.regexp_classString(state) === CharSetString) { result = CharSetString; }
+    }
+    return result
+  };
+
+  // https://tc39.es/ecma262/#prod-ClassString
+  // https://tc39.es/ecma262/#prod-NonEmptyClassString
+  pp$1.regexp_classString = function(state) {
+    var count = 0;
+    while (this.regexp_eatClassSetCharacter(state)) { count++; }
+    return count === 1 ? CharSetOk : CharSetString
+  };
+
+  // https://tc39.es/ecma262/#prod-ClassSetCharacter
+  pp$1.regexp_eatClassSetCharacter = function(state) {
+    var start = state.pos;
+    if (state.eat(0x5C /* \ */)) {
+      if (
+        this.regexp_eatCharacterEscape(state) ||
+        this.regexp_eatClassSetReservedPunctuator(state)
+      ) {
+        return true
+      }
+      if (state.eat(0x62 /* b */)) {
+        state.lastIntValue = 0x08; /* <BS> */
+        return true
+      }
+      state.pos = start;
+      return false
+    }
+    var ch = state.current();
+    if (ch < 0 || ch === state.lookahead() && isClassSetReservedDoublePunctuatorCharacter(ch)) { return false }
+    if (isClassSetSyntaxCharacter(ch)) { return false }
+    state.advance();
+    state.lastIntValue = ch;
+    return true
+  };
+
+  // https://tc39.es/ecma262/#prod-ClassSetReservedDoublePunctuator
+  function isClassSetReservedDoublePunctuatorCharacter(ch) {
+    return (
+      ch === 0x21 /* ! */ ||
+      ch >= 0x23 /* # */ && ch <= 0x26 /* & */ ||
+      ch >= 0x2A /* * */ && ch <= 0x2C /* , */ ||
+      ch === 0x2E /* . */ ||
+      ch >= 0x3A /* : */ && ch <= 0x40 /* @ */ ||
+      ch === 0x5E /* ^ */ ||
+      ch === 0x60 /* ` */ ||
+      ch === 0x7E /* ~ */
+    )
+  }
+
+  // https://tc39.es/ecma262/#prod-ClassSetSyntaxCharacter
+  function isClassSetSyntaxCharacter(ch) {
+    return (
+      ch === 0x28 /* ( */ ||
+      ch === 0x29 /* ) */ ||
+      ch === 0x2D /* - */ ||
+      ch === 0x2F /* / */ ||
+      ch >= 0x5B /* [ */ && ch <= 0x5D /* ] */ ||
+      ch >= 0x7B /* { */ && ch <= 0x7D /* } */
+    )
+  }
+
+  // https://tc39.es/ecma262/#prod-ClassSetReservedPunctuator
+  pp$1.regexp_eatClassSetReservedPunctuator = function(state) {
+    var ch = state.current();
+    if (isClassSetReservedPunctuator(ch)) {
+      state.lastIntValue = ch;
+      state.advance();
+      return true
+    }
+    return false
+  };
+
+  // https://tc39.es/ecma262/#prod-ClassSetReservedPunctuator
+  function isClassSetReservedPunctuator(ch) {
+    return (
+      ch === 0x21 /* ! */ ||
+      ch === 0x23 /* # */ ||
+      ch === 0x25 /* % */ ||
+      ch === 0x26 /* & */ ||
+      ch === 0x2C /* , */ ||
+      ch === 0x2D /* - */ ||
+      ch >= 0x3A /* : */ && ch <= 0x3E /* > */ ||
+      ch === 0x40 /* @ */ ||
+      ch === 0x60 /* ` */ ||
+      ch === 0x7E /* ~ */
+    )
+  }
 
   // https://www.ecma-international.org/ecma-262/8.0/#prod-annexB-ClassControlLetter
   pp$1.regexp_eatClassControlLetter = function(state) {
@@ -6281,8 +6661,23 @@ module.exports = {
   };
 
   // Acorn is a tiny, fast JavaScript parser written in JavaScript.
+  //
+  // Acorn was written by Marijn Haverbeke, Ingvar Stepanyan, and
+  // various contributors and released under an MIT license.
+  //
+  // Git repositories for Acorn are available at
+  //
+  //     http://marijnhaverbeke.nl/git/acorn
+  //     https://github.com/acornjs/acorn.git
+  //
+  // Please use the [github bug tracker][ghbt] to report issues.
+  //
+  // [ghbt]: https://github.com/acornjs/acorn/issues
+  //
+  // [walk]: util/walk.js
 
-  var version = "8.8.2";
+
+  var version = "8.11.3";
 
   Parser.acorn = {
     Parser: Parser,
@@ -6307,11 +6702,10 @@ module.exports = {
   };
 
   // The main exported interface (under `self.acorn` when in the
-  // browser) is a `parse` function that takes a code string and
-  // returns an abstract syntax tree as specified by [Mozilla parser
-  // API][api].
+  // browser) is a `parse` function that takes a code string and returns
+  // an abstract syntax tree as specified by the [ESTree spec][estree].
   //
-  // [api]: https://developer.mozilla.org/en-US/docs/SpiderMonkey/Parser_API
+  // [estree]: https://github.com/estree/estree
 
   function parse(input, options) {
     return Parser.parse(input, options)
@@ -7504,6 +7898,7 @@ function hasOwnProperty(obj, prop) {
   Copyright (C) 2012 Joost-Wim Boekesteijn <joost-wim@boekesteijn.nl>
   Copyright (C) 2012 Kris Kowal <kris.kowal@cixar.com>
   Copyright (C) 2012 Arpad Borsos <arpad.borsos@googlemail.com>
+  Copyright (C) 2020 Apple Inc. All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
@@ -7578,29 +7973,31 @@ function hasOwnProperty(obj, prop) {
         Assignment: 1,
         Conditional: 2,
         ArrowFunction: 2,
-        LogicalOR: 3,
-        LogicalAND: 4,
-        BitwiseOR: 5,
-        BitwiseXOR: 6,
-        BitwiseAND: 7,
-        Equality: 8,
-        Relational: 9,
-        BitwiseSHIFT: 10,
-        Additive: 11,
-        Multiplicative: 12,
-        Exponentiation: 13,
-        Await: 14,
-        Unary: 14,
-        Postfix: 15,
-        OptionalChaining: 16,
-        Call: 17,
-        New: 18,
-        TaggedTemplate: 19,
-        Member: 20,
-        Primary: 21
+        Coalesce: 3,
+        LogicalOR: 4,
+        LogicalAND: 5,
+        BitwiseOR: 6,
+        BitwiseXOR: 7,
+        BitwiseAND: 8,
+        Equality: 9,
+        Relational: 10,
+        BitwiseSHIFT: 11,
+        Additive: 12,
+        Multiplicative: 13,
+        Exponentiation: 14,
+        Await: 15,
+        Unary: 15,
+        Postfix: 16,
+        OptionalChaining: 17,
+        Call: 18,
+        New: 19,
+        TaggedTemplate: 20,
+        Member: 21,
+        Primary: 22
     };
 
     BinaryPrecedence = {
+        '??': Precedence.Coalesce,
         '||': Precedence.LogicalOR,
         '&&': Precedence.LogicalAND,
         '|': Precedence.BitwiseOR,
@@ -7635,7 +8032,8 @@ function hasOwnProperty(obj, prop) {
         F_ALLOW_UNPARATH_NEW = 1 << 2,
         F_FUNC_BODY = 1 << 3,
         F_DIRECTIVE_CTX = 1 << 4,
-        F_SEMICOLON_OPT = 1 << 5;
+        F_SEMICOLON_OPT = 1 << 5,
+        F_FOUND_COALESCE = 1 << 6;
 
     //Expression flag sets
     //NOTE: Flag order:
@@ -9311,7 +9709,7 @@ function hasOwnProperty(obj, prop) {
             }
             return parenthesize(
                 [
-                    this.generateExpression(expr.test, Precedence.LogicalOR, flags),
+                    this.generateExpression(expr.test, Precedence.Coalesce, flags),
                     space + '?' + space,
                     this.generateExpression(expr.consequent, Precedence.Assignment, flags),
                     space + ':' + space,
@@ -9323,6 +9721,9 @@ function hasOwnProperty(obj, prop) {
         },
 
         LogicalExpression: function (expr, precedence, flags) {
+            if (expr.operator === '??') {
+                flags |= F_FOUND_COALESCE;
+            }
             return this.BinaryExpression(expr, precedence, flags);
         },
 
@@ -9358,6 +9759,9 @@ function hasOwnProperty(obj, prop) {
             }
 
             if (expr.operator === 'in' && !(flags & F_ALLOW_IN)) {
+                return ['(', result, ')'];
+            }
+            if ((expr.operator === '||' || expr.operator === '&&') && (flags & F_FOUND_COALESCE)) {
                 return ['(', result, ')'];
             }
             return parenthesize(result, currentPrecedence, precedence);
@@ -9841,6 +10245,16 @@ function hasOwnProperty(obj, prop) {
               return '/' + expr.regex.pattern + '/' + expr.regex.flags;
             }
 
+            if (typeof expr.value === 'bigint') {
+                return expr.value.toString() + 'n';
+            }
+
+            // `expr.value` can be null if `expr.bigint` exists. We need to check
+            // `expr.bigint` first.
+            if (expr.bigint) {
+                return expr.bigint + 'n';
+            }
+
             if (expr.value === null) {
                 return 'null';
             }
@@ -10140,7 +10554,7 @@ function hasOwnProperty(obj, prop) {
 /* vim: set sw=4 ts=4 et tw=80 : */
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./package.json":21,"estraverse":26,"esutils":30,"source-map":20}],10:[function(require,module,exports){
+},{"./package.json":21,"estraverse":25,"esutils":29,"source-map":20}],10:[function(require,module,exports){
 /* -*- Mode: js; js-indent-level: 2; -*- */
 /*
  * Copyright 2011 Mozilla Foundation and contributors
@@ -13290,7 +13704,7 @@ module.exports={
         "escodegen.js",
         "package.json"
     ],
-    "version": "2.0.0",
+    "version": "2.1.0",
     "engines": {
         "node": ">=6.0"
     },
@@ -13308,23 +13722,24 @@ module.exports={
     "dependencies": {
         "estraverse": "^5.2.0",
         "esutils": "^2.0.2",
-        "esprima": "^4.0.1",
-        "optionator": "^0.8.1"
+        "esprima": "^4.0.1"
     },
     "optionalDependencies": {
         "source-map": "~0.6.1"
     },
     "devDependencies": {
-        "acorn": "^7.3.1",
+        "acorn": "^8.0.4",
         "bluebird": "^3.4.7",
         "bower-registry-client": "^1.0.0",
         "chai": "^4.2.0",
         "chai-exclude": "^2.0.2",
         "commonjs-everywhere": "^0.9.7",
-        "gulp": "^3.8.10",
-        "gulp-eslint": "^3.0.1",
-        "gulp-mocha": "^3.0.1",
-        "semver": "^5.1.0"
+        "gulp": "^4.0.2",
+        "gulp-eslint": "^6.0.0",
+        "gulp-mocha": "^7.0.2",
+        "minimist": "^1.2.5",
+        "optionator": "^0.9.1",
+        "semver": "^7.3.4"
     },
     "license": "BSD-2-Clause",
     "scripts": {
@@ -13724,947 +14139,6 @@ exports.getKeys = getKeys;
 exports.unionWith = unionWith;
 
 },{}],23:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-var acorn = require('acorn');
-var jsx = require('acorn-jsx');
-var visitorKeys = require('eslint-visitor-keys');
-
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
-
-function _interopNamespace(e) {
-    if (e && e.__esModule) return e;
-    var n = Object.create(null);
-    if (e) {
-        Object.keys(e).forEach(function (k) {
-            if (k !== 'default') {
-                var d = Object.getOwnPropertyDescriptor(e, k);
-                Object.defineProperty(n, k, d.get ? d : {
-                    enumerable: true,
-                    get: function () { return e[k]; }
-                });
-            }
-        });
-    }
-    n["default"] = e;
-    return Object.freeze(n);
-}
-
-var acorn__namespace = /*#__PURE__*/_interopNamespace(acorn);
-var jsx__default = /*#__PURE__*/_interopDefaultLegacy(jsx);
-var visitorKeys__namespace = /*#__PURE__*/_interopNamespace(visitorKeys);
-
-/**
- * @fileoverview Translates tokens between Acorn format and Esprima format.
- * @author Nicholas C. Zakas
- */
-/* eslint no-underscore-dangle: 0 */
-
-//------------------------------------------------------------------------------
-// Requirements
-//------------------------------------------------------------------------------
-
-// none!
-
-//------------------------------------------------------------------------------
-// Private
-//------------------------------------------------------------------------------
-
-
-// Esprima Token Types
-const Token = {
-    Boolean: "Boolean",
-    EOF: "<end>",
-    Identifier: "Identifier",
-    PrivateIdentifier: "PrivateIdentifier",
-    Keyword: "Keyword",
-    Null: "Null",
-    Numeric: "Numeric",
-    Punctuator: "Punctuator",
-    String: "String",
-    RegularExpression: "RegularExpression",
-    Template: "Template",
-    JSXIdentifier: "JSXIdentifier",
-    JSXText: "JSXText"
-};
-
-/**
- * Converts part of a template into an Esprima token.
- * @param {AcornToken[]} tokens The Acorn tokens representing the template.
- * @param {string} code The source code.
- * @returns {EsprimaToken} The Esprima equivalent of the template token.
- * @private
- */
-function convertTemplatePart(tokens, code) {
-    const firstToken = tokens[0],
-        lastTemplateToken = tokens[tokens.length - 1];
-
-    const token = {
-        type: Token.Template,
-        value: code.slice(firstToken.start, lastTemplateToken.end)
-    };
-
-    if (firstToken.loc) {
-        token.loc = {
-            start: firstToken.loc.start,
-            end: lastTemplateToken.loc.end
-        };
-    }
-
-    if (firstToken.range) {
-        token.start = firstToken.range[0];
-        token.end = lastTemplateToken.range[1];
-        token.range = [token.start, token.end];
-    }
-
-    return token;
-}
-
-/**
- * Contains logic to translate Acorn tokens into Esprima tokens.
- * @param {Object} acornTokTypes The Acorn token types.
- * @param {string} code The source code Acorn is parsing. This is necessary
- *      to correct the "value" property of some tokens.
- * @constructor
- */
-function TokenTranslator(acornTokTypes, code) {
-
-    // token types
-    this._acornTokTypes = acornTokTypes;
-
-    // token buffer for templates
-    this._tokens = [];
-
-    // track the last curly brace
-    this._curlyBrace = null;
-
-    // the source code
-    this._code = code;
-
-}
-
-TokenTranslator.prototype = {
-    constructor: TokenTranslator,
-
-    /**
-     * Translates a single Esprima token to a single Acorn token. This may be
-     * inaccurate due to how templates are handled differently in Esprima and
-     * Acorn, but should be accurate for all other tokens.
-     * @param {AcornToken} token The Acorn token to translate.
-     * @param {Object} extra Espree extra object.
-     * @returns {EsprimaToken} The Esprima version of the token.
-     */
-    translate(token, extra) {
-
-        const type = token.type,
-            tt = this._acornTokTypes;
-
-        if (type === tt.name) {
-            token.type = Token.Identifier;
-
-            // TODO: See if this is an Acorn bug
-            if (token.value === "static") {
-                token.type = Token.Keyword;
-            }
-
-            if (extra.ecmaVersion > 5 && (token.value === "yield" || token.value === "let")) {
-                token.type = Token.Keyword;
-            }
-
-        } else if (type === tt.privateId) {
-            token.type = Token.PrivateIdentifier;
-
-        } else if (type === tt.semi || type === tt.comma ||
-                 type === tt.parenL || type === tt.parenR ||
-                 type === tt.braceL || type === tt.braceR ||
-                 type === tt.dot || type === tt.bracketL ||
-                 type === tt.colon || type === tt.question ||
-                 type === tt.bracketR || type === tt.ellipsis ||
-                 type === tt.arrow || type === tt.jsxTagStart ||
-                 type === tt.incDec || type === tt.starstar ||
-                 type === tt.jsxTagEnd || type === tt.prefix ||
-                 type === tt.questionDot ||
-                 (type.binop && !type.keyword) ||
-                 type.isAssign) {
-
-            token.type = Token.Punctuator;
-            token.value = this._code.slice(token.start, token.end);
-        } else if (type === tt.jsxName) {
-            token.type = Token.JSXIdentifier;
-        } else if (type.label === "jsxText" || type === tt.jsxAttrValueToken) {
-            token.type = Token.JSXText;
-        } else if (type.keyword) {
-            if (type.keyword === "true" || type.keyword === "false") {
-                token.type = Token.Boolean;
-            } else if (type.keyword === "null") {
-                token.type = Token.Null;
-            } else {
-                token.type = Token.Keyword;
-            }
-        } else if (type === tt.num) {
-            token.type = Token.Numeric;
-            token.value = this._code.slice(token.start, token.end);
-        } else if (type === tt.string) {
-
-            if (extra.jsxAttrValueToken) {
-                extra.jsxAttrValueToken = false;
-                token.type = Token.JSXText;
-            } else {
-                token.type = Token.String;
-            }
-
-            token.value = this._code.slice(token.start, token.end);
-        } else if (type === tt.regexp) {
-            token.type = Token.RegularExpression;
-            const value = token.value;
-
-            token.regex = {
-                flags: value.flags,
-                pattern: value.pattern
-            };
-            token.value = `/${value.pattern}/${value.flags}`;
-        }
-
-        return token;
-    },
-
-    /**
-     * Function to call during Acorn's onToken handler.
-     * @param {AcornToken} token The Acorn token.
-     * @param {Object} extra The Espree extra object.
-     * @returns {void}
-     */
-    onToken(token, extra) {
-
-        const that = this,
-            tt = this._acornTokTypes,
-            tokens = extra.tokens,
-            templateTokens = this._tokens;
-
-        /**
-         * Flushes the buffered template tokens and resets the template
-         * tracking.
-         * @returns {void}
-         * @private
-         */
-        function translateTemplateTokens() {
-            tokens.push(convertTemplatePart(that._tokens, that._code));
-            that._tokens = [];
-        }
-
-        if (token.type === tt.eof) {
-
-            // might be one last curlyBrace
-            if (this._curlyBrace) {
-                tokens.push(this.translate(this._curlyBrace, extra));
-            }
-
-            return;
-        }
-
-        if (token.type === tt.backQuote) {
-
-            // if there's already a curly, it's not part of the template
-            if (this._curlyBrace) {
-                tokens.push(this.translate(this._curlyBrace, extra));
-                this._curlyBrace = null;
-            }
-
-            templateTokens.push(token);
-
-            // it's the end
-            if (templateTokens.length > 1) {
-                translateTemplateTokens();
-            }
-
-            return;
-        }
-        if (token.type === tt.dollarBraceL) {
-            templateTokens.push(token);
-            translateTemplateTokens();
-            return;
-        }
-        if (token.type === tt.braceR) {
-
-            // if there's already a curly, it's not part of the template
-            if (this._curlyBrace) {
-                tokens.push(this.translate(this._curlyBrace, extra));
-            }
-
-            // store new curly for later
-            this._curlyBrace = token;
-            return;
-        }
-        if (token.type === tt.template || token.type === tt.invalidTemplate) {
-            if (this._curlyBrace) {
-                templateTokens.push(this._curlyBrace);
-                this._curlyBrace = null;
-            }
-
-            templateTokens.push(token);
-            return;
-        }
-
-        if (this._curlyBrace) {
-            tokens.push(this.translate(this._curlyBrace, extra));
-            this._curlyBrace = null;
-        }
-
-        tokens.push(this.translate(token, extra));
-    }
-};
-
-/**
- * @fileoverview A collection of methods for processing Espree's options.
- * @author Kai Cataldo
- */
-
-//------------------------------------------------------------------------------
-// Helpers
-//------------------------------------------------------------------------------
-
-const SUPPORTED_VERSIONS = [
-    3,
-    5,
-    6, // 2015
-    7, // 2016
-    8, // 2017
-    9, // 2018
-    10, // 2019
-    11, // 2020
-    12, // 2021
-    13, // 2022
-    14 // 2023
-];
-
-/**
- * Get the latest ECMAScript version supported by Espree.
- * @returns {number} The latest ECMAScript version.
- */
-function getLatestEcmaVersion() {
-    return SUPPORTED_VERSIONS[SUPPORTED_VERSIONS.length - 1];
-}
-
-/**
- * Get the list of ECMAScript versions supported by Espree.
- * @returns {number[]} An array containing the supported ECMAScript versions.
- */
-function getSupportedEcmaVersions() {
-    return [...SUPPORTED_VERSIONS];
-}
-
-/**
- * Normalize ECMAScript version from the initial config
- * @param {(number|"latest")} ecmaVersion ECMAScript version from the initial config
- * @throws {Error} throws an error if the ecmaVersion is invalid.
- * @returns {number} normalized ECMAScript version
- */
-function normalizeEcmaVersion(ecmaVersion = 5) {
-
-    let version = ecmaVersion === "latest" ? getLatestEcmaVersion() : ecmaVersion;
-
-    if (typeof version !== "number") {
-        throw new Error(`ecmaVersion must be a number or "latest". Received value of type ${typeof ecmaVersion} instead.`);
-    }
-
-    // Calculate ECMAScript edition number from official year version starting with
-    // ES2015, which corresponds with ES6 (or a difference of 2009).
-    if (version >= 2015) {
-        version -= 2009;
-    }
-
-    if (!SUPPORTED_VERSIONS.includes(version)) {
-        throw new Error("Invalid ecmaVersion.");
-    }
-
-    return version;
-}
-
-/**
- * Normalize sourceType from the initial config
- * @param {string} sourceType to normalize
- * @throws {Error} throw an error if sourceType is invalid
- * @returns {string} normalized sourceType
- */
-function normalizeSourceType(sourceType = "script") {
-    if (sourceType === "script" || sourceType === "module") {
-        return sourceType;
-    }
-
-    if (sourceType === "commonjs") {
-        return "script";
-    }
-
-    throw new Error("Invalid sourceType.");
-}
-
-/**
- * Normalize parserOptions
- * @param {Object} options the parser options to normalize
- * @throws {Error} throw an error if found invalid option.
- * @returns {Object} normalized options
- */
-function normalizeOptions(options) {
-    const ecmaVersion = normalizeEcmaVersion(options.ecmaVersion);
-    const sourceType = normalizeSourceType(options.sourceType);
-    const ranges = options.range === true;
-    const locations = options.loc === true;
-
-    if (ecmaVersion !== 3 && options.allowReserved) {
-
-        // a value of `false` is intentionally allowed here, so a shared config can overwrite it when needed
-        throw new Error("`allowReserved` is only supported when ecmaVersion is 3");
-    }
-    if (typeof options.allowReserved !== "undefined" && typeof options.allowReserved !== "boolean") {
-        throw new Error("`allowReserved`, when present, must be `true` or `false`");
-    }
-    const allowReserved = ecmaVersion === 3 ? (options.allowReserved || "never") : false;
-    const ecmaFeatures = options.ecmaFeatures || {};
-    const allowReturnOutsideFunction = options.sourceType === "commonjs" ||
-        Boolean(ecmaFeatures.globalReturn);
-
-    if (sourceType === "module" && ecmaVersion < 6) {
-        throw new Error("sourceType 'module' is not supported when ecmaVersion < 2015. Consider adding `{ ecmaVersion: 2015 }` to the parser options.");
-    }
-
-    return Object.assign({}, options, {
-        ecmaVersion,
-        sourceType,
-        ranges,
-        locations,
-        allowReserved,
-        allowReturnOutsideFunction
-    });
-}
-
-/* eslint-disable no-param-reassign*/
-
-
-const STATE = Symbol("espree's internal state");
-const ESPRIMA_FINISH_NODE = Symbol("espree's esprimaFinishNode");
-
-
-/**
- * Converts an Acorn comment to a Esprima comment.
- * @param {boolean} block True if it's a block comment, false if not.
- * @param {string} text The text of the comment.
- * @param {int} start The index at which the comment starts.
- * @param {int} end The index at which the comment ends.
- * @param {Location} startLoc The location at which the comment starts.
- * @param {Location} endLoc The location at which the comment ends.
- * @param {string} code The source code being parsed.
- * @returns {Object} The comment object.
- * @private
- */
-function convertAcornCommentToEsprimaComment(block, text, start, end, startLoc, endLoc, code) {
-    let type;
-
-    if (block) {
-        type = "Block";
-    } else if (code.slice(start, start + 2) === "#!") {
-        type = "Hashbang";
-    } else {
-        type = "Line";
-    }
-
-    const comment = {
-        type,
-        value: text
-    };
-
-    if (typeof start === "number") {
-        comment.start = start;
-        comment.end = end;
-        comment.range = [start, end];
-    }
-
-    if (typeof startLoc === "object") {
-        comment.loc = {
-            start: startLoc,
-            end: endLoc
-        };
-    }
-
-    return comment;
-}
-
-var espree = () => Parser => {
-    const tokTypes = Object.assign({}, Parser.acorn.tokTypes);
-
-    if (Parser.acornJsx) {
-        Object.assign(tokTypes, Parser.acornJsx.tokTypes);
-    }
-
-    return class Espree extends Parser {
-        constructor(opts, code) {
-            if (typeof opts !== "object" || opts === null) {
-                opts = {};
-            }
-            if (typeof code !== "string" && !(code instanceof String)) {
-                code = String(code);
-            }
-
-            // save original source type in case of commonjs
-            const originalSourceType = opts.sourceType;
-            const options = normalizeOptions(opts);
-            const ecmaFeatures = options.ecmaFeatures || {};
-            const tokenTranslator =
-                options.tokens === true
-                    ? new TokenTranslator(tokTypes, code)
-                    : null;
-
-            /*
-             * Data that is unique to Espree and is not represented internally
-             * in Acorn.
-             *
-             * For ES2023 hashbangs, Espree will call `onComment()` during the
-             * constructor, so we must define state before having access to
-             * `this`.
-             */
-            const state = {
-                originalSourceType: originalSourceType || options.sourceType,
-                tokens: tokenTranslator ? [] : null,
-                comments: options.comment === true ? [] : null,
-                impliedStrict: ecmaFeatures.impliedStrict === true && options.ecmaVersion >= 5,
-                ecmaVersion: options.ecmaVersion,
-                jsxAttrValueToken: false,
-                lastToken: null,
-                templateElements: []
-            };
-
-            // Initialize acorn parser.
-            super({
-
-                // do not use spread, because we don't want to pass any unknown options to acorn
-                ecmaVersion: options.ecmaVersion,
-                sourceType: options.sourceType,
-                ranges: options.ranges,
-                locations: options.locations,
-                allowReserved: options.allowReserved,
-
-                // Truthy value is true for backward compatibility.
-                allowReturnOutsideFunction: options.allowReturnOutsideFunction,
-
-                // Collect tokens
-                onToken: token => {
-                    if (tokenTranslator) {
-
-                        // Use `tokens`, `ecmaVersion`, and `jsxAttrValueToken` in the state.
-                        tokenTranslator.onToken(token, state);
-                    }
-                    if (token.type !== tokTypes.eof) {
-                        state.lastToken = token;
-                    }
-                },
-
-                // Collect comments
-                onComment: (block, text, start, end, startLoc, endLoc) => {
-                    if (state.comments) {
-                        const comment = convertAcornCommentToEsprimaComment(block, text, start, end, startLoc, endLoc, code);
-
-                        state.comments.push(comment);
-                    }
-                }
-            }, code);
-
-            /*
-             * We put all of this data into a symbol property as a way to avoid
-             * potential naming conflicts with future versions of Acorn.
-             */
-            this[STATE] = state;
-        }
-
-        tokenize() {
-            do {
-                this.next();
-            } while (this.type !== tokTypes.eof);
-
-            // Consume the final eof token
-            this.next();
-
-            const extra = this[STATE];
-            const tokens = extra.tokens;
-
-            if (extra.comments) {
-                tokens.comments = extra.comments;
-            }
-
-            return tokens;
-        }
-
-        finishNode(...args) {
-            const result = super.finishNode(...args);
-
-            return this[ESPRIMA_FINISH_NODE](result);
-        }
-
-        finishNodeAt(...args) {
-            const result = super.finishNodeAt(...args);
-
-            return this[ESPRIMA_FINISH_NODE](result);
-        }
-
-        parse() {
-            const extra = this[STATE];
-            const program = super.parse();
-
-            program.sourceType = extra.originalSourceType;
-
-            if (extra.comments) {
-                program.comments = extra.comments;
-            }
-            if (extra.tokens) {
-                program.tokens = extra.tokens;
-            }
-
-            /*
-             * Adjust opening and closing position of program to match Esprima.
-             * Acorn always starts programs at range 0 whereas Esprima starts at the
-             * first AST node's start (the only real difference is when there's leading
-             * whitespace or leading comments). Acorn also counts trailing whitespace
-             * as part of the program whereas Esprima only counts up to the last token.
-             */
-            if (program.body.length) {
-                const [firstNode] = program.body;
-
-                if (program.range) {
-                    program.range[0] = firstNode.range[0];
-                }
-                if (program.loc) {
-                    program.loc.start = firstNode.loc.start;
-                }
-                program.start = firstNode.start;
-            }
-            if (extra.lastToken) {
-                if (program.range) {
-                    program.range[1] = extra.lastToken.range[1];
-                }
-                if (program.loc) {
-                    program.loc.end = extra.lastToken.loc.end;
-                }
-                program.end = extra.lastToken.end;
-            }
-
-
-            /*
-             * https://github.com/eslint/espree/issues/349
-             * Ensure that template elements have correct range information.
-             * This is one location where Acorn produces a different value
-             * for its start and end properties vs. the values present in the
-             * range property. In order to avoid confusion, we set the start
-             * and end properties to the values that are present in range.
-             * This is done here, instead of in finishNode(), because Acorn
-             * uses the values of start and end internally while parsing, making
-             * it dangerous to change those values while parsing is ongoing.
-             * By waiting until the end of parsing, we can safely change these
-             * values without affect any other part of the process.
-             */
-            this[STATE].templateElements.forEach(templateElement => {
-                const startOffset = -1;
-                const endOffset = templateElement.tail ? 1 : 2;
-
-                templateElement.start += startOffset;
-                templateElement.end += endOffset;
-
-                if (templateElement.range) {
-                    templateElement.range[0] += startOffset;
-                    templateElement.range[1] += endOffset;
-                }
-
-                if (templateElement.loc) {
-                    templateElement.loc.start.column += startOffset;
-                    templateElement.loc.end.column += endOffset;
-                }
-            });
-
-            return program;
-        }
-
-        parseTopLevel(node) {
-            if (this[STATE].impliedStrict) {
-                this.strict = true;
-            }
-            return super.parseTopLevel(node);
-        }
-
-        /**
-         * Overwrites the default raise method to throw Esprima-style errors.
-         * @param {int} pos The position of the error.
-         * @param {string} message The error message.
-         * @throws {SyntaxError} A syntax error.
-         * @returns {void}
-         */
-        raise(pos, message) {
-            const loc = Parser.acorn.getLineInfo(this.input, pos);
-            const err = new SyntaxError(message);
-
-            err.index = pos;
-            err.lineNumber = loc.line;
-            err.column = loc.column + 1; // acorn uses 0-based columns
-            throw err;
-        }
-
-        /**
-         * Overwrites the default raise method to throw Esprima-style errors.
-         * @param {int} pos The position of the error.
-         * @param {string} message The error message.
-         * @throws {SyntaxError} A syntax error.
-         * @returns {void}
-         */
-        raiseRecoverable(pos, message) {
-            this.raise(pos, message);
-        }
-
-        /**
-         * Overwrites the default unexpected method to throw Esprima-style errors.
-         * @param {int} pos The position of the error.
-         * @throws {SyntaxError} A syntax error.
-         * @returns {void}
-         */
-        unexpected(pos) {
-            let message = "Unexpected token";
-
-            if (pos !== null && pos !== void 0) {
-                this.pos = pos;
-
-                if (this.options.locations) {
-                    while (this.pos < this.lineStart) {
-                        this.lineStart = this.input.lastIndexOf("\n", this.lineStart - 2) + 1;
-                        --this.curLine;
-                    }
-                }
-
-                this.nextToken();
-            }
-
-            if (this.end > this.start) {
-                message += ` ${this.input.slice(this.start, this.end)}`;
-            }
-
-            this.raise(this.start, message);
-        }
-
-        /*
-        * Esprima-FB represents JSX strings as tokens called "JSXText", but Acorn-JSX
-        * uses regular tt.string without any distinction between this and regular JS
-        * strings. As such, we intercept an attempt to read a JSX string and set a flag
-        * on extra so that when tokens are converted, the next token will be switched
-        * to JSXText via onToken.
-        */
-        jsx_readString(quote) { // eslint-disable-line camelcase
-            const result = super.jsx_readString(quote);
-
-            if (this.type === tokTypes.string) {
-                this[STATE].jsxAttrValueToken = true;
-            }
-            return result;
-        }
-
-        /**
-         * Performs last-minute Esprima-specific compatibility checks and fixes.
-         * @param {ASTNode} result The node to check.
-         * @returns {ASTNode} The finished node.
-         */
-        [ESPRIMA_FINISH_NODE](result) {
-
-            // Acorn doesn't count the opening and closing backticks as part of templates
-            // so we have to adjust ranges/locations appropriately.
-            if (result.type === "TemplateElement") {
-
-                // save template element references to fix start/end later
-                this[STATE].templateElements.push(result);
-            }
-
-            if (result.type.includes("Function") && !result.generator) {
-                result.generator = false;
-            }
-
-            return result;
-        }
-    };
-};
-
-const version$1 = "9.5.2";
-
-/**
- * @fileoverview Main Espree file that converts Acorn into Esprima output.
- *
- * This file contains code from the following MIT-licensed projects:
- * 1. Acorn
- * 2. Babylon
- * 3. Babel-ESLint
- *
- * This file also contains code from Esprima, which is BSD licensed.
- *
- * Acorn is Copyright 2012-2015 Acorn Contributors (https://github.com/marijnh/acorn/blob/master/AUTHORS)
- * Babylon is Copyright 2014-2015 various contributors (https://github.com/babel/babel/blob/master/packages/babylon/AUTHORS)
- * Babel-ESLint is Copyright 2014-2015 Sebastian McKenzie <sebmck@gmail.com>
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- * * Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * Esprima is Copyright (c) jQuery Foundation, Inc. and Contributors, All Rights Reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *   * Redistributions of source code must retain the above copyright
- *     notice, this list of conditions and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright
- *     notice, this list of conditions and the following disclaimer in the
- *     documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-
-// To initialize lazily.
-const parsers = {
-    _regular: null,
-    _jsx: null,
-
-    get regular() {
-        if (this._regular === null) {
-            this._regular = acorn__namespace.Parser.extend(espree());
-        }
-        return this._regular;
-    },
-
-    get jsx() {
-        if (this._jsx === null) {
-            this._jsx = acorn__namespace.Parser.extend(jsx__default["default"](), espree());
-        }
-        return this._jsx;
-    },
-
-    get(options) {
-        const useJsx = Boolean(
-            options &&
-            options.ecmaFeatures &&
-            options.ecmaFeatures.jsx
-        );
-
-        return useJsx ? this.jsx : this.regular;
-    }
-};
-
-//------------------------------------------------------------------------------
-// Tokenizer
-//------------------------------------------------------------------------------
-
-/**
- * Tokenizes the given code.
- * @param {string} code The code to tokenize.
- * @param {Object} options Options defining how to tokenize.
- * @returns {Token[]} An array of tokens.
- * @throws {SyntaxError} If the input code is invalid.
- * @private
- */
-function tokenize(code, options) {
-    const Parser = parsers.get(options);
-
-    // Ensure to collect tokens.
-    if (!options || options.tokens !== true) {
-        options = Object.assign({}, options, { tokens: true }); // eslint-disable-line no-param-reassign
-    }
-
-    return new Parser(options, code).tokenize();
-}
-
-//------------------------------------------------------------------------------
-// Parser
-//------------------------------------------------------------------------------
-
-/**
- * Parses the given code.
- * @param {string} code The code to tokenize.
- * @param {Object} options Options defining how to tokenize.
- * @returns {ASTNode} The "Program" AST node.
- * @throws {SyntaxError} If the input code is invalid.
- */
-function parse(code, options) {
-    const Parser = parsers.get(options);
-
-    return new Parser(options, code).parse();
-}
-
-//------------------------------------------------------------------------------
-// Public
-//------------------------------------------------------------------------------
-
-const version = version$1;
-const name = "espree";
-
-/* istanbul ignore next */
-const VisitorKeys = (function() {
-    return visitorKeys__namespace.KEYS;
-}());
-
-// Derive node types from VisitorKeys
-/* istanbul ignore next */
-const Syntax = (function() {
-    let key,
-        types = {};
-
-    if (typeof Object.create === "function") {
-        types = Object.create(null);
-    }
-
-    for (key in VisitorKeys) {
-        if (Object.hasOwnProperty.call(VisitorKeys, key)) {
-            types[key] = key;
-        }
-    }
-
-    if (typeof Object.freeze === "function") {
-        Object.freeze(types);
-    }
-
-    return types;
-}());
-
-const latestEcmaVersion = getLatestEcmaVersion();
-
-const supportedEcmaVersions = getSupportedEcmaVersions();
-
-exports.Syntax = Syntax;
-exports.VisitorKeys = VisitorKeys;
-exports.latestEcmaVersion = latestEcmaVersion;
-exports.name = name;
-exports.parse = parse;
-exports.supportedEcmaVersions = supportedEcmaVersions;
-exports.tokenize = tokenize;
-exports.version = version;
-
-},{"acorn":4,"acorn-jsx":2,"eslint-visitor-keys":22}],24:[function(require,module,exports){
 /*
   Copyright (C) 2014 Yusuke Suzuki <utatane.tea@gmail.com>
 
@@ -14783,7 +14257,7 @@ exports.version = version;
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{"./package.json":25,"estraverse":26}],25:[function(require,module,exports){
+},{"./package.json":24,"estraverse":25}],24:[function(require,module,exports){
 module.exports={
   "name": "esrecurse",
   "description": "ECMAScript AST recursive visitor",
@@ -14837,7 +14311,7 @@ module.exports={
   }
 }
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 /*
   Copyright (C) 2012-2013 Yusuke Suzuki <utatane.tea@gmail.com>
   Copyright (C) 2012 Ariya Hidayat <ariya.hidayat@gmail.com>
@@ -15644,7 +15118,7 @@ module.exports={
 }(exports));
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /*
   Copyright (C) 2013 Yusuke Suzuki <utatane.tea@gmail.com>
 
@@ -15790,7 +15264,7 @@ module.exports={
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],28:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 /*
   Copyright (C) 2013-2014 Yusuke Suzuki <utatane.tea@gmail.com>
   Copyright (C) 2014 Ivan Nikulin <ifaaan@gmail.com>
@@ -15927,7 +15401,7 @@ module.exports={
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{}],29:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 /*
   Copyright (C) 2013 Yusuke Suzuki <utatane.tea@gmail.com>
 
@@ -16094,7 +15568,7 @@ module.exports={
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{"./code":28}],30:[function(require,module,exports){
+},{"./code":27}],29:[function(require,module,exports){
 /*
   Copyright (C) 2013 Yusuke Suzuki <utatane.tea@gmail.com>
 
@@ -16129,7 +15603,7 @@ module.exports={
 }());
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-},{"./ast":27,"./code":28,"./keyword":29}],31:[function(require,module,exports){
+},{"./ast":26,"./code":27,"./keyword":28}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -16498,7 +15972,7 @@ class ParameterDefinition extends Definition {
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-const { Syntax: Syntax$2 } = estraverse__default['default'];
+const { Syntax: Syntax$2 } = estraverse__default["default"];
 
 /**
  * Test if scope is struct
@@ -16623,7 +16097,8 @@ class Scope {
     constructor(scopeManager, type, upperScope, block, isMethodDefinition) {
 
         /**
-         * One of 'module', 'block', 'switch', 'function', 'catch', 'with', 'function', 'class', 'global'.
+         * One of "global", "module", "function", "function-expression-name", "block", "switch", "catch", "with", "for",
+         * "class", "class-field-initializer", "class-static-block".
          * @member {string} Scope#type
          */
         this.type = type;
@@ -16691,7 +16166,13 @@ class Scope {
          * @member {Scope} Scope#variableScope
          */
         this.variableScope =
-            (this.type === "global" || this.type === "function" || this.type === "module" || this.type === "class-field-initializer") ? this : upperScope.variableScope;
+            this.type === "global" ||
+            this.type === "module" ||
+            this.type === "function" ||
+            this.type === "class-field-initializer" ||
+            this.type === "class-static-block"
+                ? this
+                : upperScope.variableScope;
 
         /**
          * Whether this scope is created by a FunctionExpression.
@@ -16722,7 +16203,9 @@ class Scope {
          * Whether 'use strict' is in effect in this scope.
          * @member {boolean} Scope#isStrict
          */
-        this.isStrict = isStrictScope(this, block, isMethodDefinition, scopeManager.__useDirective());
+        this.isStrict = scopeManager.isStrictModeSupported()
+            ? isStrictScope(this, block, isMethodDefinition, scopeManager.__useDirective())
+            : false;
 
         /**
          * List of nested {@link Scope}s.
@@ -16935,8 +16418,8 @@ class Scope {
     resolve(ident) {
         let ref, i, iz;
 
-        assert__default['default'](this.__isClosed(), "Scope should be closed.");
-        assert__default['default'](ident.type === Syntax$2.Identifier, "Target should be identifier.");
+        assert__default["default"](this.__isClosed(), "Scope should be closed.");
+        assert__default["default"](ident.type === Syntax$2.Identifier, "Target should be identifier.");
         for (i = 0, iz = this.references.length; i < iz; ++i) {
             ref = this.references[i];
             if (ref.identifier === ident) {
@@ -17140,7 +16623,7 @@ class FunctionScope extends Scope {
 
         const variable = this.set.get("arguments");
 
-        assert__default['default'](variable, "Always have arguments variable.");
+        assert__default["default"](variable, "Always have arguments variable.");
         return variable.tainted || variable.references.length !== 0;
     }
 
@@ -17204,6 +16687,12 @@ class ClassFieldInitializerScope extends Scope {
     }
 }
 
+class ClassStaticBlockScope extends Scope {
+    constructor(scopeManager, upperScope, block) {
+        super(scopeManager, "class-static-block", upperScope, block, true);
+    }
+}
+
 /* vim: set sw=4 ts=4 et tw=80 : */
 
 /*
@@ -17255,8 +16744,8 @@ class ScopeManager {
         return this.__options.ignoreEval;
     }
 
-    __isNodejsScope() {
-        return this.__options.nodejsScope;
+    isGlobalReturn() {
+        return this.__options.nodejsScope || this.__options.sourceType === "commonjs";
     }
 
     isModule() {
@@ -17380,7 +16869,7 @@ class ScopeManager {
 
     __nestScope(scope) {
         if (scope instanceof GlobalScope) {
-            assert__default['default'](this.__currentScope === null);
+            assert__default["default"](this.__currentScope === null);
             this.globalScope = scope;
         }
         this.__currentScope = scope;
@@ -17417,6 +16906,10 @@ class ScopeManager {
 
     __nestClassFieldInitializerScope(node) {
         return this.__nestScope(new ClassFieldInitializerScope(this, this.__currentScope, node));
+    }
+
+    __nestClassStaticBlockScope(node) {
+        return this.__nestScope(new ClassStaticBlockScope(this, this.__currentScope, node));
     }
 
     __nestSwitchScope(node) {
@@ -17462,7 +16955,7 @@ class ScopeManager {
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-const { Syntax: Syntax$1 } = estraverse__default['default'];
+const { Syntax: Syntax$1 } = estraverse__default["default"];
 
 /**
  * Get last array element
@@ -17473,7 +16966,7 @@ function getLast(xs) {
     return xs[xs.length - 1] || null;
 }
 
-class PatternVisitor extends esrecurse__default['default'].Visitor {
+class PatternVisitor extends esrecurse__default["default"].Visitor {
     static isPattern(node) {
         const nodeType = node.type;
 
@@ -17609,7 +17102,7 @@ class PatternVisitor extends esrecurse__default['default'].Visitor {
   THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-const { Syntax } = estraverse__default['default'];
+const { Syntax } = estraverse__default["default"];
 
 /**
  * Traverse identifier in pattern
@@ -17638,7 +17131,7 @@ function traverseIdentifierInPattern(options, rootPattern, referencer, callback)
 // FIXME: Now, we don't create module environment, because the context is
 // implementation dependent.
 
-class Importer extends esrecurse__default['default'].Visitor {
+class Importer extends esrecurse__default["default"].Visitor {
     constructor(declaration, referencer) {
         super(null, referencer.options);
         this.declaration = declaration;
@@ -17685,7 +17178,7 @@ class Importer extends esrecurse__default['default'].Visitor {
 }
 
 // Referencing variables and creating bindings.
-class Referencer extends esrecurse__default['default'].Visitor {
+class Referencer extends esrecurse__default["default"].Visitor {
     constructor(options, scopeManager) {
         super(null, options);
         this.options = options;
@@ -17985,7 +17478,7 @@ class Referencer extends esrecurse__default['default'].Visitor {
     Program(node) {
         this.scopeManager.__nestGlobalScope(node);
 
-        if (this.scopeManager.__isNodejsScope()) {
+        if (this.scopeManager.isGlobalReturn()) {
 
             // Force strictness of GlobalScope to false when using node.js scope.
             this.currentScope().isStrict = false;
@@ -18044,6 +17537,14 @@ class Referencer extends esrecurse__default['default'].Visitor {
             this.visit(value);
             this.close(value);
         }
+    }
+
+    StaticBlock(node) {
+        this.scopeManager.__nestClassStaticBlockScope(node);
+
+        this.visitChildren(node);
+
+        this.close(node);
     }
 
     MethodDefinition(node) {
@@ -18167,7 +17668,7 @@ class Referencer extends esrecurse__default['default'].Visitor {
     }
 
     ImportDeclaration(node) {
-        assert__default['default'](this.scopeManager.__isES6() && this.scopeManager.isModule(), "ImportDeclaration should appear when the mode is ES6 and in the module context.");
+        assert__default["default"](this.scopeManager.__isES6() && this.scopeManager.isModule(), "ImportDeclaration should appear when the mode is ES6 and in the module context.");
 
         const importer = new Importer(node, this);
 
@@ -18219,7 +17720,7 @@ class Referencer extends esrecurse__default['default'].Visitor {
 
 /* vim: set sw=4 ts=4 et tw=80 : */
 
-const version = "6.0.0";
+const version = "7.2.2";
 
 /*
   Copyright (C) 2012-2014 Yusuke Suzuki <utatane.tea@gmail.com>
@@ -18257,7 +17758,7 @@ function defaultOptions() {
         directive: false,
         nodejsScope: false,
         impliedStrict: false,
-        sourceType: "script", // one of ['script', 'module']
+        sourceType: "script", // one of ['script', 'module', 'commonjs']
         ecmaVersion: 5,
         childVisitorKeys: null,
         fallback: "iteration"
@@ -18313,7 +17814,7 @@ function updateDeeply(target, override) {
  * a function scope immediately following the global scope.
  * @param {boolean} [providedOptions.impliedStrict=false] implied strict mode
  * (if ecmaVersion >= 5).
- * @param {string} [providedOptions.sourceType='script'] the source type of the script. one of 'script' and 'module'
+ * @param {string} [providedOptions.sourceType='script'] the source type of the script. one of 'script', 'module', and 'commonjs'
  * @param {number} [providedOptions.ecmaVersion=5] which ECMAScript version is considered
  * @param {Object} [providedOptions.childVisitorKeys=null] Additional known visitor keys. See [esrecurse](https://github.com/estools/esrecurse)'s the `childVisitorKeys` option.
  * @param {string} [providedOptions.fallback='iteration'] A kind of the fallback in order to encounter with unknown node. See [esrecurse](https://github.com/estools/esrecurse)'s the `fallback` option.
@@ -18326,7 +17827,7 @@ function analyze(tree, providedOptions) {
 
     referencer.visit(tree);
 
-    assert__default['default'](scopeManager.__currentScope === null, "currentScope should be null.");
+    assert__default["default"](scopeManager.__currentScope === null, "currentScope should be null.");
 
     return scopeManager;
 }
@@ -18344,9 +17845,894 @@ exports.analyze = analyze;
 exports.version = version;
 
 
-},{"assert":5,"esrecurse":24,"estraverse":26}],32:[function(require,module,exports){
+},{"assert":5,"esrecurse":23,"estraverse":25}],31:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var acorn = require('acorn');
+var jsx = require('acorn-jsx');
+var visitorKeys = require('eslint-visitor-keys');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+function _interopNamespace(e) {
+    if (e && e.__esModule) return e;
+    var n = Object.create(null);
+    if (e) {
+        Object.keys(e).forEach(function (k) {
+            if (k !== 'default') {
+                var d = Object.getOwnPropertyDescriptor(e, k);
+                Object.defineProperty(n, k, d.get ? d : {
+                    enumerable: true,
+                    get: function () { return e[k]; }
+                });
+            }
+        });
+    }
+    n["default"] = e;
+    return Object.freeze(n);
+}
+
+var acorn__namespace = /*#__PURE__*/_interopNamespace(acorn);
+var jsx__default = /*#__PURE__*/_interopDefaultLegacy(jsx);
+var visitorKeys__namespace = /*#__PURE__*/_interopNamespace(visitorKeys);
+
+/**
+ * @fileoverview Translates tokens between Acorn format and Esprima format.
+ * @author Nicholas C. Zakas
+ */
+
+//------------------------------------------------------------------------------
+// Requirements
+//------------------------------------------------------------------------------
+
+// none!
+
+//------------------------------------------------------------------------------
+// Private
+//------------------------------------------------------------------------------
+
+
+// Esprima Token Types
+const Token = {
+    Boolean: "Boolean",
+    EOF: "<end>",
+    Identifier: "Identifier",
+    PrivateIdentifier: "PrivateIdentifier",
+    Keyword: "Keyword",
+    Null: "Null",
+    Numeric: "Numeric",
+    Punctuator: "Punctuator",
+    String: "String",
+    RegularExpression: "RegularExpression",
+    Template: "Template",
+    JSXIdentifier: "JSXIdentifier",
+    JSXText: "JSXText"
+};
+
+/**
+ * Converts part of a template into an Esprima token.
+ * @param {AcornToken[]} tokens The Acorn tokens representing the template.
+ * @param {string} code The source code.
+ * @returns {EsprimaToken} The Esprima equivalent of the template token.
+ * @private
+ */
+function convertTemplatePart(tokens, code) {
+    const firstToken = tokens[0],
+        lastTemplateToken = tokens[tokens.length - 1];
+
+    const token = {
+        type: Token.Template,
+        value: code.slice(firstToken.start, lastTemplateToken.end)
+    };
+
+    if (firstToken.loc) {
+        token.loc = {
+            start: firstToken.loc.start,
+            end: lastTemplateToken.loc.end
+        };
+    }
+
+    if (firstToken.range) {
+        token.start = firstToken.range[0];
+        token.end = lastTemplateToken.range[1];
+        token.range = [token.start, token.end];
+    }
+
+    return token;
+}
+
+/**
+ * Contains logic to translate Acorn tokens into Esprima tokens.
+ * @param {Object} acornTokTypes The Acorn token types.
+ * @param {string} code The source code Acorn is parsing. This is necessary
+ *      to correct the "value" property of some tokens.
+ * @constructor
+ */
+function TokenTranslator(acornTokTypes, code) {
+
+    // token types
+    this._acornTokTypes = acornTokTypes;
+
+    // token buffer for templates
+    this._tokens = [];
+
+    // track the last curly brace
+    this._curlyBrace = null;
+
+    // the source code
+    this._code = code;
+
+}
+
+TokenTranslator.prototype = {
+    constructor: TokenTranslator,
+
+    /**
+     * Translates a single Esprima token to a single Acorn token. This may be
+     * inaccurate due to how templates are handled differently in Esprima and
+     * Acorn, but should be accurate for all other tokens.
+     * @param {AcornToken} token The Acorn token to translate.
+     * @param {Object} extra Espree extra object.
+     * @returns {EsprimaToken} The Esprima version of the token.
+     */
+    translate(token, extra) {
+
+        const type = token.type,
+            tt = this._acornTokTypes;
+
+        if (type === tt.name) {
+            token.type = Token.Identifier;
+
+            // TODO: See if this is an Acorn bug
+            if (token.value === "static") {
+                token.type = Token.Keyword;
+            }
+
+            if (extra.ecmaVersion > 5 && (token.value === "yield" || token.value === "let")) {
+                token.type = Token.Keyword;
+            }
+
+        } else if (type === tt.privateId) {
+            token.type = Token.PrivateIdentifier;
+
+        } else if (type === tt.semi || type === tt.comma ||
+                 type === tt.parenL || type === tt.parenR ||
+                 type === tt.braceL || type === tt.braceR ||
+                 type === tt.dot || type === tt.bracketL ||
+                 type === tt.colon || type === tt.question ||
+                 type === tt.bracketR || type === tt.ellipsis ||
+                 type === tt.arrow || type === tt.jsxTagStart ||
+                 type === tt.incDec || type === tt.starstar ||
+                 type === tt.jsxTagEnd || type === tt.prefix ||
+                 type === tt.questionDot ||
+                 (type.binop && !type.keyword) ||
+                 type.isAssign) {
+
+            token.type = Token.Punctuator;
+            token.value = this._code.slice(token.start, token.end);
+        } else if (type === tt.jsxName) {
+            token.type = Token.JSXIdentifier;
+        } else if (type.label === "jsxText" || type === tt.jsxAttrValueToken) {
+            token.type = Token.JSXText;
+        } else if (type.keyword) {
+            if (type.keyword === "true" || type.keyword === "false") {
+                token.type = Token.Boolean;
+            } else if (type.keyword === "null") {
+                token.type = Token.Null;
+            } else {
+                token.type = Token.Keyword;
+            }
+        } else if (type === tt.num) {
+            token.type = Token.Numeric;
+            token.value = this._code.slice(token.start, token.end);
+        } else if (type === tt.string) {
+
+            if (extra.jsxAttrValueToken) {
+                extra.jsxAttrValueToken = false;
+                token.type = Token.JSXText;
+            } else {
+                token.type = Token.String;
+            }
+
+            token.value = this._code.slice(token.start, token.end);
+        } else if (type === tt.regexp) {
+            token.type = Token.RegularExpression;
+            const value = token.value;
+
+            token.regex = {
+                flags: value.flags,
+                pattern: value.pattern
+            };
+            token.value = `/${value.pattern}/${value.flags}`;
+        }
+
+        return token;
+    },
+
+    /**
+     * Function to call during Acorn's onToken handler.
+     * @param {AcornToken} token The Acorn token.
+     * @param {Object} extra The Espree extra object.
+     * @returns {void}
+     */
+    onToken(token, extra) {
+
+        const tt = this._acornTokTypes,
+            tokens = extra.tokens,
+            templateTokens = this._tokens;
+
+        /**
+         * Flushes the buffered template tokens and resets the template
+         * tracking.
+         * @returns {void}
+         * @private
+         */
+        const translateTemplateTokens = () => {
+            tokens.push(convertTemplatePart(this._tokens, this._code));
+            this._tokens = [];
+        };
+
+        if (token.type === tt.eof) {
+
+            // might be one last curlyBrace
+            if (this._curlyBrace) {
+                tokens.push(this.translate(this._curlyBrace, extra));
+            }
+
+            return;
+        }
+
+        if (token.type === tt.backQuote) {
+
+            // if there's already a curly, it's not part of the template
+            if (this._curlyBrace) {
+                tokens.push(this.translate(this._curlyBrace, extra));
+                this._curlyBrace = null;
+            }
+
+            templateTokens.push(token);
+
+            // it's the end
+            if (templateTokens.length > 1) {
+                translateTemplateTokens();
+            }
+
+            return;
+        }
+        if (token.type === tt.dollarBraceL) {
+            templateTokens.push(token);
+            translateTemplateTokens();
+            return;
+        }
+        if (token.type === tt.braceR) {
+
+            // if there's already a curly, it's not part of the template
+            if (this._curlyBrace) {
+                tokens.push(this.translate(this._curlyBrace, extra));
+            }
+
+            // store new curly for later
+            this._curlyBrace = token;
+            return;
+        }
+        if (token.type === tt.template || token.type === tt.invalidTemplate) {
+            if (this._curlyBrace) {
+                templateTokens.push(this._curlyBrace);
+                this._curlyBrace = null;
+            }
+
+            templateTokens.push(token);
+            return;
+        }
+
+        if (this._curlyBrace) {
+            tokens.push(this.translate(this._curlyBrace, extra));
+            this._curlyBrace = null;
+        }
+
+        tokens.push(this.translate(token, extra));
+    }
+};
+
+/**
+ * @fileoverview A collection of methods for processing Espree's options.
+ * @author Kai Cataldo
+ */
+
+//------------------------------------------------------------------------------
+// Helpers
+//------------------------------------------------------------------------------
+
+const SUPPORTED_VERSIONS = [
+    3,
+    5,
+    6, // 2015
+    7, // 2016
+    8, // 2017
+    9, // 2018
+    10, // 2019
+    11, // 2020
+    12, // 2021
+    13, // 2022
+    14, // 2023
+    15 // 2024
+];
+
+/**
+ * Get the latest ECMAScript version supported by Espree.
+ * @returns {number} The latest ECMAScript version.
+ */
+function getLatestEcmaVersion() {
+    return SUPPORTED_VERSIONS[SUPPORTED_VERSIONS.length - 1];
+}
+
+/**
+ * Get the list of ECMAScript versions supported by Espree.
+ * @returns {number[]} An array containing the supported ECMAScript versions.
+ */
+function getSupportedEcmaVersions() {
+    return [...SUPPORTED_VERSIONS];
+}
+
+/**
+ * Normalize ECMAScript version from the initial config
+ * @param {(number|"latest")} ecmaVersion ECMAScript version from the initial config
+ * @throws {Error} throws an error if the ecmaVersion is invalid.
+ * @returns {number} normalized ECMAScript version
+ */
+function normalizeEcmaVersion(ecmaVersion = 5) {
+
+    let version = ecmaVersion === "latest" ? getLatestEcmaVersion() : ecmaVersion;
+
+    if (typeof version !== "number") {
+        throw new Error(`ecmaVersion must be a number or "latest". Received value of type ${typeof ecmaVersion} instead.`);
+    }
+
+    // Calculate ECMAScript edition number from official year version starting with
+    // ES2015, which corresponds with ES6 (or a difference of 2009).
+    if (version >= 2015) {
+        version -= 2009;
+    }
+
+    if (!SUPPORTED_VERSIONS.includes(version)) {
+        throw new Error("Invalid ecmaVersion.");
+    }
+
+    return version;
+}
+
+/**
+ * Normalize sourceType from the initial config
+ * @param {string} sourceType to normalize
+ * @throws {Error} throw an error if sourceType is invalid
+ * @returns {string} normalized sourceType
+ */
+function normalizeSourceType(sourceType = "script") {
+    if (sourceType === "script" || sourceType === "module") {
+        return sourceType;
+    }
+
+    if (sourceType === "commonjs") {
+        return "script";
+    }
+
+    throw new Error("Invalid sourceType.");
+}
+
+/**
+ * Normalize parserOptions
+ * @param {Object} options the parser options to normalize
+ * @throws {Error} throw an error if found invalid option.
+ * @returns {Object} normalized options
+ */
+function normalizeOptions(options) {
+    const ecmaVersion = normalizeEcmaVersion(options.ecmaVersion);
+    const sourceType = normalizeSourceType(options.sourceType);
+    const ranges = options.range === true;
+    const locations = options.loc === true;
+
+    if (ecmaVersion !== 3 && options.allowReserved) {
+
+        // a value of `false` is intentionally allowed here, so a shared config can overwrite it when needed
+        throw new Error("`allowReserved` is only supported when ecmaVersion is 3");
+    }
+    if (typeof options.allowReserved !== "undefined" && typeof options.allowReserved !== "boolean") {
+        throw new Error("`allowReserved`, when present, must be `true` or `false`");
+    }
+    const allowReserved = ecmaVersion === 3 ? (options.allowReserved || "never") : false;
+    const ecmaFeatures = options.ecmaFeatures || {};
+    const allowReturnOutsideFunction = options.sourceType === "commonjs" ||
+        Boolean(ecmaFeatures.globalReturn);
+
+    if (sourceType === "module" && ecmaVersion < 6) {
+        throw new Error("sourceType 'module' is not supported when ecmaVersion < 2015. Consider adding `{ ecmaVersion: 2015 }` to the parser options.");
+    }
+
+    return Object.assign({}, options, {
+        ecmaVersion,
+        sourceType,
+        ranges,
+        locations,
+        allowReserved,
+        allowReturnOutsideFunction
+    });
+}
+
+/* eslint no-param-reassign: 0 -- stylistic choice */
+
+
+const STATE = Symbol("espree's internal state");
+const ESPRIMA_FINISH_NODE = Symbol("espree's esprimaFinishNode");
+
+
+/**
+ * Converts an Acorn comment to a Esprima comment.
+ * @param {boolean} block True if it's a block comment, false if not.
+ * @param {string} text The text of the comment.
+ * @param {int} start The index at which the comment starts.
+ * @param {int} end The index at which the comment ends.
+ * @param {Location} startLoc The location at which the comment starts.
+ * @param {Location} endLoc The location at which the comment ends.
+ * @param {string} code The source code being parsed.
+ * @returns {Object} The comment object.
+ * @private
+ */
+function convertAcornCommentToEsprimaComment(block, text, start, end, startLoc, endLoc, code) {
+    let type;
+
+    if (block) {
+        type = "Block";
+    } else if (code.slice(start, start + 2) === "#!") {
+        type = "Hashbang";
+    } else {
+        type = "Line";
+    }
+
+    const comment = {
+        type,
+        value: text
+    };
+
+    if (typeof start === "number") {
+        comment.start = start;
+        comment.end = end;
+        comment.range = [start, end];
+    }
+
+    if (typeof startLoc === "object") {
+        comment.loc = {
+            start: startLoc,
+            end: endLoc
+        };
+    }
+
+    return comment;
+}
+
+var espree = () => Parser => {
+    const tokTypes = Object.assign({}, Parser.acorn.tokTypes);
+
+    if (Parser.acornJsx) {
+        Object.assign(tokTypes, Parser.acornJsx.tokTypes);
+    }
+
+    return class Espree extends Parser {
+        constructor(opts, code) {
+            if (typeof opts !== "object" || opts === null) {
+                opts = {};
+            }
+            if (typeof code !== "string" && !(code instanceof String)) {
+                code = String(code);
+            }
+
+            // save original source type in case of commonjs
+            const originalSourceType = opts.sourceType;
+            const options = normalizeOptions(opts);
+            const ecmaFeatures = options.ecmaFeatures || {};
+            const tokenTranslator =
+                options.tokens === true
+                    ? new TokenTranslator(tokTypes, code)
+                    : null;
+
+            /*
+             * Data that is unique to Espree and is not represented internally
+             * in Acorn.
+             *
+             * For ES2023 hashbangs, Espree will call `onComment()` during the
+             * constructor, so we must define state before having access to
+             * `this`.
+             */
+            const state = {
+                originalSourceType: originalSourceType || options.sourceType,
+                tokens: tokenTranslator ? [] : null,
+                comments: options.comment === true ? [] : null,
+                impliedStrict: ecmaFeatures.impliedStrict === true && options.ecmaVersion >= 5,
+                ecmaVersion: options.ecmaVersion,
+                jsxAttrValueToken: false,
+                lastToken: null,
+                templateElements: []
+            };
+
+            // Initialize acorn parser.
+            super({
+
+                // do not use spread, because we don't want to pass any unknown options to acorn
+                ecmaVersion: options.ecmaVersion,
+                sourceType: options.sourceType,
+                ranges: options.ranges,
+                locations: options.locations,
+                allowReserved: options.allowReserved,
+
+                // Truthy value is true for backward compatibility.
+                allowReturnOutsideFunction: options.allowReturnOutsideFunction,
+
+                // Collect tokens
+                onToken(token) {
+                    if (tokenTranslator) {
+
+                        // Use `tokens`, `ecmaVersion`, and `jsxAttrValueToken` in the state.
+                        tokenTranslator.onToken(token, state);
+                    }
+                    if (token.type !== tokTypes.eof) {
+                        state.lastToken = token;
+                    }
+                },
+
+                // Collect comments
+                onComment(block, text, start, end, startLoc, endLoc) {
+                    if (state.comments) {
+                        const comment = convertAcornCommentToEsprimaComment(block, text, start, end, startLoc, endLoc, code);
+
+                        state.comments.push(comment);
+                    }
+                }
+            }, code);
+
+            /*
+             * We put all of this data into a symbol property as a way to avoid
+             * potential naming conflicts with future versions of Acorn.
+             */
+            this[STATE] = state;
+        }
+
+        tokenize() {
+            do {
+                this.next();
+            } while (this.type !== tokTypes.eof);
+
+            // Consume the final eof token
+            this.next();
+
+            const extra = this[STATE];
+            const tokens = extra.tokens;
+
+            if (extra.comments) {
+                tokens.comments = extra.comments;
+            }
+
+            return tokens;
+        }
+
+        finishNode(...args) {
+            const result = super.finishNode(...args);
+
+            return this[ESPRIMA_FINISH_NODE](result);
+        }
+
+        finishNodeAt(...args) {
+            const result = super.finishNodeAt(...args);
+
+            return this[ESPRIMA_FINISH_NODE](result);
+        }
+
+        parse() {
+            const extra = this[STATE];
+            const program = super.parse();
+
+            program.sourceType = extra.originalSourceType;
+
+            if (extra.comments) {
+                program.comments = extra.comments;
+            }
+            if (extra.tokens) {
+                program.tokens = extra.tokens;
+            }
+
+            /*
+             * Adjust opening and closing position of program to match Esprima.
+             * Acorn always starts programs at range 0 whereas Esprima starts at the
+             * first AST node's start (the only real difference is when there's leading
+             * whitespace or leading comments). Acorn also counts trailing whitespace
+             * as part of the program whereas Esprima only counts up to the last token.
+             */
+            if (program.body.length) {
+                const [firstNode] = program.body;
+
+                if (program.range) {
+                    program.range[0] = firstNode.range[0];
+                }
+                if (program.loc) {
+                    program.loc.start = firstNode.loc.start;
+                }
+                program.start = firstNode.start;
+            }
+            if (extra.lastToken) {
+                if (program.range) {
+                    program.range[1] = extra.lastToken.range[1];
+                }
+                if (program.loc) {
+                    program.loc.end = extra.lastToken.loc.end;
+                }
+                program.end = extra.lastToken.end;
+            }
+
+
+            /*
+             * https://github.com/eslint/espree/issues/349
+             * Ensure that template elements have correct range information.
+             * This is one location where Acorn produces a different value
+             * for its start and end properties vs. the values present in the
+             * range property. In order to avoid confusion, we set the start
+             * and end properties to the values that are present in range.
+             * This is done here, instead of in finishNode(), because Acorn
+             * uses the values of start and end internally while parsing, making
+             * it dangerous to change those values while parsing is ongoing.
+             * By waiting until the end of parsing, we can safely change these
+             * values without affect any other part of the process.
+             */
+            this[STATE].templateElements.forEach(templateElement => {
+                const startOffset = -1;
+                const endOffset = templateElement.tail ? 1 : 2;
+
+                templateElement.start += startOffset;
+                templateElement.end += endOffset;
+
+                if (templateElement.range) {
+                    templateElement.range[0] += startOffset;
+                    templateElement.range[1] += endOffset;
+                }
+
+                if (templateElement.loc) {
+                    templateElement.loc.start.column += startOffset;
+                    templateElement.loc.end.column += endOffset;
+                }
+            });
+
+            return program;
+        }
+
+        parseTopLevel(node) {
+            if (this[STATE].impliedStrict) {
+                this.strict = true;
+            }
+            return super.parseTopLevel(node);
+        }
+
+        /**
+         * Overwrites the default raise method to throw Esprima-style errors.
+         * @param {int} pos The position of the error.
+         * @param {string} message The error message.
+         * @throws {SyntaxError} A syntax error.
+         * @returns {void}
+         */
+        raise(pos, message) {
+            const loc = Parser.acorn.getLineInfo(this.input, pos);
+            const err = new SyntaxError(message);
+
+            err.index = pos;
+            err.lineNumber = loc.line;
+            err.column = loc.column + 1; // acorn uses 0-based columns
+            throw err;
+        }
+
+        /**
+         * Overwrites the default raise method to throw Esprima-style errors.
+         * @param {int} pos The position of the error.
+         * @param {string} message The error message.
+         * @throws {SyntaxError} A syntax error.
+         * @returns {void}
+         */
+        raiseRecoverable(pos, message) {
+            this.raise(pos, message);
+        }
+
+        /**
+         * Overwrites the default unexpected method to throw Esprima-style errors.
+         * @param {int} pos The position of the error.
+         * @throws {SyntaxError} A syntax error.
+         * @returns {void}
+         */
+        unexpected(pos) {
+            let message = "Unexpected token";
+
+            if (pos !== null && pos !== void 0) {
+                this.pos = pos;
+
+                if (this.options.locations) {
+                    while (this.pos < this.lineStart) {
+                        this.lineStart = this.input.lastIndexOf("\n", this.lineStart - 2) + 1;
+                        --this.curLine;
+                    }
+                }
+
+                this.nextToken();
+            }
+
+            if (this.end > this.start) {
+                message += ` ${this.input.slice(this.start, this.end)}`;
+            }
+
+            this.raise(this.start, message);
+        }
+
+        /*
+        * Esprima-FB represents JSX strings as tokens called "JSXText", but Acorn-JSX
+        * uses regular tt.string without any distinction between this and regular JS
+        * strings. As such, we intercept an attempt to read a JSX string and set a flag
+        * on extra so that when tokens are converted, the next token will be switched
+        * to JSXText via onToken.
+        */
+        jsx_readString(quote) { // eslint-disable-line camelcase -- required by API
+            const result = super.jsx_readString(quote);
+
+            if (this.type === tokTypes.string) {
+                this[STATE].jsxAttrValueToken = true;
+            }
+            return result;
+        }
+
+        /**
+         * Performs last-minute Esprima-specific compatibility checks and fixes.
+         * @param {ASTNode} result The node to check.
+         * @returns {ASTNode} The finished node.
+         */
+        [ESPRIMA_FINISH_NODE](result) {
+
+            // Acorn doesn't count the opening and closing backticks as part of templates
+            // so we have to adjust ranges/locations appropriately.
+            if (result.type === "TemplateElement") {
+
+                // save template element references to fix start/end later
+                this[STATE].templateElements.push(result);
+            }
+
+            if (result.type.includes("Function") && !result.generator) {
+                result.generator = false;
+            }
+
+            return result;
+        }
+    };
+};
+
+const version$1 = "9.6.1";
+
+/* eslint-disable jsdoc/no-multi-asterisks -- needed to preserve original formatting of licences */
+
+
+// To initialize lazily.
+const parsers = {
+    _regular: null,
+    _jsx: null,
+
+    get regular() {
+        if (this._regular === null) {
+            this._regular = acorn__namespace.Parser.extend(espree());
+        }
+        return this._regular;
+    },
+
+    get jsx() {
+        if (this._jsx === null) {
+            this._jsx = acorn__namespace.Parser.extend(jsx__default["default"](), espree());
+        }
+        return this._jsx;
+    },
+
+    get(options) {
+        const useJsx = Boolean(
+            options &&
+            options.ecmaFeatures &&
+            options.ecmaFeatures.jsx
+        );
+
+        return useJsx ? this.jsx : this.regular;
+    }
+};
+
+//------------------------------------------------------------------------------
+// Tokenizer
+//------------------------------------------------------------------------------
+
+/**
+ * Tokenizes the given code.
+ * @param {string} code The code to tokenize.
+ * @param {Object} options Options defining how to tokenize.
+ * @returns {Token[]} An array of tokens.
+ * @throws {SyntaxError} If the input code is invalid.
+ * @private
+ */
+function tokenize(code, options) {
+    const Parser = parsers.get(options);
+
+    // Ensure to collect tokens.
+    if (!options || options.tokens !== true) {
+        options = Object.assign({}, options, { tokens: true }); // eslint-disable-line no-param-reassign -- stylistic choice
+    }
+
+    return new Parser(options, code).tokenize();
+}
+
+//------------------------------------------------------------------------------
+// Parser
+//------------------------------------------------------------------------------
+
+/**
+ * Parses the given code.
+ * @param {string} code The code to tokenize.
+ * @param {Object} options Options defining how to tokenize.
+ * @returns {ASTNode} The "Program" AST node.
+ * @throws {SyntaxError} If the input code is invalid.
+ */
+function parse(code, options) {
+    const Parser = parsers.get(options);
+
+    return new Parser(options, code).parse();
+}
+
+//------------------------------------------------------------------------------
+// Public
+//------------------------------------------------------------------------------
+
+const version = version$1;
+const name = "espree";
+
+/* istanbul ignore next */
+const VisitorKeys = (function() {
+    return visitorKeys__namespace.KEYS;
+}());
+
+// Derive node types from VisitorKeys
+/* istanbul ignore next */
+const Syntax = (function() {
+    let key,
+        types = {};
+
+    if (typeof Object.create === "function") {
+        types = Object.create(null);
+    }
+
+    for (key in VisitorKeys) {
+        if (Object.hasOwnProperty.call(VisitorKeys, key)) {
+            types[key] = key;
+        }
+    }
+
+    if (typeof Object.freeze === "function") {
+        Object.freeze(types);
+    }
+
+    return types;
+}());
+
+const latestEcmaVersion = getLatestEcmaVersion();
+
+const supportedEcmaVersions = getSupportedEcmaVersions();
+
+exports.Syntax = Syntax;
+exports.VisitorKeys = VisitorKeys;
+exports.latestEcmaVersion = latestEcmaVersion;
+exports.name = name;
+exports.parse = parse;
+exports.supportedEcmaVersions = supportedEcmaVersions;
+exports.tokenize = tokenize;
+exports.version = version;
+
+},{"acorn":4,"acorn-jsx":2,"eslint-visitor-keys":22}],32:[function(require,module,exports){
 const {parse} = require('espree');
-const {generate} = require('escodegen');
+const {generate, attachComments} = require('escodegen');
 const estraverse = require('estraverse');
 const {analyze} = require('eslint-scope');
 
@@ -18359,22 +18745,30 @@ const sourceType = 'module';
  * @return {ASTNode} The root of the AST
  */
 function parseCode(inputCode, opts = {}) {
-	return parse(inputCode, {ecmaVersion, comment: true, range: true, ...opts});
+	const rootNode = parse(inputCode, {ecmaVersion, comment: true, range: true, ...opts});
+	if (rootNode.tokens) attachComments(rootNode, rootNode.comments, rootNode.tokens);
+	return rootNode;
 }
+
+const excludedParentKeys = [
+	'type', 'start', 'end', 'range', 'sourceType', 'comments', 'srcClosure', 'nodeId',
+	'childNodes', 'parentNode', 'parentKey', 'scope',
+];
 
 /**
  * Return the key the child node is assigned in the parent node if applicable; null otherwise.
- * @param {ASTNode} parent
- * @param {number} targetChildNodeId
+ * @param {ASTNode} node
  * @returns {string|null}
  */
-function getParentKey(parent, targetChildNodeId) {
-	if (parent) {
-		for (const key of Object.keys(parent)) {
-			if (parent[key]?.nodeId === targetChildNodeId) return key;
-			else if (Array.isArray(parent[key])) {
-				for (const item of (parent[key] || [])) {
-					if (item?.nodeId === targetChildNodeId) return key;
+function getParentKey(node) {
+	if (node.parentNode) {
+		const keys = Object.keys(node.parentNode);
+		for (let i = 0; i < keys.length; i++) {
+			if (excludedParentKeys.includes(keys[i])) continue;
+			if (node.parentNode[keys[i]] === node) return keys[i];
+			if (Array.isArray(node.parentNode[keys[i]])) {
+				for (let j = 0; j < node.parentNode[keys[i]]?.length; j++) {
+					if (node.parentNode[keys[i]][j] === node) return keys[i];
 				}
 			}
 		}
@@ -18383,15 +18777,17 @@ function getParentKey(parent, targetChildNodeId) {
 }
 
 const generateFlatASTDefaultOptions = {
-	// If false, include only original node with nodeId, without any further details
+	// If false, do not include any scope details
 	detailed: true,
-	// If false, do not include node src. Only available when `detailed` option is true
+	// If false, do not include node src
 	includeSrc: true,
 	// Retry to parse the code with sourceType: 'script' if 'module' failed with 'strict' error message
 	alernateSourceTypeOnFailure: true,
 	// Options for the espree parser
 	parseOpts: {
 		sourceType,
+		comment: true,
+		tokens: true,
 	},
 };
 
@@ -18411,88 +18807,12 @@ function createSrcClosure(src) {
  */
 function generateFlatAST(inputCode, opts = {}) {
 	opts = { ...generateFlatASTDefaultOptions, ...opts };
-	const parseOpts = opts.parseOpts || {};
-	let rootNode;
-	try {
-		rootNode = parseCode(inputCode, parseOpts);
-	} catch (e) {
-		if (opts.alernateSourceTypeOnFailure && e.message.includes('in strict mode')) rootNode = parseCode(inputCode, {...parseOpts, sourceType: 'script'});
+	const rootNode = generateRootNode(inputCode, opts);
+	const tree = extractNodesFromRoot(rootNode, opts);
+	if (opts.detailed) {
+		const scopes = getAllScopes(rootNode);
+		for (let i = 0; i < tree.length; i++) injectScopeToNode(tree[i], scopes);
 	}
-	let scopeManager;
-	let srcClosure;
-	try {
-		if (opts.detailed) { // noinspection JSCheckFunctionSignatures
-			scopeManager = analyze(rootNode, {
-				optimistic: true,
-				ecmaVersion,
-				sourceType});
-			if (opts.includeSrc) srcClosure = createSrcClosure(inputCode);
-		}
-	} catch {}
-	const tree = [];
-	let nodeId = 0;
-	let scopeId = 0;
-	estraverse.traverse(rootNode, {
-		/**
-		 * @param {ASTNode} node
-		 * @param {ASTNode} parentNode
-		 */
-		enter(node, parentNode) {
-			node.nodeId = nodeId++;
-			if (opts.detailed) {
-				if (opts.includeSrc) Object.defineProperty(node, 'src', {
-					get() { return srcClosure(node.range[0], node.range[1]);},
-				});
-				node.childNodes = [];
-				node.parentNode = parentNode;
-				node.parentKey = parentNode ? getParentKey(parentNode, node.nodeId) : '';
-
-				// Keep track of the node's lineage
-				if (parentNode) node.lineage = [...parentNode?.lineage || [], parentNode.nodeId];
-				// Acquire scope
-				node.scope = scopeManager.acquire(node);
-				if (!node.scope) node.scope = node.parentNode.scope;
-				else if (node.scope.type.includes('-name') && node.scope?.childScopes?.length === 1) node.scope = node.scope.childScopes[0];
-				if (node.scope.scopeId === undefined) node.scope.scopeId = scopeId++;
-				if (parentNode) parentNode.childNodes.push(node);
-				if (node.type === 'Identifier') {
-					// Track references and declarations
-					// Prevent assigning declNode to member expression properties or object keys
-					if (!(['property', 'key'].includes(node.parentKey) && !parentNode.computed)) {
-						const variables = node.scope.variables.filter(n => n.name === node.name);
-						const isDeclaration = variables?.length && variables[0].identifiers.filter(n => n.nodeId === node.nodeId).length;
-						if (isDeclaration) node.references = node.references || [];
-						else if (!(node.parentKey === 'id' && node.parentNode.type === 'FunctionDeclaration'))  {
-							// Find declaration by finding the closest declaration of the same name.
-							let decls = [];
-							if (variables?.length) decls = variables.filter(n => n.name === node.name)[0].identifiers;
-							else {
-								const scopeReferences = node.scope.references.filter(n => n.identifier.name === node.name);
-								if (scopeReferences.length) decls = scopeReferences[0].resolved?.identifiers || [];
-							}
-							let declNode = decls[0];
-							if (decls.length > 1) {   // TODO: Defer setting declaration and references
-								let commonAncestors = node.lineage.reduce((t, c) => declNode.lineage?.includes(c) ? ++t : t, 0);
-								decls.slice(1).forEach(n => {
-									const ca = node.lineage.reduce((t, c) => n.lineage?.includes(c) ? ++t : t, 0);
-									if (ca > commonAncestors) {
-										commonAncestors = ca;
-										declNode = n;
-									}
-								});
-							}
-							if (declNode) {
-								if (!declNode.references) declNode.references = [];
-								declNode.references.push(node);
-								node.declNode = declNode;
-							}
-						}
-					}
-				}
-			}
-			tree.push(node);
-		},
-	});
 	return tree;
 }
 
@@ -18518,14 +18838,195 @@ function generateCode(rootNode, opts = {}) {
 	return generate(rootNode, { ...generateCodeDefaultOptions, ...opts });
 }
 
+function generateRootNode(inputCode, opts = {}) {
+	opts = { ...generateFlatASTDefaultOptions, ...opts };
+	const parseOpts = opts.parseOpts || {};
+	let rootNode;
+	try {
+		rootNode = parseCode(inputCode, parseOpts);
+		if (opts.includeSrc) rootNode.srcClosure = createSrcClosure(inputCode);
+	} catch (e) {
+		if (opts.alernateSourceTypeOnFailure && e.message.includes('in strict mode')) rootNode = parseCode(inputCode, {...parseOpts, sourceType: 'script'});
+	}
+	return rootNode;
+}
+
+function extractNodesFromRoot(rootNode, opts) {
+	opts = { ...generateFlatASTDefaultOptions, ...opts };
+	const tree = [];
+	let nodeId = 0;
+
+	// noinspection JSUnusedGlobalSymbols
+	estraverse.traverse(rootNode, {
+		/**
+		 * @param {ASTNode} node
+		 * @param {ASTNode} parentNode
+		 */
+		enter(node, parentNode) {
+			tree.push(node);
+			node.nodeId = nodeId++;
+			node.childNodes = [];
+			node.parentNode = parentNode;
+			node.parentKey = parentNode ? getParentKey(node) : '';
+			node.lineage = [...parentNode?.lineage || []];
+			if (parentNode) {
+				node.lineage.push(parentNode.nodeId);
+				parentNode.childNodes.push(node);
+			}
+			if (opts.includeSrc) Object.defineProperty(node, 'src', {
+				get() { return rootNode.srcClosure(node.range[0], node.range[1]);},
+			});
+		}
+	});
+	return tree;
+}
+
+/**
+ * @param {ASTNode} node
+ * @param {ASTScope[]} scopes
+ */
+function injectScopeToNode(node, scopes) {
+	let parentNode = node.parentNode;
+	// Acquire scope
+	node.scope = matchScopeToNode(node, scopes);
+	if (node.type === 'Identifier' && !(!parentNode.computed && ['property', 'key'].includes(node.parentKey))) {
+		// Track references and declarations
+		// Prevent assigning declNode to member expression properties or object keys
+		const variables = node.scope.variables.filter(n => n.name === node.name);
+		if (node.parentKey === 'id' || (variables?.length && variables[0].identifiers.some(n => n === node))) {
+			node.references = node.references || [];
+		} else {
+			// Find declaration by finding the closest declaration of the same name.
+			let decls = [];
+			if (variables?.length) {
+				decls = variables.find(n => n.name === node.name)?.identifiers;
+			}
+			else {
+				const scopeReference = node.scope.references.find(n => n.identifier.name === node.name);
+				if (scopeReference) decls = scopeReference.resolved?.identifiers || [];
+			}
+			let declNode = decls[0];
+			if (decls.length > 1) {
+				let commonAncestors = maxSharedLength(declNode.lineage, node.lineage);
+				for (let i = 1; i < decls.length; i++) {
+					const ca = maxSharedLength(decls[i].lineage, node.lineage);
+					if (ca > commonAncestors) {
+						commonAncestors = ca;
+						declNode = decls[i];
+					}
+				}
+			}
+			if (declNode) {
+				declNode.references = declNode.references || [];
+				declNode.references.push(node);
+				node.declNode = declNode;
+			}
+		}
+	}
+}
+
+/**
+ * @param {number[]} targetArr
+ * @param {number[]} containedArr
+ * @return {number} Return the maximum length of shared numbers
+ */
+function maxSharedLength(targetArr, containedArr) {
+	let count = 0;
+	for (let i = 0; i < containedArr.length; i++) {
+		if (targetArr[i] !== containedArr[i]) break;
+		++count;
+	}
+	return count;
+}
+
+/**
+ * @param {ASTNode} node
+ * @param {ASTScope[]} scopes
+ * @return {Promise}
+ */
+async function injectScopeToNodeAsync(node, scopes) {
+	return new Promise((resolve, reject) => {
+		try {
+			injectScopeToNode(node, scopes);
+			resolve();
+		} catch (e) {
+			reject(e);
+		}
+	});
+}
+
+function getAllScopes(rootNode) {
+	const globalScope = analyze(rootNode, {
+		optimistic: true,
+		ecmaVersion,
+		sourceType}).acquireAll(rootNode)[0];
+	const allScopes = {};
+	const stack = [globalScope];
+	while (stack.length) {
+		let scope = stack.pop();
+		const scopeId = scope.block.nodeId;
+		scope.block.isScopeBlock = true;
+		if (!allScopes[scopeId]) {
+			allScopes[scopeId] = scope;
+			stack.push(...scope.childScopes);
+		}
+	}
+	rootNode.allScopes = allScopes;
+	return allScopes;
+}
+
+/**
+ * @param {ASTNode} node
+ * @param {ASTScope[]} allScopes
+ * @return {ASTScope}
+ */
+function matchScopeToNode(node, allScopes) {
+	if (node.lineage?.length) {
+		for (const nid of [...node.lineage].reverse()) {
+			if (allScopes[nid]) {
+				let scope = allScopes[nid];
+				if (scope.type.includes('-name') && scope?.childScopes?.length === 1) scope = scope.childScopes[0];
+				return scope;
+			}
+		}
+	}
+	return allScopes[0]; // Global scope - this should never be reached
+}
+
+/**
+ *
+ * @param {string} inputCode
+ * @param {object} opts
+ * @return {Promise<ASTNode[]>}
+ */
+async function generateFlatASTAsync(inputCode, opts = {}) {
+	opts = { ...generateFlatASTDefaultOptions, ...opts };
+	const rootNode = generateRootNode(inputCode, opts);
+	const tree = extractNodesFromRoot(rootNode, opts);
+	const promises = [];
+	if (opts.detailed) {
+		const scopes = getAllScopes(rootNode);
+		for (let i = 0; i < tree.length; i++) {
+			promises.push(injectScopeToNodeAsync(tree[i], scopes));
+		}
+
+	}
+	return Promise.all(promises).then(() => tree);
+}
+
 module.exports = {
 	estraverse,
+	extractNodesFromRoot,
 	generateCode,
 	generateFlatAST,
+	generateFlatASTAsync,
+	generateRootNode,
+	injectScopeToNode,
+	injectScopeToNodeAsync,
 	parseCode,
 };
 
-},{"escodegen":9,"eslint-scope":31,"espree":23,"estraverse":26}],33:[function(require,module,exports){
+},{"escodegen":9,"eslint-scope":30,"espree":31,"estraverse":25}],33:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
