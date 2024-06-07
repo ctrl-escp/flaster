@@ -28,6 +28,7 @@ function applyFilter(filterSrc) {
         src: filterSrc,
         enabled: true,
       });
+      store.page = 0;
     } catch (e) {
       console.log(`Invalid filter code: ${e.message}`);
     }
@@ -42,6 +43,7 @@ function reapplyFilters() {
     if (filter.enabled) applyFilter(filter.src);
     else store.filters.push(filter);
   }
+  store.page = 0;
 }
 
 function toggleFilter(filter) {
@@ -52,6 +54,7 @@ function toggleFilter(filter) {
 function clearAllFilters() {
   store.filters = [];
   store.filteredNodes = store.ast;
+  store.page = 0;
 }
 
 function deleteFilter(filter) {
