@@ -1,8 +1,6 @@
 <script setup>
-import {computed, onMounted, watch} from 'vue';
 import {store} from '../store.js';
-
-let nodesToDisplay = [];
+import {computed, onMounted} from 'vue';
 
 let highlightedNodeId = null;
 
@@ -22,25 +20,43 @@ function highlightCode(node) {
   }
 }
 
-const numberOfDisplayedNodes = computed(() => {
-  let msg = '0/0';
-  const allNodes = store.ast.length;
-  const relevantLength = (store.areFiltersActive ? store.filteredNodes : store.ast).length;
-  if (allNodes && relevantLength) msg = `${relevantLength} / ${allNodes}`;
-  return msg;
+const relevatNodes = computed(() => store.areFiltersActive ? store.filteredNodes : store.ast);
+
+const currentPageStartIndex = computed(() => Number(store.page * store.nodesPageSize));
+
+const pagedNodes = computed(() => relevatNodes.value
+  .slice(currentPageStartIndex.value, currentPageStartIndex.value + store.nodesPageSize));
+
+const numberOfPages = computed(() => !isPaged.value ? 1 : Math.floor(relevatNodes.value.length / store.nodesPageSize));
+
+const absCurrentPageStartIndex = computed(() => currentPageStartIndex.value < 0 ? relevatNodes.value.length + currentPageStartIndex.value : currentPageStartIndex.value);
+const isFiltered = computed(() => store.filteredNodes.length < store.ast.length);
+const isPaged = computed(() => relevatNodes.value.length > store.nodesPageSize);
+const pageRange = computed(() => {
+  const start = isPaged.value ? absCurrentPageStartIndex.value + 1 : 1;
+  let end = absCurrentPageStartIndex.value + pagedNodes.value.length;
+  end = end > relevatNodes.value.length ? relevatNodes.value.length : end;
+  return `${start} - ${end}`;
 });
+
+const nextPage = () => store.page === numberOfPages.value ? store.page = 0 : store.page++;
+const prevPage = () => !store.page ? store.page = numberOfPages.value : store.page--;
 
 onMounted(() => {
-  watch(() => store.filteredNodes, () => nodesToDisplay = store.filteredNodes);
 });
-
 </script>
 
 <template>
   <fieldset class="ast-list-wrapper">
-    <legend>{{ numberOfDisplayedNodes }} nodes</legend>
-    <div v-for="node of (store.ast)" :key="node.nodeId" v-show="nodesToDisplay.includes(node)" class="node-container"
-         :data-nodeid="node.nodeId" @click="highlightCode(node)">
+    <legend v-if="store.ast.length">
+      <span class="paged" v-if="isPaged">
+        <button class="prev-page" title="Previous page" @click="prevPage">&lt;</button>
+        <button class="next-page" title="Next page" @click="nextPage">&gt;</button>
+      </span>
+      <span>{{pageRange}} / {{ store.ast.length }}{{isFiltered ? ' filtered' : ''}} out of {{store.ast.length}} nodes</span>
+    </legend>
+    <legend v-else>Nodes</legend>
+    <div v-for="node of pagedNodes" :key="node.nodeId" class="node-container" :data-nodeid="node.nodeId" @click="highlightCode(node)">
       <span class="node-type" :title="'NodeId: ' + node.nodeId">
         [<span class="node-parent-type"
                title="Parent node type">{{ node.parentNode ? node.parentNode.type + '=>' : '' }}</span>{{ node.type }}]
@@ -58,6 +74,12 @@ onMounted(() => {
   width: 100%;
   height: 50vh;
   overflow-y: auto;
+}
+
+.prev-page, .next-page {
+  background-color: transparent;
+  color: white;
+  font-size: large;
 }
 
 /*noinspection CssUnusedSymbol*/
@@ -85,5 +107,9 @@ legend {
 
 .node-type {
   color: #41e804;
+}
+
+.paged {
+  margin-inline-end: 10px;
 }
 </style>

@@ -12,6 +12,8 @@ export const store = reactive({
   },
   // parsing
   ast: [],
+  nodesPageSize: 20,
+  page: 0,
   isContentParsed: false,
   filteredNodes: [],
   filters: [],
