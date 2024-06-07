@@ -28,6 +28,7 @@ function resetParsedState() {
   store.matchingNodes = [];
   setContentUnparsed();
   store.updateNodesInfoMsg();
+  store.page = 0;
 }
 
 onMounted(() => {
