@@ -9,17 +9,23 @@ const messages = {
   emptyCode: 'No content',
 };
 
-const parsedStatus = ref(null);
+const parsedStatusEl = ref(null);
 
 function setContentParsed() {
-  parsedStatus.value.classList.add('parsed');
-  parsedStatus.value.classList.remove('unparsed');
-  store.logMessage(messages.contentParsed, 'success');
+  /** @type {HTMLElement} */
+  const ps = parsedStatusEl.value;
+  store.getEditor(store.editorIds.inputCodeEditor).isParsed = true;
+  ps.classList.add('parsed');
+  ps.classList.remove('unparsed');
 }
 
 function setContentUnparsed() {
-  parsedStatus.value.classList.add('unparsed');
-  parsedStatus.value.classList.remove('parsed');
+  /** @type {HTMLElement} */
+  const ps = parsedStatusEl.value;
+  const editor = store.getEditor(store.editorIds.inputCodeEditor);
+  editor ? editor.isParsed = false : void 0;
+  ps.classList.add('unparsed');
+  ps.classList.remove('parsed');
 }
 
 function resetParsedState() {
@@ -34,7 +40,7 @@ function resetParsedState() {
 onMounted(() => {
   store.resetParsedState = resetParsedState;
   store.parseContent = parseContent;
-  if (parsedStatus.value) setContentUnparsed();
+  if (parsedStatusEl.value) setContentUnparsed();
 });
 
 function parseContent() {
@@ -50,21 +56,19 @@ function parseContent() {
         if (!store.ast.length) store.logMessage(messages.astParseFail, 'error');
         else store.logMessage(`Parsed ${code.length} chars into ${store.ast.length} nodes`, 'success');
         store.filteredNodes = store.ast;
-      })
-          .then(() => {
-            debugger;
-
-          })
-          .catch(e => store.logMessage(e.message, 'error'));
+        setContentParsed();
+      }).catch(e => store.logMessage(e.message, 'error'));
     }
   } catch (e) {
     store.logMessage(e.message, 'error');
   }
 }
+
+// TOOD: change to unparsed on content change
 </script>
 
 <template>
-  <button ref="parsedStatus" class="btn unparsed" @click="parseContent">{{ messages.parseContent }}</button>
+  <button ref="parsedStatusEl" class="btn unparsed" @click="parseContent">{{ messages.parseContent }}</button>
 </template>
 
 <style scoped>
