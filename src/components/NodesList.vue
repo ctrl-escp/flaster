@@ -56,7 +56,7 @@ onMounted(() => {
         <button class="prev-page" title="Previous page" @click="prevPage">&lt;</button>
         <button class="next-page" title="Next page" @click="nextPage">&gt;</button>
       </span>
-      <span>{{pageRange}} / {{ store.filteredNodes.length }}{{isFiltered ? ' filtered' : ''}} out of {{store.ast.length}} nodes</span>
+      <span>{{pageRange}} / {{ store[store.areFiltersActive ? 'filteredNodes' : 'ast'].length}}{{isFiltered ? ' filtered' : ''}} out of {{store.ast.length}} nodes</span>
     </legend>
     <legend v-else>Nodes</legend>
     <div v-for="node of pagedNodes" :key="node.nodeId" class="node-container" :data-nodeid="node.nodeId" @click="highlightCode(node)">
