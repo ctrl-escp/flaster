@@ -68,7 +68,6 @@ const highlightRangeExt = StateField.define({
 });
 
 const highlight_decoration = Decoration.mark({
-  // attributes: {style: "background-color: red"}
   class: 'highlighted-code',
 });
 
@@ -81,16 +80,14 @@ function highlightRange(start, end) {
       effects: highlightEffect.of([highlight_decoration.range(start, end)]),
     });
     const lineNumber = this.state.doc.lineAt(start).number;
-    const line = document.querySelectorAll('.cm-line')[lineNumber];
-    if (line) line.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-      inline: 'center',
+    const linePos = this.state.doc.line(lineNumber).from;
+    store.getEditor(store.editorIds.inputCodeEditor).dispatch({
+      effects: EditorView.scrollIntoView(linePos, {
+        y: 'center',
+      })
     });
   }
 }
-
-// function scrollToLine(lineNo) {}
 
 onMounted(() => {
   // noinspection JSCheckFunctionSignatures

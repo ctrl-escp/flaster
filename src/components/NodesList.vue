@@ -1,20 +1,23 @@
 <script setup>
 import {store} from '../store.js';
-import {computed, onMounted} from 'vue';
+import {computed, onMounted, reactive} from 'vue';
 
-let highlightedNodeId = null;
+const state = reactive({
+  highlightedNodeId: -1,
+});
+
 
 function highlightCode(node) {
   const editor = store.getEditor(store.editorIds.inputCodeEditor);
-  if (highlightedNodeId !== null) {
-    const previouslyHighlighted = document.querySelector(`div[data-nodeId="${highlightedNodeId}"]`);
+  if (state.highlightedNodeId > -1) {
+    const previouslyHighlighted = document.querySelector(`.highlight-node`);
     if (previouslyHighlighted) previouslyHighlighted.classList.remove('highlight-node');
   }
-  if (node.nodeId === highlightedNodeId) {
-    highlightedNodeId = null;
+  if (node.nodeId === state.highlightedNodeId) {
+    state.highlightedNodeId = -1;
     editor.highlightRange();
   } else {
-    highlightedNodeId = node.nodeId;
+    state.highlightedNodeId = node.nodeId;
     editor.highlightRange(node.range[0], node.range[1]);
     document.querySelector(`div[data-nodeid="${node.nodeId}"]`).classList.add('highlight-node');
   }
