@@ -76,7 +76,7 @@ onMounted(() => {
   padding: 5px;
   width: 100%;
   height: 50vh;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 .prev-page, .next-page {

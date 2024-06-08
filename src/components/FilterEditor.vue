@@ -11,8 +11,8 @@ n.type === 'CallExpression' &&
 n.callee.type === 'Identifier'`;
 
 const messages = {
-  disableFilters: 'Disable filters',
-  enableFilters: 'Re-enable filters',
+  disableFilters: 'Disable all',
+  enableFilters: 'Enable all',
 };
 
 const numOfEnabledFilters = computed(() => store.filters.filter(f => f.enabled).length);
@@ -89,21 +89,18 @@ function setFilterEditorContent(filterSrc) {
 <template>
   <div class="filter-controller" v-if="store.ast.length">
     <div class="btn-group">
-      <button class="btn btn-apply"
-              @click="applyFilter(store.getEditor(store.editorIds.filterEditor).state.doc.toString())">Add
-        filter
-      </button>
-      <button class="btn btn-clear" @click="setFilterEditorContent('')">Clear current code</button>
-      <button class="btn btn-clear-all-filters" @click="clearAllFilters" :disabled="!numOfAvailableFilters">Clear all
-        filters
-      </button>
-      <button class="btn btn-clear-all-filters" @click="store.areFiltersActive = !store.areFiltersActive"
-              :disabled="!numOfAvailableFilters">
-        {{ store.areFiltersActive ? messages.disableFilters : messages.enableFilters }}
-      </button>
-      <button class="btn btn-clear-all-filters" :disabled="!numOfEnabledFilters || numOfEnabledFilters < 2"
-              @click="combineEnabledFilters">Combine active filters
-      </button>
+      <span class="filter-edit-btn-group">
+        <button class="btn btn-apply" @click="applyFilter(store.getEditor(store.editorIds.filterEditor).state.doc.toString())">Add</button>
+        <button class="btn btn-clear" @click="setFilterEditorContent('')">Clear</button>
+      </span>
+      <span class="applied-filters-btn-group">
+        <button class="btn btn-clear-all-filters" @click="clearAllFilters" :disabled="!numOfAvailableFilters">Clear all</button>
+        <button class="btn btn-clear-all-filters" @click="store.areFiltersActive = !store.areFiltersActive"
+                :disabled="!numOfAvailableFilters">
+          {{ store.areFiltersActive ? messages.disableFilters : messages.enableFilters }}
+        </button>
+        <button class="btn btn-clear-all-filters" :disabled="!numOfEnabledFilters || numOfEnabledFilters < 2" @click="combineEnabledFilters">Combine active</button>
+      </span>
     </div>
     <div class="filter-display">
       <fieldset class="filter-editor-wrapper">
@@ -132,9 +129,8 @@ function setFilterEditorContent(filterSrc) {
 .applied-filters-wrapper {
   flex: 1;
   padding: 5px;
-  overflow: hidden;
-  overflow-y: auto;
-  height: 100%;
+  overflow: auto;
+  min-width: 41%;
 }
 
 .btn-apply {
@@ -147,7 +143,12 @@ function setFilterEditorContent(filterSrc) {
   margin-left: 5px;
 }
 
-.btn-group > button {
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+}
+
+.btn-group > * > button {
   margin-right: 5px;
 }
 
@@ -165,12 +166,13 @@ function setFilterEditorContent(filterSrc) {
 
 .filter-display {
   display: flex;
-  height: 92%;
+  flex-wrap: wrap;
+  height: 90%;
 }
 
 .filter-editor-wrapper {
-  overflow: auto;
   flex: 1;
+  overflow: auto;
   padding: 0;
 }
 

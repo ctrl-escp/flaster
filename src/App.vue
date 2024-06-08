@@ -37,11 +37,11 @@ const navItems = [
     </nav>
   </header>
   <div class="panes">
-    <div class="pane-upper">
+    <div class="pane-top">
       <input-code-editor/>
       <nodes-list/>
     </div>
-    <div class="pane-lower">
+    <div class="pane-bottom">
       <filter-editor/>
     </div>
   </div>
@@ -90,20 +90,21 @@ nav {
   font-size: 2.4rem;
 }
 
-.pane-lower {
+.pane-bottom {
   flex: 1;
   display: flex;
 }
 
-.pane-upper {
+.pane-top {
   flex: 1;
   display: flex;
-  margin-bottom: 5px;
+  flex-wrap: wrap;
 }
 
 .panes {
   display: flex;
   flex-direction: column;
   height: calc(95vh - var(--nav-height));
+  gap: .2rem;
 }
 </style>
