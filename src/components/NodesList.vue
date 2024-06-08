@@ -18,6 +18,7 @@ function highlightCode(node) {
     editor.highlightRange();
   } else {
     state.highlightedNodeId = node.nodeId;
+    window.selectedNode = node;
     editor.highlightRange(node.range[0], node.range[1]);
     document.querySelector(`div[data-nodeid="${node.nodeId}"]`).classList.add('highlight-node');
   }
