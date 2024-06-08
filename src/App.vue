@@ -18,9 +18,7 @@ const navItems = [
   <header>
     <nav>
 			<span class="nav-left">
-				<a href="#">
-          <icon-bandaid/>
-				</a>
+        <icon-bandaid/>
 				<span class="nav-title">fl<b>AST</b>er</span>
 			</span>
       <span class="nav-items">
@@ -29,7 +27,7 @@ const navItems = [
         </span>
       </span>
       <span title="View code on GitHub">
-				<a class="mr-5" href="https://github.com/ctrl-escp/flaster" title="flASTer">
+				<a href="https://github.com/ctrl-escp/flaster" title="flASTer on GitHub">
 					<span class="github-text">View on GitHub</span>
           <icon-github/>
 				</a>
