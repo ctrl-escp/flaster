@@ -4,7 +4,7 @@ import {ref, onMounted} from 'vue';
 import {lintKeymap} from '@codemirror/lint';
 import {EditorState} from '@codemirror/state';
 import {javascript} from '@codemirror/lang-javascript';
-import {StateEffect, StateField} from '@codemirror/state';
+import {StateEffect, StateField, SelectionRange} from '@codemirror/state';
 import {defaultKeymap, history, historyKeymap} from '@codemirror/commands';
 import {highlightSelectionMatches, searchKeymap} from '@codemirror/search';
 import {autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap} from '@codemirror/autocomplete';
@@ -79,12 +79,13 @@ function highlightRange(start, end) {
     this.dispatch({
       effects: highlightEffect.of([highlight_decoration.range(start, end)]),
     });
-    const lineNumber = this.state.doc.lineAt(start).number;
-    const linePos = this.state.doc.line(lineNumber).from;
-    store.getEditor(store.editorIds.inputCodeEditor).dispatch({
-      effects: EditorView.scrollIntoView(linePos, {
+    const range = new SelectionRange(start, end);
+    const ed = store.getEditor(store.editorIds.inputCodeEditor);
+    ed.dispatch({
+      effects: EditorView.scrollIntoView(range, {
         y: 'center',
-      })
+        x: 'center',
+      }),
     });
   }
 }
