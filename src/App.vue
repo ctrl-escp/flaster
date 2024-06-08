@@ -104,5 +104,6 @@ nav {
   flex-direction: column;
   height: calc(95vh - var(--nav-height));
   gap: .2rem;
+  width: 100%;
 }
 </style>

@@ -65,18 +65,20 @@ onMounted(() => {
                title="Parent node type">{{ node.parentNode ? node.parentNode.type + '=>' : '' }}</span>{{ node.type }}]
       </span>
       <span class="node-src"
-            title="Click to show node in code">{{ node.src?.substring ? node.src.substring(0, 100) : 'N/A' }}</span>
+            title="Click to show node in code">{{ node.src?.substring ? node.src.substring(0, 200) : 'N/A' }}</span>
     </div>
   </fieldset>
 </template>
 
 <style scoped>
 .ast-list-wrapper {
+  display: flex;
   flex: 1;
-  padding: 5px;
-  width: 100%;
+  flex-direction: column;
   height: 50vh;
-  overflow: auto;
+  padding: 0 5px;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .prev-page, .next-page {
@@ -95,17 +97,24 @@ legend {
 }
 
 .node-container {
-  margin: 5px 0;
-}
-
-.node-container > * {
-  margin-right: 2px;
+  display: flex;
+  margin: 2px 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  gap: .5rem;
 }
 
 .node-parent-type {
   color: green;
   vertical-align: super;
   font-size: x-small;
+}
+
+.node-src {
+  max-width: calc(50vw - 20rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .node-type {
