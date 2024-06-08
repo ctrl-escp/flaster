@@ -33,3 +33,7 @@ body {
     height: 47vh;
     max-height: 47vh;
 }
+
+legend {
+    height: 1.5rem;
+}
