@@ -1,5 +1,5 @@
-# flASTer
-A web interface for exploring JS code structures using [flAST](https://github.com/perimeterx/flast)
+# flASTer <img src="dist/favicon.svg">
+A [web interface](https://ctrl-escp.github.io/flaster/) for exploring JS code structures using [flAST](https://github.com/perimeterx/flast)
 
 Helpful in investigating code structures when obfuscating and deobfuscating JS.
 
