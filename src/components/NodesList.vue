@@ -1,5 +1,5 @@
 <script setup>
-import {store} from '../store.js';
+import store from '../store';
 import {computed, onMounted, reactive} from 'vue';
 
 const state = reactive({
@@ -113,6 +113,7 @@ legend {
 
 .node-src {
   max-width: calc(50vw - 20rem);
+  min-width: 30vw;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

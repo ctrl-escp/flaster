@@ -1,12 +1,12 @@
 <script setup>
+import store from '../store';
 import {onMounted, ref} from 'vue';
-import {store} from '../store.js';
 
 const messages = {
-  parseContent: 'Parse content',
-  contentParsed: 'Content is parsed ',
-  astParseFail: 'Unable to parse AST',
-  emptyCode: 'No content',
+  parseContent: 'Parse Content',
+  contentParsed: 'Content is Parsed ',
+  astParseFail: 'Unable to Parse AST',
+  emptyCode: 'No Content',
 };
 
 const parsedStatusEl = ref(null);
@@ -33,7 +33,6 @@ function resetParsedState() {
   store.ast = [];
   store.matchingNodes = [];
   setContentUnparsed();
-  store.updateNodesInfoMsg();
   store.page = 0;
 }
 
@@ -47,7 +46,7 @@ function parseContent() {
   try {
     resetParsedState();
     const code = store.getEditor(store.editorIds.inputCodeEditor).state.doc.toString();
-    if (!code.length) store.logMessage(messages.emptyCode, 'error');
+    if (!code?.length) store.logMessage(messages.emptyCode, 'error');
     else {
       new Promise(() => {
         store.filteredNodes = store.ast = [];

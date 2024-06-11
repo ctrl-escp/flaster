@@ -1,5 +1,5 @@
 <script setup>
-import {store} from '../store.js';
+import store from '../store';
 import {ref, onMounted} from 'vue';
 import {lintKeymap} from '@codemirror/lint';
 import {EditorState} from '@codemirror/state';

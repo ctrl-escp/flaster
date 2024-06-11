@@ -1,14 +1,14 @@
 <script setup>
+import store from '../store';
 import {onMounted, ref} from 'vue';
-import {store} from '../store.js';
 
 const messages = {
-  noFile: 'Load file',
+  noFile: 'Load File',
   loaded: '',
 };
 
 const status = ref(null);
-const inputCodeEditorId = 'inputCodeEditor';
+const inputCodeEditorId = store.editorIds.inputCodeEditor;
 
 onMounted(() => {
   if (status.value) status.value.innerText = messages.noFile;
@@ -20,18 +20,12 @@ function fileChanged(el) {
   if (files.length) file = files[0];
   if (file) {
     file.text().then(c => {
-      const editor = store.getEditor(inputCodeEditorId);
-      editor.dispatch({
-        changes: [
-          {from: 0, to: editor.state.doc.length},
-          {from: 0, insert: c},
-        ],
-      });
+      store.setContent(store.getEditor(inputCodeEditorId), c);
       store.resetParsedState();
     });
     status.value.innerText = messages.loaded + file.name.substring(0, 30);
   } else {
-    store.getEditor(inputCodeEditorId).dispatch({changes: {from: 0, insert: ''}});
+    store.setContent(store.getEditor(inputCodeEditorId), '');
     status.value.innerText = messages.noFile;
     store.resetParsedState();
   }

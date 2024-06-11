@@ -1,17 +1,19 @@
 <script setup>
-import IconBandaid from './components/icons/IconBandaid.vue';
-import IconGithub from './components/icons/IconGithub.vue';
-import InputCodeEditor from './components/InputCodeEditor.vue';
-import FileLoader from './components/FileLoader.vue';
-import ParseButton from './components/ParseButton.vue';
-import NodesList from './components/NodesList.vue';
-import FilterEditor from './components/FilterEditor.vue';
+import store from './store';
+import {computed} from 'vue';
 import ToasterView from './components/ToasterView.vue';
+import ExplorationTab from './tabs/ExplorationTab.vue';
+import IconGithub from './components/icons/IconGithub.vue';
+import IconBandaid from './components/icons/IconBandaid.vue';
+// import TransformationTab from './tabs/TransformationTab.vue';
 
-const navItems = [
-  FileLoader,
-  ParseButton,
-];
+const tabs = {
+  explore: ExplorationTab,
+  // transform: TransformationTab,
+};
+
+const availableTabs = computed(() => Object.keys(tabs));
+
 </script>
 
 <template>
@@ -21,11 +23,9 @@ const navItems = [
         <icon-bandaid/>
 				<span class="nav-title">fl<b>AST</b>er</span>
 			</span>
-      <span class="nav-items">
-        <span v-for="navItem of navItems" :key="navItem" class="nav-item">
-          <component :is="navItem"></component>
-        </span>
-      </span>
+<!--      <span class="tabs">-->
+<!--        <button class="btn tab-btn" v-for="tabName in availableTabs" :key="tabName" @click="store.currentTab = tabName">{{tabName}}</button>-->
+<!--      </span>-->
       <span title="View code on GitHub">
 				<a href="https://github.com/ctrl-escp/flaster" title="flASTer on GitHub">
 					<span class="github-text">View on GitHub</span>
@@ -34,15 +34,11 @@ const navItems = [
 			</span>
     </nav>
   </header>
-  <div class="panes">
-    <div class="pane-top">
-      <input-code-editor/>
-      <nodes-list/>
-    </div>
-    <div class="pane-bottom">
-      <filter-editor/>
-    </div>
-  </div>
+  <main>
+    <keep-alive>
+      <component :is="tabs[store.currentTab]"/>
+    </keep-alive>
+  </main>
   <toaster-view/>
 </template>
 
@@ -61,6 +57,10 @@ a:link {
   margin-right: 10px;
 }
 
+main {
+  margin-top: .5rem;
+}
+
 nav {
   background-color: #212121;
   display: flex;
@@ -68,15 +68,6 @@ nav {
   border-radius: 10px;
   justify-content: space-between;
   height: var(--nav-height);
-}
-
-.nav-items {
-  display: flex;
-  flex-direction: row;
-}
-
-.nav-item {
-  margin: 0 5px;
 }
 
 .nav-left {
@@ -88,22 +79,13 @@ nav {
   font-size: 2.4rem;
 }
 
-.pane-bottom {
-  flex: 1;
-  display: flex;
+.tab-btn {
+  text-transform: capitalize;
+
 }
 
-.pane-top {
-  flex: 1;
+.tabs {
   display: flex;
-  flex-wrap: wrap;
-}
-
-.panes {
-  display: flex;
-  flex-direction: column;
-  height: calc(95vh - var(--nav-height));
-  gap: .2rem;
-  width: 100%;
+  gap: 1rem;
 }
 </style>

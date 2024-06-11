@@ -1,6 +1,6 @@
 <script setup>
+import store from '../store';
 import {computed} from 'vue';
-import {store} from '../store.js';
 import CodeEditor from './CodeEditor.vue';
 import IconCheckboxActive from './icons/IconCheckboxActive.vue';
 import IconCheckboxInactive from './icons/IconCheckboxInactive.vue';
@@ -24,6 +24,7 @@ function applyFilter(filterSrc) {
     try {
       filterSrc = filterSrc.trim();
       store.filteredNodes = store.filteredNodes.filter(eval(`n => ${filterSrc}`));
+      // noinspection JSCheckFunctionSignatures
       store.filters.push({
         src: filterSrc,
         enabled: true,
@@ -75,14 +76,7 @@ function combineEnabledFilters() {
 }
 
 function setFilterEditorContent(filterSrc) {
-  const editor = store.getEditor(store.editorIds.filterEditor);
-  editor.dispatch({
-    changes: {
-      from: 0,
-      to: editor.state.doc.length,
-      insert: filterSrc
-    }
-  });
+  store.setContent(store.getEditor(store.editorIds.filterEditor),filterSrc);
 }
 </script>
 
@@ -133,6 +127,10 @@ function setFilterEditorContent(filterSrc) {
   min-width: 41%;
 }
 
+.applied-filters-wrapper > fieldset {
+  min-width: 40vw;
+}
+
 .btn-apply {
   background-color: greenyellow;
 }
@@ -178,10 +176,10 @@ function setFilterEditorContent(filterSrc) {
 
 .filter-line {
   display: flex;
+  flex: 1;
 }
 
 .filter-src {
-  width: 900px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

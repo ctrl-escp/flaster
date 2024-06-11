@@ -21,6 +21,11 @@ body {
     transform: translate(1px, 1px);
 }
 
+.btn:disabled {
+    transform: none;
+    cursor: not-allowed;
+}
+
 .highlighted-code {
     background-color: rgba(255, 234, 0, 0.27);
 }

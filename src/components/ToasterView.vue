@@ -1,6 +1,6 @@
 <script setup>
-import {onMounted, reactive, ref} from 'vue';
-import {store} from '../store.js';
+import store from '../store';
+import {onMounted, reactive} from 'vue';
 import ToasterMessage from './ToasterMessage.vue';
 
 const TOAST_TIMEOUT = 3.5 * 1000;
