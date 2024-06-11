@@ -14,7 +14,7 @@ const initialValue = `// This is the default code for flASTer
 
 <template>
 	<fieldset class="code-editor-wrapper">
-		<legend>Your code <span v-if="store.isShowingTransformedCode">(transformed)</span></legend>
+		<legend>Your code <span v-if="store.isTransformed">(transformed)</span></legend>
 		<code-editor :editor-id="store.editorIds.inputCodeEditor" :initial-value="initialValue"/>
 	</fieldset>
 </template>

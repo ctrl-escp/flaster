@@ -34,7 +34,7 @@ const pagedNodes = computed(() => relevatNodes.value
 const numberOfPages = computed(() => !isPaged.value ? 1 : Math.floor(relevatNodes.value.length / store.nodesPageSize));
 
 const absCurrentPageStartIndex = computed(() => currentPageStartIndex.value < 0 ? relevatNodes.value.length + currentPageStartIndex.value : currentPageStartIndex.value);
-const isFiltered = computed(() => store.filteredNodes.length < store.ast.length);
+const isFiltered = computed(() => store.areFiltersActive && store.filteredNodes.length < store.ast.length);
 const isPaged = computed(() => relevatNodes.value.length > store.nodesPageSize);
 const pageRange = computed(() => {
   const start = isPaged.value ? absCurrentPageStartIndex.value + 1 : 1;

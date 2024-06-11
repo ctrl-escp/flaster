@@ -29,7 +29,6 @@ function setContentUnparsed() {
 }
 
 function resetParsedState() {
-  store.isContentParsed = false;
   store.ast = [];
   store.matchingNodes = [];
   setContentUnparsed();

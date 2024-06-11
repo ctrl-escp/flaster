@@ -15,34 +15,33 @@ const messages = {
   enableFilters: 'Enable all',
 };
 
-const numOfEnabledFilters = computed(() => store.filters.filter(f => f.enabled).length);
+const numOfEnabledFilters = computed(() => store.filters.filter(f => f?.enabled).length);
 const numOfAvailableFilters = computed(() => store.filters.length);
 const displayedNumOfFilters = computed(() => numOfAvailableFilters.value ? `${numOfEnabledFilters.value} / ${numOfAvailableFilters.value}` : 'No');
 
+function findFilter(filterSrc) {
+  return store.filters.find(f => f?.src === filterSrc);
+}
+
 function applyFilter(filterSrc) {
-  if (filterSrc && !store.filters.find(f => f.src === filterSrc)) {
-    try {
-      filterSrc = filterSrc.trim();
-      store.filteredNodes = store.filteredNodes.filter(eval(`n => ${filterSrc}`));
-      // noinspection JSCheckFunctionSignatures
-      store.filters.push({
-        src: filterSrc,
-        enabled: true,
-      });
-      store.page = 0;
-    } catch (e) {
-      console.log(`Invalid filter code: ${e.message}`);
-    }
+  if (!filterSrc) return store.logMessage('Missing filter code', 'error');
+  try {
+    filterSrc = filterSrc.trim();
+    store.filteredNodes = store.filteredNodes.filter(eval(`n => ${filterSrc}`));
+    if (!findFilter(filterSrc)) store.filters.push({
+      src: filterSrc,
+      enabled: true,
+    });
+    store.page = 0;
+  } catch (e) {
+    console.log(`Invalid filter code: ${e.message}`);
   }
 }
 
 function reapplyFilters() {
-  const availableFilters = store.filters;
-  store.filters = [];
   store.filteredNodes = store.ast;
-  for (const filter of availableFilters) {
-    if (filter.enabled) applyFilter(filter.src);
-    else store.filters.push(filter);
+  for (const filter of store.filters) {
+    if (filter?.enabled) applyFilter(filter.src);
   }
   store.page = 0;
 }
@@ -53,7 +52,7 @@ function toggleFilter(filter) {
 }
 
 function clearAllFilters() {
-  store.filters = [];
+  store.filters.length = 0;
   store.filteredNodes = store.ast;
   store.page = 0;
 }
@@ -64,34 +63,40 @@ function deleteFilter(filter) {
 }
 
 function combineEnabledFilters() {
-  const enabledFilters = store.filters.filter(f => f.enabled);
+  const enabledFilters = store.filters.filter(f => f?.enabled);
   if (enabledFilters.length > 1) {
-    let filterString = `(${enabledFilters[0].src})\n`;
+    let filterSrc = `(${enabledFilters[0].src})\n`;
     for (const filter of enabledFilters.slice(1)) {
-      filterString += ` && (${filter.src})\n`;
+      filterSrc += ` && (${filter?.src})\n`;
     }
     store.filters = store.filters.filter(f => !enabledFilters.includes(f));
-    applyFilter(filterString);
+    applyFilter(filterSrc);
   }
 }
 
 function setFilterEditorContent(filterSrc) {
-  store.setContent(store.getEditor(store.editorIds.filterEditor),filterSrc);
+  store.setContent(store.getEditor(store.editorIds.filterEditor), filterSrc);
 }
+
+function addNewFilter() {
+  const filterSrc = store.getEditor(store.editorIds.filterEditor)?.state.doc.toString();
+  if (!findFilter(filterSrc)) applyFilter(filterSrc);
+  else store.logMessage('Filter already exists', 'info');
+}
+
 </script>
 
 <template>
   <div class="filter-controller" v-if="store.ast.length">
     <div class="btn-group">
       <span class="filter-edit-btn-group">
-        <button class="btn btn-apply" @click="applyFilter(store.getEditor(store.editorIds.filterEditor).state.doc.toString())">Add</button>
+        <button class="btn btn-apply" @click="addNewFilter">Add</button>
         <button class="btn btn-clear" @click="setFilterEditorContent('')">Clear</button>
       </span>
       <span class="applied-filters-btn-group">
         <button class="btn btn-clear-all-filters" @click="clearAllFilters" :disabled="!numOfAvailableFilters">Clear all</button>
         <button class="btn btn-clear-all-filters" @click="store.areFiltersActive = !store.areFiltersActive"
-                :disabled="!numOfAvailableFilters">
-          {{ store.areFiltersActive ? messages.disableFilters : messages.enableFilters }}
+                :disabled="!numOfAvailableFilters">{{ store.areFiltersActive ? messages.disableFilters : messages.enableFilters }}
         </button>
         <button class="btn btn-clear-all-filters" :disabled="!numOfEnabledFilters || numOfEnabledFilters < 2" @click="combineEnabledFilters">Combine active</button>
       </span>
@@ -109,9 +114,7 @@ function setFilterEditorContent(filterSrc) {
             <icon-checkbox-active class="icon-inline" v-if="filter.enabled"/>
             <icon-checkbox-inactive class="icon-inline" v-else/>
           </span>
-          <span class="filter-src" :title="filter.src" @click="setFilterEditorContent(filter.src)">{{
-              filter.src
-            }}</span>
+          <span class="filter-src" :title="filter.src" @click="setFilterEditorContent(filter.src)">{{ filter.src }}</span>
           <icon-trash class="icon-inline" @click="deleteFilter(filter)" title="Delete filter"/>
         </div>
       </fieldset>
