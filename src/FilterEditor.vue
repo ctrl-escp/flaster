@@ -1,14 +1,14 @@
 <script setup>
-import store from '../store';
+import store from './store';
 import {computed} from 'vue';
-import CodeEditor from './CodeEditor.vue';
-import IconCheckboxActive from './icons/IconCheckboxActive.vue';
-import IconCheckboxInactive from './icons/IconCheckboxInactive.vue';
-import IconTrash from './icons/IconTrash.vue';
+import CodeEditor from './components/CodeEditor.vue';
+import IconTrash from './components/icons/IconTrash.vue';
+import IconCheckboxActive from './components/icons/IconCheckboxActive.vue';
+import IconCheckboxInactive from './components/icons/IconCheckboxInactive.vue';
 
 const initialValue = `// write content for the filter function \`(n) => {<your code>}\`, like:
-n.type === 'CallExpression' &&
-n.callee.type === 'Identifier'`;
+n.type === 'Literal' &&
+n.value.trim().length`;
 
 const messages = {
   disableFilters: 'Disable all',
@@ -39,7 +39,8 @@ function applyFilter(filterSrc) {
 }
 
 function reapplyFilters() {
-  store.filteredNodes = store.ast;
+  // noinspection JSUnresolvedReference
+  store.filteredNodes = store.arb.ast;
   for (const filter of store.filters) {
     if (filter?.enabled) applyFilter(filter.src);
   }
@@ -53,7 +54,8 @@ function toggleFilter(filter) {
 
 function clearAllFilters() {
   store.filters.length = 0;
-  store.filteredNodes = store.ast;
+  // noinspection JSUnresolvedReference
+  store.filteredNodes = store.arb.ast;
   store.page = 0;
 }
 
@@ -63,12 +65,9 @@ function deleteFilter(filter) {
 }
 
 function combineEnabledFilters() {
-  const enabledFilters = store.filters.filter(f => f?.enabled);
+  const enabledFilters = store.filters.filter(f => f?.enabled && !!f?.src);
   if (enabledFilters.length > 1) {
-    let filterSrc = `(${enabledFilters[0].src})\n`;
-    for (const filter of enabledFilters.slice(1)) {
-      filterSrc += ` && (${filter?.src})\n`;
-    }
+    const filterSrc = store.combineFilters(enabledFilters.map(f => f?.src));
     store.filters = store.filters.filter(f => !enabledFilters.includes(f));
     applyFilter(filterSrc);
   }
@@ -87,7 +86,7 @@ function addNewFilter() {
 </script>
 
 <template>
-  <div class="filter-controller" v-if="store.ast.length">
+  <div class="filter-controller" v-if="store.arb?.ast?.length">
     <div class="btn-group">
       <span class="filter-edit-btn-group">
         <button class="btn btn-apply" @click="addNewFilter">Add</button>
@@ -170,13 +169,10 @@ function addNewFilter() {
   flex-wrap: wrap;
   height: 90%;
 }
-
 .filter-editor-wrapper {
   flex: 1;
-  overflow: auto;
   padding: 0;
 }
-
 .filter-line {
   display: flex;
   flex: 1;
@@ -191,6 +187,7 @@ function addNewFilter() {
 .icon-inline {
   cursor: pointer;
   width: 20px;
+  margin: 0 .3rem;
 }
 
 legend {

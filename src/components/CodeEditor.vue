@@ -81,7 +81,7 @@ function highlightRange(start, end) {
     });
     const range = new SelectionRange(start, end);
     const ed = store.getEditor(store.editorIds.inputCodeEditor);
-    ed.dispatch({
+    ed?.dispatch({
       effects: EditorView.scrollIntoView(range, {
         y: 'center',
         x: 'center',
@@ -92,7 +92,7 @@ function highlightRange(start, end) {
 
 onMounted(() => {
   // noinspection JSCheckFunctionSignatures
-  const ed = new EditorView({
+  const editor = new EditorView({
     parent: editorElement.value,
     theme: 'dracula',
     state: EditorState.create({
@@ -130,10 +130,9 @@ onMounted(() => {
       ],
     }),
   });
-  ed.editorId = props.editorId;
-  ed.highlightRange = highlightRange;
-  // noinspection JSCheckFunctionSignatures
-  store.editors.push(ed);
+  editor.editorId = props.editorId;
+  editor.highlightRange = highlightRange;
+  store.editors.push(editor);
 });
 </script>
 

@@ -2,13 +2,15 @@
 import store from './store';
 import NavBar from './NavBar.vue';
 import CodeAndNodes from './CodeAndNodes.vue';
+import FilterEditor from './FilterEditor.vue';
+import TransformEditor from './TransformEditor.vue';
+import ComposeEditor from './ComposeEditor.vue';
 import ToasterView from './components/ToasterView.vue';
-import FilterEditor from './components/FilterEditor.vue';
 
 const bottomPanes = {
   filter: FilterEditor,
-  transform: '',
-  compose: '',
+  transform: TransformEditor,
+  compose: ComposeEditor,
 };
 
 </script>

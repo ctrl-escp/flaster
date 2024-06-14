@@ -5,9 +5,9 @@ import CodeEditor from './CodeEditor.vue';
 const initialValue = `// This is the default code for flASTer
 // Click the button at the top to load a file or paste directly into the editor
 (function() {
-  function helloWorld() { return 'hello world';}
+  function createMessage() {return 'Hello' + ' ' + 'there!';}
   function print(msg) {console.log(msg)}
-  print(helloWorld());
+  print(createMessage());
 })();`;
 
 </script>

@@ -11,9 +11,9 @@ const topButtons = [
   ParseButton,
 ];
 
-const isReadyToTransform = computed(() => store.areFiltersActive && store.filters.find(f => f?.enabled));
-const isReadyToCompose = computed(() => false);
-const nextAction = computed(() => isReadyToTransform.value ? isReadyToCompose.value ? 'compose' : 'transform' : 'filter');
+// noinspection JSUnresolvedReference
+const isReadyToTransform = computed(() => !!store.arb?.ast?.length && store.areFiltersActive && store.filters.find(f => f?.enabled));
+const isReadyToCompose = computed(() => store.states.length);
 </script>
 
 <template>
@@ -26,9 +26,12 @@ const nextAction = computed(() => isReadyToTransform.value ? isReadyToCompose.va
         <span v-for="item of topButtons" :key="item" class="top-btn">
           <component :is="item"></component>
         </span>
-        <button v-show="store.ast.length" class="btn top-btn btn-filter" :disabled="store.currentBottomPane === 'filter'" @click="store.changeViewTo('filter')">Filter</button>
-        <button v-show="isReadyToTransform" class="btn btn-transform" :class="{active: nextAction === 'transform'}" @click="store.changeViewTo('transform')">Transform</button>
-        <button v-show="isReadyToCompose" class="btn btn-compose" :class="{active: nextAction === 'compose'}" @click="store.changeViewTo('transform')">compose</button>
+        <button class="btn top-btn" :disabled="!store.arb?.ast?.length || store.currentBottomPane === 'filter'"
+                @click="store.changeViewTo('filter')" :class="{active: store.currentBottomPane === 'filter'}">Filter</button>
+        <button class="btn top-btn" :class="{active: store.currentBottomPane === 'transform'}" @click="store.changeViewTo('transform')"
+                :disabled="!isReadyToTransform" >Transform</button>
+        <button class="btn top-btn" :class="{active: store.currentBottomPane === 'compose'}" @click="store.changeViewTo('compose')"
+                :disabled="!isReadyToCompose" >compose</button>
       </div>
       <span title="View code on GitHub">
 				<a href="https://github.com/ctrl-escp/flaster" title="flASTer on GitHub">
@@ -49,10 +52,6 @@ a:link {
 }
 .active {
   box-shadow: 0 0 .7rem .4rem rgba(255, 0, 0, 0.3);
-}
-.btn-transform {
-  background-color: transparent;
-  color: white;
 }
 .github-text {
   color: white;

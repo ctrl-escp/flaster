@@ -24,7 +24,7 @@ function highlightCode(node) {
   }
 }
 
-const relevatNodes = computed(() => store.areFiltersActive ? store.filteredNodes : store.ast);
+const relevatNodes = computed(() => store.areFiltersActive ? store.filteredNodes : store.arb?.ast);
 
 const currentPageStartIndex = computed(() => Number(store.page * store.nodesPageSize));
 
@@ -34,7 +34,7 @@ const pagedNodes = computed(() => relevatNodes.value
 const numberOfPages = computed(() => !isPaged.value ? 1 : Math.floor(relevatNodes.value.length / store.nodesPageSize));
 
 const absCurrentPageStartIndex = computed(() => currentPageStartIndex.value < 0 ? relevatNodes.value.length + currentPageStartIndex.value : currentPageStartIndex.value);
-const isFiltered = computed(() => store.areFiltersActive && store.filteredNodes.length < store.ast.length);
+const isFiltered = computed(() => store.areFiltersActive && store.filteredNodes.length < (store.arb?.ast?.length || 0));
 const isPaged = computed(() => relevatNodes.value.length > store.nodesPageSize);
 const pageRange = computed(() => {
   const start = isPaged.value ? absCurrentPageStartIndex.value + 1 : 1;
@@ -52,12 +52,12 @@ onMounted(() => {
 
 <template>
   <fieldset class="ast-list-wrapper">
-    <legend v-if="store.ast.length">
+    <legend v-if="store.arb?.ast?.length">
       <span class="paged" v-if="isPaged">
         <button class="prev-page" title="Previous page" @click="prevPage">&lt;</button>
         <button class="next-page" title="Next page" @click="nextPage">&gt;</button>
       </span>
-      <span>{{pageRange}} / {{ store[store.areFiltersActive ? 'filteredNodes' : 'ast'].length}}{{isFiltered ? ' filtered' : ''}} out of {{store.ast.length}} nodes</span>
+      <span>{{pageRange}} / {{ (store.areFiltersActive ? store.filteredNodes : store.arb?.ast)?.length}}{{isFiltered ? ' filtered' : ''}} out of {{store.arb.ast.length}} nodes</span>
     </legend>
     <legend v-else>Nodes</legend>
     <div v-for="node of pagedNodes" :key="node.nodeId" class="node-container" :data-nodeid="node.nodeId" @click="highlightCode(node)">

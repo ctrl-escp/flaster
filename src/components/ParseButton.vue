@@ -29,7 +29,8 @@ function setContentUnparsed() {
 }
 
 function resetParsedState() {
-  store.ast = [];
+  // noinspection JSValidateTypes
+  store.arb = {ast: [], script: ''};
   store.matchingNodes = [];
   setContentUnparsed();
   store.page = 0;
@@ -48,12 +49,12 @@ function parseContent() {
     if (!code?.length) store.logMessage(messages.emptyCode, 'error');
     else {
       new Promise(() => {
-        store.filteredNodes = store.ast = [];
+        store.filteredNodes = [];
         // noinspection JSValidateTypes
-        store.ast = window.flast.generateFlatAST(code, {detailed: false});
-        if (!store.ast.length) store.logMessage(messages.astParseFail, 'error');
-        else store.logMessage(`Parsed ${code.length} chars into ${store.ast.length} nodes`, 'success');
-        store.filteredNodes = store.ast;
+        store.arb = new window.flast.Arborist(code);
+        if (!store.arb?.ast?.length) store.logMessage(messages.astParseFail, 'error');
+        else store.logMessage(`Parsed ${code.length} chars into ${store.arb.ast.length} nodes`, 'success');
+        store.filteredNodes = store.arb.ast;
         setContentParsed();
       }).catch(e => store.logMessage(e.message, 'error'));
     }

@@ -1,6 +1,8 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 window.flast = require('../node_modules/flast/src/flast');
-},{"../node_modules/flast/src/flast":43}],2:[function(require,module,exports){
+window.arborist = require('../node_modules/flast/src/arborist');
+window.flast = {...window.flast, ...window.arborist};
+},{"../node_modules/flast/src/arborist":43,"../node_modules/flast/src/flast":44}],2:[function(require,module,exports){
 'use strict';
 
 const XHTMLEntities = require('./xhtml');
@@ -1417,7 +1419,7 @@ module.exports = {
 
   // ## Parser utilities
 
-  var literal = /^(?:'((?:\\.|[^'\\])*?)'|"((?:\\.|[^"\\])*?)")/;
+  var literal = /^(?:'((?:\\.|[^'\\])*?)'|"((?:\\.|[^"\\])*?)")/s;
   pp$9.strictDirective = function(start) {
     if (this.options.ecmaVersion < 5) { return false }
     for (;;) {
@@ -1603,7 +1605,7 @@ module.exports = {
     // Statement) is allowed here. If context is not empty then only a Statement
     // is allowed. However, `let [` is an explicit negative lookahead for
     // ExpressionStatement, so special-case it first.
-    if (nextCh === 91 || nextCh === 92) { return true } // '[', '/'
+    if (nextCh === 91 || nextCh === 92) { return true } // '[', '\'
     if (context) { return false }
 
     if (nextCh === 123 || nextCh > 0xd7ff && nextCh < 0xdc00) { return true } // '{', astral
@@ -1796,13 +1798,19 @@ module.exports = {
       return this.parseFor(node, init$1)
     }
     var startsWithLet = this.isContextual("let"), isForOf = false;
+    var containsEsc = this.containsEsc;
     var refDestructuringErrors = new DestructuringErrors;
-    var init = this.parseExpression(awaitAt > -1 ? "await" : true, refDestructuringErrors);
+    var initPos = this.start;
+    var init = awaitAt > -1
+      ? this.parseExprSubscripts(refDestructuringErrors, "await")
+      : this.parseExpression(true, refDestructuringErrors);
     if (this.type === types$1._in || (isForOf = this.options.ecmaVersion >= 6 && this.isContextual("of"))) {
-      if (this.options.ecmaVersion >= 9) {
-        if (this.type === types$1._in) {
-          if (awaitAt > -1) { this.unexpected(awaitAt); }
-        } else { node.await = awaitAt > -1; }
+      if (awaitAt > -1) { // implies `ecmaVersion >= 9` (see declaration of awaitAt)
+        if (this.type === types$1._in) { this.unexpected(awaitAt); }
+        node.await = true;
+      } else if (isForOf && this.options.ecmaVersion >= 8) {
+        if (init.start === initPos && !containsEsc && init.type === "Identifier" && init.name === "async") { this.unexpected(); }
+        else if (this.options.ecmaVersion >= 9) { node.await = false; }
       }
       if (startsWithLet && isForOf) { this.raise(init.start, "The left-hand side of a for-of loop may not start with 'let'."); }
       this.toAssignable(init, false, refDestructuringErrors);
@@ -3415,8 +3423,7 @@ module.exports = {
       node.argument = this.parseMaybeUnary(null, true, update, forInit);
       this.checkExpressionErrors(refDestructuringErrors, true);
       if (update) { this.checkLValSimple(node.argument); }
-      else if (this.strict && node.operator === "delete" &&
-               node.argument.type === "Identifier")
+      else if (this.strict && node.operator === "delete" && isLocalVariableAccess(node.argument))
         { this.raiseRecoverable(node.start, "Deleting local variable in strict mode"); }
       else if (node.operator === "delete" && isPrivateFieldAccess(node.argument))
         { this.raiseRecoverable(node.start, "Private fields can not be deleted"); }
@@ -3451,10 +3458,18 @@ module.exports = {
     }
   };
 
+  function isLocalVariableAccess(node) {
+    return (
+      node.type === "Identifier" ||
+      node.type === "ParenthesizedExpression" && isLocalVariableAccess(node.expression)
+    )
+  }
+
   function isPrivateFieldAccess(node) {
     return (
       node.type === "MemberExpression" && node.property.type === "PrivateIdentifier" ||
-      node.type === "ChainExpression" && isPrivateFieldAccess(node.expression)
+      node.type === "ChainExpression" && isPrivateFieldAccess(node.expression) ||
+      node.type === "ParenthesizedExpression" && isPrivateFieldAccess(node.expression)
     )
   }
 
@@ -3881,7 +3896,7 @@ module.exports = {
         this.raiseRecoverable(this.start, "Bad escape sequence in untagged template literal");
       }
       elem.value = {
-        raw: this.value,
+        raw: this.value.replace(/\r\n?/g, "\n"),
         cooked: null
       };
     } else {
@@ -4556,6 +4571,30 @@ module.exports = {
 
   var pp$1 = Parser.prototype;
 
+  // Track disjunction structure to determine whether a duplicate
+  // capture group name is allowed because it is in a separate branch.
+  var BranchID = function BranchID(parent, base) {
+    // Parent disjunction branch
+    this.parent = parent;
+    // Identifies this set of sibling branches
+    this.base = base || this;
+  };
+
+  BranchID.prototype.separatedFrom = function separatedFrom (alt) {
+    // A branch is separate from another branch if they or any of
+    // their parents are siblings in a given disjunction
+    for (var self = this; self; self = self.parent) {
+      for (var other = alt; other; other = other.parent) {
+        if (self.base === other.base && self !== other) { return true }
+      }
+    }
+    return false
+  };
+
+  BranchID.prototype.sibling = function sibling () {
+    return new BranchID(this.parent, this.base)
+  };
+
   var RegExpValidationState = function RegExpValidationState(parser) {
     this.parser = parser;
     this.validFlags = "gim" + (parser.options.ecmaVersion >= 6 ? "uy" : "") + (parser.options.ecmaVersion >= 9 ? "s" : "") + (parser.options.ecmaVersion >= 13 ? "d" : "") + (parser.options.ecmaVersion >= 15 ? "v" : "");
@@ -4572,8 +4611,9 @@ module.exports = {
     this.lastAssertionIsQuantifiable = false;
     this.numCapturingParens = 0;
     this.maxBackReference = 0;
-    this.groupNames = [];
+    this.groupNames = Object.create(null);
     this.backReferenceNames = [];
+    this.branchID = null;
   };
 
   RegExpValidationState.prototype.reset = function reset (start, pattern, flags) {
@@ -4705,6 +4745,11 @@ module.exports = {
     }
   };
 
+  function hasProp(obj) {
+    for (var _ in obj) { return true }
+    return false
+  }
+
   /**
    * Validate the pattern part of a given RegExpLiteral.
    *
@@ -4719,7 +4764,7 @@ module.exports = {
     // |Pattern[~U, +N]| and use this result instead. Throw a *SyntaxError*
     // exception if _P_ did not conform to the grammar, if any elements of _P_
     // were not matched by the parse, or if any Early Error conditions exist.
-    if (!state.switchN && this.options.ecmaVersion >= 9 && state.groupNames.length > 0) {
+    if (!state.switchN && this.options.ecmaVersion >= 9 && hasProp(state.groupNames)) {
       state.switchN = true;
       this.regexp_pattern(state);
     }
@@ -4733,8 +4778,9 @@ module.exports = {
     state.lastAssertionIsQuantifiable = false;
     state.numCapturingParens = 0;
     state.maxBackReference = 0;
-    state.groupNames.length = 0;
+    state.groupNames = Object.create(null);
     state.backReferenceNames.length = 0;
+    state.branchID = null;
 
     this.regexp_disjunction(state);
 
@@ -4753,7 +4799,7 @@ module.exports = {
     for (var i = 0, list = state.backReferenceNames; i < list.length; i += 1) {
       var name = list[i];
 
-      if (state.groupNames.indexOf(name) === -1) {
+      if (!state.groupNames[name]) {
         state.raise("Invalid named capture referenced");
       }
     }
@@ -4761,10 +4807,14 @@ module.exports = {
 
   // https://www.ecma-international.org/ecma-262/8.0/#prod-Disjunction
   pp$1.regexp_disjunction = function(state) {
+    var trackDisjunction = this.options.ecmaVersion >= 16;
+    if (trackDisjunction) { state.branchID = new BranchID(state.branchID, null); }
     this.regexp_alternative(state);
     while (state.eat(0x7C /* | */)) {
+      if (trackDisjunction) { state.branchID = state.branchID.sibling(); }
       this.regexp_alternative(state);
     }
+    if (trackDisjunction) { state.branchID = state.branchID.parent; }
 
     // Make the same message as V8.
     if (this.regexp_eatQuantifier(state, true)) {
@@ -4777,8 +4827,7 @@ module.exports = {
 
   // https://www.ecma-international.org/ecma-262/8.0/#prod-Alternative
   pp$1.regexp_alternative = function(state) {
-    while (state.pos < state.source.length && this.regexp_eatTerm(state))
-      { }
+    while (state.pos < state.source.length && this.regexp_eatTerm(state)) {}
   };
 
   // https://www.ecma-international.org/ecma-262/8.0/#prod-annexB-Term
@@ -5016,14 +5065,26 @@ module.exports = {
   //   `?` GroupName
   pp$1.regexp_groupSpecifier = function(state) {
     if (state.eat(0x3F /* ? */)) {
-      if (this.regexp_eatGroupName(state)) {
-        if (state.groupNames.indexOf(state.lastStringValue) !== -1) {
+      if (!this.regexp_eatGroupName(state)) { state.raise("Invalid group"); }
+      var trackDisjunction = this.options.ecmaVersion >= 16;
+      var known = state.groupNames[state.lastStringValue];
+      if (known) {
+        if (trackDisjunction) {
+          for (var i = 0, list = known; i < list.length; i += 1) {
+            var altID = list[i];
+
+            if (!altID.separatedFrom(state.branchID))
+              { state.raise("Duplicate capture group name"); }
+          }
+        } else {
           state.raise("Duplicate capture group name");
         }
-        state.groupNames.push(state.lastStringValue);
-        return
       }
-      state.raise("Invalid group");
+      if (trackDisjunction) {
+        (known || (state.groupNames[state.lastStringValue] = [])).push(state.branchID);
+      } else {
+        state.groupNames[state.lastStringValue] = true;
+      }
     }
   };
 
@@ -6528,15 +6589,18 @@ module.exports = {
         break
 
       case "$":
-        if (this.input[this.pos + 1] !== "{") {
-          break
-        }
-
-      // falls through
+        if (this.input[this.pos + 1] !== "{") { break }
+        // fall through
       case "`":
         return this.finishToken(types$1.invalidTemplate, this.input.slice(this.start, this.pos))
 
-      // no default
+      case "\r":
+        if (this.input[this.pos + 1] === "\n") { ++this.pos; }
+        // fall through
+      case "\n": case "\u2028": case "\u2029":
+        ++this.curLine;
+        this.lineStart = this.pos + 1;
+        break
       }
     }
     this.raise(this.start, "Unterminated template");
@@ -6599,6 +6663,7 @@ module.exports = {
       if (isNewLine(ch)) {
         // Unicode new line characters after \ get removed from output in both
         // template literals and strings
+        if (this.options.locations) { this.lineStart = this.pos; ++this.curLine; }
         return ""
       }
       return String.fromCharCode(ch)
@@ -6677,7 +6742,7 @@ module.exports = {
   // [walk]: util/walk.js
 
 
-  var version = "8.11.3";
+  var version = "8.12.0";
 
   Parser.acorn = {
     Parser: Parser,
@@ -7261,7 +7326,7 @@ var objectKeys = Object.keys || function (obj) {
 };
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"object.assign/polyfill":57,"util/":8}],6:[function(require,module,exports){
+},{"object.assign/polyfill":58,"util/":8}],6:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7883,7 +7948,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this)}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":7,"_process":58,"inherits":6}],9:[function(require,module,exports){
+},{"./support/isBuffer":7,"_process":59,"inherits":6}],9:[function(require,module,exports){
 'use strict';
 
 var GetIntrinsic = require('get-intrinsic');
@@ -7900,7 +7965,7 @@ module.exports = function callBoundIntrinsic(name, allowMissing) {
 	return intrinsic;
 };
 
-},{"./":10,"get-intrinsic":46}],10:[function(require,module,exports){
+},{"./":10,"get-intrinsic":47}],10:[function(require,module,exports){
 'use strict';
 
 var bind = require('function-bind');
@@ -7937,7 +8002,7 @@ if ($defineProperty) {
 	module.exports.apply = applyBind;
 }
 
-},{"es-define-property":12,"es-errors/type":18,"function-bind":45,"get-intrinsic":46,"set-function-length":59}],11:[function(require,module,exports){
+},{"es-define-property":12,"es-errors/type":18,"function-bind":46,"get-intrinsic":47,"set-function-length":60}],11:[function(require,module,exports){
 'use strict';
 
 var $defineProperty = require('es-define-property');
@@ -7995,7 +8060,7 @@ module.exports = function defineDataProperty(
 	}
 };
 
-},{"es-define-property":12,"es-errors/syntax":17,"es-errors/type":18,"gopd":47}],12:[function(require,module,exports){
+},{"es-define-property":12,"es-errors/syntax":17,"es-errors/type":18,"gopd":48}],12:[function(require,module,exports){
 'use strict';
 
 var GetIntrinsic = require('get-intrinsic');
@@ -8013,7 +8078,7 @@ if ($defineProperty) {
 
 module.exports = $defineProperty;
 
-},{"get-intrinsic":46}],13:[function(require,module,exports){
+},{"get-intrinsic":47}],13:[function(require,module,exports){
 'use strict';
 
 /** @type {import('./eval')} */
@@ -18903,6 +18968,181 @@ exports.tokenize = tokenize;
 exports.version = version;
 
 },{"acorn":4,"acorn-jsx":2,"eslint-visitor-keys":41}],43:[function(require,module,exports){
+window.generateCode = flast.generateCode, window.generateFlatAST = flast.generateFlatAST
+
+const Arborist = class {
+	/**
+	 * @param {string|ASTNode[]} scriptOrFlatAstArr - the target script or a flat AST array
+	 * @param {Function} logFunc - (optional) Logging function
+	 */
+	constructor(scriptOrFlatAstArr, logFunc = null) {
+		this.script                = '';
+		this.ast                   = [];
+		this.log                   = logFunc || (() => true);
+		this.markedForDeletion     = [];  // Array of node ids.
+		this.appliedCounter        = 0;   // Track the number of times changes were applied.
+		this.replacements          = [];
+		if (typeof scriptOrFlatAstArr === 'string') {
+			this.script = scriptOrFlatAstArr;
+			this.ast = generateFlatAST(scriptOrFlatAstArr);
+		} else if (Array.isArray(scriptOrFlatAstArr)) {
+			this.ast = scriptOrFlatAstArr;
+		} else throw Error(`Undetermined argument`);
+	}
+
+	/**
+	 * When applicable, replace the provided node with its nearest parent node that can be removed without breaking the code.
+	 * @param {ASTNode} startNode
+	 * @return {ASTNode}
+	 */
+	_getCorrectTargetForDeletion(startNode) {
+		let currentNode = startNode;
+		while (
+			['ExpressionStatement', 'UnaryExpression', 'UpdateExpression'].includes(currentNode?.parentNode?.type) ||
+			(currentNode.parentNode.type === 'VariableDeclaration' &&
+				(currentNode.parentNode.declarations.length === 1 ||
+					!currentNode.parentNode.declarations.filter(d => d.nodeId !== currentNode.nodeId && !d.isMarked).length)
+			)) currentNode = currentNode.parentNode;
+		if (['consequent', 'alternate'].includes(currentNode.parentKey)) currentNode.isEmpty = true;
+		return currentNode;
+	}
+
+	/**
+	 *
+	 * @returns {number} The number of changes to be applied.
+	 */
+	getNumberOfChanges() {
+		return this.replacements.length + this.markedForDeletion.length;
+	}
+
+	/**
+	 * Replace the target node with another node or delete the target node completely, depending on whether a replacement
+	 * node is provided.
+	 * @param targetNode The node to replace or remove.
+	 * @param replacementNode If exists, replace the target node with this node.
+	 */
+	markNode(targetNode, replacementNode) {
+		if (!targetNode.isMarked) {
+			if (replacementNode) {  // Mark for replacement
+				this.replacements.push([targetNode, replacementNode]);
+				targetNode.isMarked = true;
+			} else {                // Mark for deletion
+				targetNode = this._getCorrectTargetForDeletion(targetNode);
+				if (targetNode.isEmpty) this.markNode(targetNode, {type: 'EmptyStatement'});
+				else if (!targetNode.isMarked) {
+					this.markedForDeletion.push(targetNode.nodeId);
+					targetNode.isMarked = true;
+				}
+			}
+		}
+	}
+
+	/**
+	 * Iterate over the complete AST and replace / remove marked nodes,
+	 * then rebuild code and AST to validate changes.
+	 * @return {number} The number of modifications made.
+	 */
+	applyChanges() {
+		let changesCounter = 0;
+		try {
+			const that = this;
+			if (this.getNumberOfChanges() > 0) {
+				let rootNode = this.ast[0];
+				const rootNodeReplacement = this.replacements.find(n => n[0].nodeId === 0);
+				if (rootNodeReplacement) {
+					++changesCounter;
+					this.log(`[+] Applying changes to the root node...`);
+					const leadingComments =  rootNode.leadingComments || [];
+					const trailingComments = rootNode.trailingComments || [];
+					rootNode = rootNodeReplacement[1];
+					if (leadingComments.length) rootNode.leadingComments = (rootNode.leadingComments || []).concat(leadingComments);
+					if (trailingComments.length) rootNode.trailingComments = (rootNode.trailingComments || []).concat(trailingComments);
+				} else {
+					for (const targetNodeId of this.markedForDeletion) {
+						try {
+							const targetNode = this.ast.find(n => n.nodeId === targetNodeId);
+							if (targetNode) {
+								const parent = targetNode.parentNode;
+								if (parent[targetNode.parentKey] === targetNode) {
+									parent[targetNode.parentKey] = undefined;
+									const comments = (targetNode.leadingComments || []).concat(targetNode.trailingComments || []);
+									if (comments.length) parent.trailingComments = (parent.trailingComments || []).concat(comments);
+									++changesCounter;
+								} else if (Array.isArray(parent[targetNode.parentKey])) {
+									const idx = parent[targetNode.parentKey].indexOf(targetNode);
+									parent[targetNode.parentKey][idx] = undefined;
+									parent[targetNode.parentKey] = parent[targetNode.parentKey].filter(n => n);
+									const comments = (targetNode.leadingComments || []).concat(targetNode.trailingComments || []);
+									if (comments.length) {
+										const targetParent = idx > 0 ? parent[targetNode.parentKey][idx - 1] : parent[targetNode.parentKey].length > 1 ? parent[targetNode.parentKey][idx + 1] : parent;
+										targetParent.trailingComments = (targetParent.trailingComments || []).concat(comments);
+									}
+									++changesCounter;
+								}
+							}
+						} catch (e) {
+							that.log(`[-] Unable to delete node: ${e}`);
+						}
+					}
+					for (const [targetNode, replacementNode] of this.replacements) {
+						try {
+							if (targetNode) {
+								const parent = targetNode.parentNode;
+								if (parent[targetNode.parentKey] === targetNode) {
+									parent[targetNode.parentKey] = replacementNode;
+									const leadingComments =  targetNode.leadingComments || [];
+									const trailingComments = targetNode.trailingComments || [];
+									if (leadingComments.length) replacementNode.leadingComments = (replacementNode.leadingComments || []).concat(leadingComments);
+									if (trailingComments.length) replacementNode.trailingComments = (replacementNode.trailingComments || []).concat(trailingComments);
+									++changesCounter;
+								} else if (Array.isArray(parent[targetNode.parentKey])) {
+									const idx = parent[targetNode.parentKey].indexOf(targetNode);
+									parent[targetNode.parentKey][idx] = replacementNode;
+									const comments = (targetNode.leadingComments || []).concat(targetNode.trailingComments || []);
+									if (idx > 0) {
+										const commentsTarget = parent[targetNode.parentKey][idx - 1];
+										commentsTarget.trailingComments = (commentsTarget.trailingComments || []).concat(comments);
+									} else if (parent[targetNode.parentKey].length > 1) {
+										const commentsTarget = parent[targetNode.parentKey][idx + 1];
+										commentsTarget.leadingComments = (commentsTarget.leadingComments || []).concat(comments);
+									} else parent.trailingComments = (parent.trailingComments || []).concat(comments);
+									++changesCounter;
+								}
+							}
+						} catch (e) {
+							that.log(`[-] Unable to replace node: ${e}`);
+						}
+					}
+				}
+				if (changesCounter) {
+					this.replacements.length = 0;
+					this.markedForDeletion.length = 0;
+					// If any of the changes made will break the script the next line will fail and the
+					// script will remain the same. If it doesn't break, the changes are valid and the script can be marked as modified.
+					const script = generateCode(rootNode);
+					const ast = generateFlatAST(script);
+					if (ast && ast.length) {
+						this.ast = ast;
+						this.script = script;
+					}
+					else {
+						this.log(`[-] Modified script is invalid. Reverting ${changesCounter} changes...`);
+						changesCounter = 0;
+					}
+				}
+			}
+		} catch (e) {
+			this.log(`[-] Unable to apply changes to AST: ${e}`);
+		}
+		++this.appliedCounter;
+		return changesCounter;
+	}
+};
+
+module.exports = {
+	Arborist,
+};
+},{}],44:[function(require,module,exports){
 const {parse} = require('espree');
 const {generate, attachComments} = require('escodegen');
 const estraverse = require('estraverse');
@@ -19198,7 +19438,7 @@ module.exports = {
 	parseCode,
 };
 
-},{"escodegen":20,"eslint-scope":40,"espree":42,"estraverse":35}],44:[function(require,module,exports){
+},{"escodegen":20,"eslint-scope":40,"espree":42,"estraverse":35}],45:[function(require,module,exports){
 'use strict';
 
 /* eslint no-invalid-this: 1 */
@@ -19284,14 +19524,14 @@ module.exports = function bind(that) {
     return bound;
 };
 
-},{}],45:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 'use strict';
 
 var implementation = require('./implementation');
 
 module.exports = Function.prototype.bind || implementation;
 
-},{"./implementation":44}],46:[function(require,module,exports){
+},{"./implementation":45}],47:[function(require,module,exports){
 'use strict';
 
 var undefined;
@@ -19652,7 +19892,7 @@ module.exports = function GetIntrinsic(name, allowMissing) {
 	return value;
 };
 
-},{"es-errors":14,"es-errors/eval":13,"es-errors/range":15,"es-errors/ref":16,"es-errors/syntax":17,"es-errors/type":18,"es-errors/uri":19,"function-bind":45,"has-proto":49,"has-symbols":50,"hasown":52}],47:[function(require,module,exports){
+},{"es-errors":14,"es-errors/eval":13,"es-errors/range":15,"es-errors/ref":16,"es-errors/syntax":17,"es-errors/type":18,"es-errors/uri":19,"function-bind":46,"has-proto":50,"has-symbols":51,"hasown":53}],48:[function(require,module,exports){
 'use strict';
 
 var GetIntrinsic = require('get-intrinsic');
@@ -19670,7 +19910,7 @@ if ($gOPD) {
 
 module.exports = $gOPD;
 
-},{"get-intrinsic":46}],48:[function(require,module,exports){
+},{"get-intrinsic":47}],49:[function(require,module,exports){
 'use strict';
 
 var $defineProperty = require('es-define-property');
@@ -19694,7 +19934,7 @@ hasPropertyDescriptors.hasArrayLengthDefineBug = function hasArrayLengthDefineBu
 
 module.exports = hasPropertyDescriptors;
 
-},{"es-define-property":12}],49:[function(require,module,exports){
+},{"es-define-property":12}],50:[function(require,module,exports){
 'use strict';
 
 var test = {
@@ -19711,7 +19951,7 @@ module.exports = function hasProto() {
 		&& !(test instanceof $Object);
 };
 
-},{}],50:[function(require,module,exports){
+},{}],51:[function(require,module,exports){
 'use strict';
 
 var origSymbol = typeof Symbol !== 'undefined' && Symbol;
@@ -19726,7 +19966,7 @@ module.exports = function hasNativeSymbols() {
 	return hasSymbolSham();
 };
 
-},{"./shams":51}],51:[function(require,module,exports){
+},{"./shams":52}],52:[function(require,module,exports){
 'use strict';
 
 /* eslint complexity: [2, 18], max-statements: [2, 33] */
@@ -19770,7 +20010,7 @@ module.exports = function hasSymbols() {
 	return true;
 };
 
-},{}],52:[function(require,module,exports){
+},{}],53:[function(require,module,exports){
 'use strict';
 
 var call = Function.prototype.call;
@@ -19780,7 +20020,7 @@ var bind = require('function-bind');
 /** @type {import('.')} */
 module.exports = bind.call(call, $hasOwn);
 
-},{"function-bind":45}],53:[function(require,module,exports){
+},{"function-bind":46}],54:[function(require,module,exports){
 'use strict';
 
 var keysShim;
@@ -19904,7 +20144,7 @@ if (!Object.keys) {
 }
 module.exports = keysShim;
 
-},{"./isArguments":55}],54:[function(require,module,exports){
+},{"./isArguments":56}],55:[function(require,module,exports){
 'use strict';
 
 var slice = Array.prototype.slice;
@@ -19938,7 +20178,7 @@ keysShim.shim = function shimObjectKeys() {
 
 module.exports = keysShim;
 
-},{"./implementation":53,"./isArguments":55}],55:[function(require,module,exports){
+},{"./implementation":54,"./isArguments":56}],56:[function(require,module,exports){
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -19957,7 +20197,7 @@ module.exports = function isArguments(value) {
 	return isArgs;
 };
 
-},{}],56:[function(require,module,exports){
+},{}],57:[function(require,module,exports){
 'use strict';
 
 // modified from https://github.com/es-shims/es6-shim
@@ -20005,7 +20245,7 @@ module.exports = function assign(target, source1) {
 	return to; // step 4
 };
 
-},{"call-bind/callBound":9,"has-symbols/shams":51,"object-keys":54}],57:[function(require,module,exports){
+},{"call-bind/callBound":9,"has-symbols/shams":52,"object-keys":55}],58:[function(require,module,exports){
 'use strict';
 
 var implementation = require('./implementation');
@@ -20062,7 +20302,7 @@ module.exports = function getPolyfill() {
 	return Object.assign;
 };
 
-},{"./implementation":56}],58:[function(require,module,exports){
+},{"./implementation":57}],59:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -20248,7 +20488,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],59:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 'use strict';
 
 var GetIntrinsic = require('get-intrinsic');
@@ -20292,4 +20532,4 @@ module.exports = function setFunctionLength(fn, length) {
 	return fn;
 };
 
-},{"define-data-property":11,"es-errors/type":18,"get-intrinsic":46,"gopd":47,"has-property-descriptors":48}]},{},[1]);
+},{"define-data-property":11,"es-errors/type":18,"get-intrinsic":47,"gopd":48,"has-property-descriptors":49}]},{},[1]);

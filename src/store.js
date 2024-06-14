@@ -7,7 +7,7 @@ import {reactive} from 'vue';
 /**
  *
  * @param {string} editorId
- * @returns {EditorView<*>}
+ * @returns {EditorView}
  */
 function getEditor(editorId) {
   // noinspection JSUnresolvedReference
@@ -16,8 +16,8 @@ function getEditor(editorId) {
 
 /**
  *
- * @param editor
- * @param content
+ * @param {EditorView} editor
+ * @param {string} content
  */
 function setContent(editor, content) {
   editor.dispatch({
@@ -36,12 +36,66 @@ const store = reactive({
   editorIds: {
     inputCodeEditor: 'inputCodeEditor',
     filterEditor: 'filterEditor',
+    transformEditor: 'transformEditor',
+    composerEditor: 'composerEditor',
   },
   getEditor,
   setContent,
   // parsing
   ast: [],
+  arb: new window.flast.Arborist(''),
+  states: [],
+  saveState() {
+    // noinspection JSUnresolvedReference
+    this.states.push({
+      script: store.arb.script,
+      filters: this.filters,
+      steps: this.steps,
+      transformationCode: this.transformationCode,
+    });
+  },
+  revertState() {
+    if (this.states.length) {
+      const state = this.states.shift();
+      // noinspection JSValidateTypes
+      this.loadNewScript(state.script);
+      this.filters = state.filters;
+      this.steps = state.steps;
+      this.transformationCode = state.transformationCode;
+    }
+  },
+  applyAndUpdateTransformation(transformSrc) {
+    const changes = this.arb.applyChanges();
+    if (changes > 0) {
+      this.transformationCode = transformSrc;
+      this.steps.push({
+        filters: this.filters.filter(f => f.enabled),
+        transformationCode: transformSrc,
+      });
+      this.logMessage(`${changes} changes were made`, 'success');
+      this.loadNewScript(this.arb.script);
+      return true;
+    }
+    this.logMessage('No changes made', 'error');
+    return false;
+  },
+  loadNewScript(script) {
+    this.setContent(this.getEditor(this.editorIds.inputCodeEditor), script);
+    this.arb = new window.flast.Arborist(script);
+    store.page = 0;
+    this.filteredNodes = this.arb.ast;
+    this.filters.length = 0;
+  },
+  combineFilters(filtersArr) {
+    let filterSrc = `(${filtersArr[0]})\n`;
+    for (const filter of filtersArr.slice(1)) {
+      filterSrc += ` && (${filter})\n`;
+    }
+    return filterSrc;
+  },
+  steps: [],
   filters: [],
+  transformationCode: '',
   // eslint-disable-next-line no-unused-vars
   logMessage(text, level) {},
   nodesPageSize: 100,
