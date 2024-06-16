@@ -34,7 +34,7 @@ const isReadyToCompose = computed(() => store.states.length);
                 :disabled="!isReadyToCompose" >compose</button>
       </div>
       <span title="View code on GitHub">
-				<a href="https://github.com/ctrl-escp/flaster" title="flASTer on GitHub">
+				<a href="https://github.com/ctrl-escp/flaster" title="flASTer on GitHub" target="_blank">
 					<span class="github-text">View on GitHub</span>
           <icon-github/>
 				</a>
