@@ -3,7 +3,7 @@ const path = require('node:path');
 const browserify = require('browserify');
 
 let originalArbLine = '';
-const replacementLine = `window.generateCode = flast.generateCode, window.generateFlatAST = flast.generateFlatAST`;
+const replacementLine = `window.generateCode = flast.generateCode, window.generateFlatAST = flast.generateFlatAST;`;
 
 function augmentArborist(revert = false) {
   const arbFile = __dirname + '/../node_modules/flast/src/arborist.js';
@@ -29,4 +29,4 @@ function buildLibraryForBrowser(filename, targetOutputFile) {
 }
 augmentArborist();
 buildLibraryForBrowser(__dirname + '/flast-src.js', path.resolve(__dirname + '/..' + '/public/flast.js'));
-setTimeout(() => augmentArborist(true));
+setTimeout(() => augmentArborist(true), 100);

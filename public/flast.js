@@ -18968,7 +18968,7 @@ exports.tokenize = tokenize;
 exports.version = version;
 
 },{"acorn":4,"acorn-jsx":2,"eslint-visitor-keys":41}],43:[function(require,module,exports){
-window.generateCode = flast.generateCode, window.generateFlatAST = flast.generateFlatAST
+window.generateCode = flast.generateCode, window.generateFlatAST = flast.generateFlatAST;
 
 const Arborist = class {
 	/**
