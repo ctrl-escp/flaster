@@ -29,4 +29,4 @@ function buildLibraryForBrowser(filename, targetOutputFile) {
 }
 augmentArborist();
 buildLibraryForBrowser(__dirname + '/flast-src.js', path.resolve(__dirname + '/..' + '/public/flast.js'));
-setTimeout(() => augmentArborist(true), 100);
+setTimeout(() => augmentArborist(true), 1000);
