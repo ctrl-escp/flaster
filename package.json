@@ -13,27 +13,27 @@
 		"post-build-edit": " sed -i s/\"\\/assets/\"assets/g dist/index.html && echo Fixed assets links"
 	},
 	"dependencies": {
-		"@codemirror/autocomplete": "^6.16.2",
+		"@codemirror/autocomplete": "^6.17.0",
 		"@codemirror/commands": "^6.6.0",
 		"@codemirror/lang-javascript": "^6.2.2",
 		"@codemirror/language": "^6.10.2",
-		"@codemirror/lint": "^6.8.0",
+		"@codemirror/lint": "^6.8.1",
 		"@codemirror/search": "^6.5.6",
 		"@codemirror/state": "^6.4.1",
 		"@codemirror/theme-one-dark": "^6.1.2",
-		"@codemirror/view": "^6.27.0",
+		"@codemirror/view": "^6.28.4",
 		"browserify": "^17.0.0",
 		"codemirror": "^6.0.1",
-		"flast": "^1.5.2",
-		"vue": "^3.4.27"
+		"flast": "^1.6.0",
+		"vue": "^3.4.31"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.1.0",
-		"@eslint/js": "^9.4.0",
+		"@eslint/js": "^9.6.0",
 		"@vitejs/plugin-vue": "^5.0.5",
-		"eslint": "^9.4.0",
-		"eslint-plugin-vue": "^9.26.0",
-		"vite": "^5.2.13"
+		"eslint": "^9.6.0",
+		"eslint-plugin-vue": "^9.27.0",
+		"vite": "^5.3.3"
 	},
 	"bugs": {
 		"url": "https://github.com/ctrl-escp/flaster/issues"
