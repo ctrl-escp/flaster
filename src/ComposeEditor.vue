@@ -6,32 +6,28 @@ import CodeEditor from './components/CodeEditor.vue';
 function composeCode() {
   let code = `// Generated via flASTer (https://ctrl-escp.github.io/flaster)
 const fs = require('node:fs');
-const {
-  utils: {runLoop, logger},
-} = require('restringer').deobModules;
+const {utils} = require('flast');
 
 const inputFilename = process.argv[2];
 const code = fs.readFileSync(inputFilename, 'utf-8');
-// logger.setLogLevel(logger.logLevels.DEBUG); // Uncomment to debug
+utils.logger.setLogLevelNone();  // Replace with setLogLevelDebug to debug
 let script = code;
 
 `;
   for (const step of store.steps) {
     const filter = store.combineFilters(step?.filters.filter(f => f?.enabled && !!f?.src).map(f => f?.src));
-    code += `script = runLoop(script, [function(arb) {
-  for (let i = 0; i < arb.ast.length; i++) {
-    const n = arb.ast[i];
-    if (${filter}) {
-      ${step?.transformationCode}
-    }
-  }
-  return arb;
-  }]);
+    code += `script = utils.applyIteratively(script, [
+  utils.treeModifier(
+    (n, arb) => {return ${filter}},
+    (n, arb) => {${step?.transformationCode}}
+  )]);
 
+utils.logger.setLogLevelLog();
 `;
   }
   code += `if (script !== code) {
-  console.log('[+] Transformation successful');
+  console.debug('[+] Transformation successful');
+  console.log(script);
   fs.writeFileSync(inputFilename + '-flastered.js', script, 'utf-8');
 } else console.log('[-] Nothing transformed :/');`;
   return code;
@@ -65,17 +61,14 @@ onActivated(() => recompose());
         <button class="btn btn-recompose" @click="recompose()">Re-compose</button>
       </span>
     </div>
-    <div class="composer-display">
-      <fieldset class="composer-editor-wrapper">
-        <legend>Complete code</legend>
-        <code-editor :editor-id="store.editorIds.composerEditor" :initial-value="composeCode()"/>
-      </fieldset>
-    </div>
+    <fieldset class="composer-editor-wrapper">
+      <legend>Complete code</legend>
+      <code-editor :editor-id="store.editorIds.composerEditor" :initial-value="composeCode()"/>
+    </fieldset>
   </div>
 </template>
 
 <style scoped>
-
 .btn-download {
   background-color: greenyellow;
 }
@@ -89,19 +82,18 @@ onActivated(() => recompose());
 .btn-group > * > button {
   margin-right: 5px;
 }
-.composer-controller {
-  margin-top: 5px;
-  width: 100%;
-}
-.composer-display {
+.composer-btn-group {
   display: flex;
-  flex-wrap: wrap;
-  height: 90%;
+}
+.composer-controller {
+  margin-top: .2rem;
+  width: 100%;
 }
 .composer-editor-wrapper {
   flex: 1;
   overflow: auto;
   padding: 0;
+  max-height: 37vh;
 }
 legend {
   font-size: larger;
