@@ -31,17 +31,15 @@ const bottomPanes = {
 </template>
 
 <style scoped>
-main {
-  margin-top: .5rem;
-}
 .pane-bottom {
   flex: 1;
   display: flex;
+  max-height: 45vh;
 }
 .panes {
   display: flex;
   flex-direction: column;
-  height: calc(95vh - var(--nav-height));
+  height: calc(90vh - var(--nav-height));
   gap: .2rem;
   width: 100%;
 }

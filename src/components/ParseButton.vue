@@ -1,12 +1,13 @@
 <script setup>
 import store from '../store';
 import {onMounted, ref} from 'vue';
+import IconParse from './icons/IconParse.vue';
 
 const messages = {
-  parseContent: 'Parse Content',
-  contentParsed: 'Content is Parsed ',
+  parseContent: 'Parse',
+  contentParsed: 'Parsed ',
   astParseFail: 'Unable to Parse AST',
-  emptyCode: 'No Content',
+  emptyCode: 'N/A',
 };
 
 const parsedStatusEl = ref(null);
@@ -15,8 +16,8 @@ function setContentParsed() {
   /** @type {HTMLElement} */
   const ps = parsedStatusEl.value;
   store.getEditor(store.editorIds.inputCodeEditor).isParsed = true;
-  ps.classList.add('parsed');
-  ps.classList.remove('unparsed');
+  ps?.classList?.add('parsed');
+  ps?.classList?.remove('unparsed');
 }
 
 function setContentUnparsed() {
@@ -24,8 +25,8 @@ function setContentUnparsed() {
   const ps = parsedStatusEl.value;
   const editor = store.getEditor(store.editorIds.inputCodeEditor);
   editor ? editor.isParsed = false : void 0;
-  ps.classList.add('unparsed');
-  ps.classList.remove('parsed');
+  ps?.classList?.add('unparsed');
+  ps?.classList?.remove('parsed');
 }
 
 function resetParsedState() {
@@ -45,7 +46,7 @@ onMounted(() => {
 function parseContent() {
   try {
     resetParsedState();
-    const code = store.getEditor(store.editorIds.inputCodeEditor).state.doc.toString();
+    const code = store.getEditor(store.editorIds.inputCodeEditor)?.state.doc.toString();
     if (!code?.length) store.logMessage(messages.emptyCode, 'error');
     else {
       new Promise(() => {
@@ -67,17 +68,28 @@ function parseContent() {
 </script>
 
 <template>
-  <button ref="parsedStatusEl" class="btn unparsed" @click="parseContent">{{ messages.parseContent }}</button>
+  <span>
+    <icon-parse ref="parsedStatusEl" class="btn btn-parse unparsed" @click="parseContent"></icon-parse>
+    <span class="top-btn-text">Parse</span>
+  </span>
 </template>
 
 <style scoped>
-
-.unparsed {
-  background-color: #d05858;
+.btn-parse {
+  border: none;
+  height: 2rem;
 }
-
+.unparsed {
+  fill: #d05858;
+}
 /*noinspection CssUnusedSymbol*/
 .parsed {
-  background-color: #41e804;
+  fill: #41e804;
+}
+.top-btn-text {
+  font-size: 1rem;
+  @media (max-width: 700px) {
+    display: none;
+  }
 }
 </style>

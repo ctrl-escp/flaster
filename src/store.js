@@ -43,7 +43,7 @@ const store = reactive({
   setContent,
   // parsing
   ast: [],
-  arb: new window.flast.Arborist(''),
+  arb: {ast: []},
   states: [],
   saveState() {
     // noinspection JSUnresolvedReference

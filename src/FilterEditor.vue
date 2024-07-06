@@ -88,11 +88,11 @@ function addNewFilter() {
 <template>
   <div class="filter-controller" v-if="store.arb?.ast?.length">
     <div class="btn-group">
-      <span class="filter-edit-btn-group">
+      <span class="filters-btn-group">
         <button class="btn btn-apply" @click="addNewFilter">Add</button>
         <button class="btn btn-clear" @click="setFilterEditorContent('')">Clear</button>
       </span>
-      <span class="applied-filters-btn-group">
+      <span class="filters-btn-group">
         <button class="btn btn-clear-all-filters" @click="clearAllFilters" :disabled="!numOfAvailableFilters">Clear all</button>
         <button class="btn btn-clear-all-filters" @click="store.areFiltersActive = !store.areFiltersActive"
                 :disabled="!numOfAvailableFilters">{{ store.areFiltersActive ? messages.disableFilters : messages.enableFilters }}
@@ -128,42 +128,41 @@ function addNewFilter() {
   overflow: auto;
   min-width: 41%;
 }
-
 .applied-filters-wrapper > fieldset {
   min-width: 40vw;
 }
-
 .btn-apply {
   background-color: greenyellow;
 }
-
 .btn-clear-all-filters {
   float: right;
   margin-right: 0 !important;
   margin-left: 5px;
 }
-
 .btn-group {
   display: flex;
   justify-content: space-between;
 }
-
 .btn-group > * > button {
   margin-right: 5px;
 }
-
 .btn-group-inline {
   display: flex;
   align-items: center;
   float: right;
   margin-right: 5px;
 }
-
+.filters-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
 .filter-controller {
   margin-top: 5px;
   width: 100%;
+  display: flex;
+  flex-direction: column;
 }
-
 .filter-display {
   display: flex;
   flex-wrap: wrap;
@@ -177,19 +176,16 @@ function addNewFilter() {
   display: flex;
   flex: 1;
 }
-
 .filter-src {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
 .icon-inline {
   cursor: pointer;
   width: 20px;
   margin: 0 .3rem;
 }
-
 legend {
   font-size: larger;
 }

@@ -6,7 +6,7 @@ import CodeEditor from './components/CodeEditor.vue';
 const initialValue = `// write the logic to apply to the node \`(n) => {<your code>}\`.
 // to delete a node use arb.markNode(n);
 // to replace a node with a new 'replacementNode' use arb.markNode(n, replacementNode);
-const replacements = {Hello: 'General', 'there!': 'Kenobi'};
+const replacements = {Hello: 'General', there: 'Kenobi'};
 if (replacements[n.value]) arb.markNode(n, {
   type: 'Literal',
   value: replacements[n.value]
@@ -81,6 +81,9 @@ function revertTransformation() {
   display: flex;
   flex-wrap: wrap;
   height: 90%;
+}
+.transform-edit-btn-group {
+  display: flex;
 }
 .transformer-editor-wrapper {
   flex: 1;

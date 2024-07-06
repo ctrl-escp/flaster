@@ -4,15 +4,14 @@ import {onActivated} from 'vue';
 import CodeEditor from './components/CodeEditor.vue';
 
 function composeCode() {
-  let code = `// Generated via flASTer (https://ctrl-escp.github.io/flaster)
-const fs = require('node:fs');
+  let code = `const fs = require('node:fs');
 const {utils} = require('flast');
-
+br(); // fake code that'll be replaced with a new line
 const inputFilename = process.argv[2];
 const code = fs.readFileSync(inputFilename, 'utf-8');
 utils.logger.setLogLevelNone();  // Replace with setLogLevelDebug to debug
 let script = code;
-
+br();
 `;
   for (const step of store.steps) {
     const filter = store.combineFilters(step?.filters.filter(f => f?.enabled && !!f?.src).map(f => f?.src));
@@ -21,7 +20,7 @@ let script = code;
     (n, arb) => {return ${filter}},
     (n, arb) => {${step?.transformationCode}}
   )]);
-
+br();
 utils.logger.setLogLevelLog();
 `;
   }
@@ -30,7 +29,8 @@ utils.logger.setLogLevelLog();
   console.log(script);
   fs.writeFileSync(inputFilename + '-flastered.js', script, 'utf-8');
 } else console.log('[-] Nothing transformed :/');`;
-  return code;
+  code = '// Generated via flASTer (https://ctrl-escp.github.io/flaster)\n' + window.flast.generateCode(window.flast.parseCode(code));
+  return code.replaceAll('br();\n', '\n');
 }
 
 function downloadFlaster() {
@@ -50,6 +50,10 @@ function recompose() {
   store.setContent(store.getEditor(store.editorIds.composerEditor), composeCode());
 }
 
+function copy() {
+  navigator.clipboard.writeText(store.getEditor(store.editorIds.composerEditor)?.state.doc.toString());
+}
+
 onActivated(() => recompose());
 </script>
 
@@ -58,6 +62,7 @@ onActivated(() => recompose());
     <div class="btn-group">
       <span class="composer-btn-group">
         <button class="btn btn-download" @click="downloadFlaster()">Download</button>
+        <button class="btn btn-copy" @click="copy()">Copy</button>
         <button class="btn btn-recompose" @click="recompose()">Re-compose</button>
       </span>
     </div>
@@ -94,6 +99,7 @@ onActivated(() => recompose());
   overflow: auto;
   padding: 0;
   max-height: 37vh;
+  min-inline-size: 40vw;
 }
 legend {
   font-size: larger;

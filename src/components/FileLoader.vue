@@ -1,18 +1,8 @@
 <script setup>
 import store from '../store';
-import {onMounted, ref} from 'vue';
+import IconFolder from './icons/IconFolder.vue';
 
-const messages = {
-  noFile: 'Load File',
-  loaded: '',
-};
-
-const status = ref(null);
 const inputCodeEditorId = store.editorIds.inputCodeEditor;
-
-onMounted(() => {
-  if (status.value) status.value.innerText = messages.noFile;
-});
 
 function fileChanged(el) {
   const files = el.target?.files || [];
@@ -23,33 +13,36 @@ function fileChanged(el) {
       store.setContent(store.getEditor(inputCodeEditorId), c);
       store.resetParsedState();
     });
-    status.value.innerText = messages.loaded + file.name.substring(0, 30);
   } else {
     store.setContent(store.getEditor(inputCodeEditorId), '');
-    status.value.innerText = messages.noFile;
     store.resetParsedState();
   }
 }
 </script>
 
 <template>
-  <div>
-    <button class="btn btn-load-file">
-      <label>
-        <span class="file-status" ref="status"></span>
-        <input class="inputFile" type="file" @change="fileChanged">
-      </label>
-    </button>
-
-  </div>
+  <span>
+    <icon-folder class="btn btn-load-file">
+        <label><input class="inputFile" type="file" @change="fileChanged"></label>
+    </icon-folder>
+    <span class="top-btn-text">Load</span>
+  </span>
 </template>
 
 <style scoped>
 .btn-load-file {
-  background-color: #a892cb;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  border: none;
 }
-
 .inputFile {
   display: none;
+}
+.top-btn-text {
+  font-size: 1rem;
+  @media (max-width: 700px) {
+    display: none;
+  }
 }
 </style>

@@ -1,21 +1,22 @@
 @import './base.css';
 
 :root {
-    --nav-height: 62px;
+    --nav-height: 8vh;
 }
 
 body {
     padding: 2px;
+    min-width: 500px;
 }
 
 .btn {
-    padding: 2px 10px;
+    padding: .2rem .5rem;
     border-radius: 8px;
     font-size: larger;
-    line-height: 30px;
-    vertical-align: middle;;
+    vertical-align: middle;
     cursor: pointer;
     border: 1px solid;
+    display: flex;
 }
 .btn:active {
     transform: translate(1px, 1px);
