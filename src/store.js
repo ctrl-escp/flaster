@@ -108,4 +108,5 @@ const store = reactive({
   parseContent() {},
 });
 
+window.store = store;   // DEBUG
 export default store;

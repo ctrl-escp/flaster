@@ -23,7 +23,6 @@ function logMessage(text, level) {
 
 onMounted(() => {
   store.logMessage = logMessage;
-  window.store = store;   // DEBUG
 });
 
 </script>
@@ -43,24 +42,20 @@ onMounted(() => {
   animation: fadein 0.5s;
   animation-fill-mode: forwards;
 }
-
 /*noinspection CssUnusedSymbol*/
 .toast-disappear {
   -webkit-animation: fadeout 0.5s;
   animation: fadeout 0.5s;
   animation-fill-mode: forwards;
 }
-
 .toaster {
   justify-content: center;
   position: fixed;
   bottom: 30px;
 }
-
 toaster-message {
   visibility: hidden;
 }
-
 @-webkit-keyframes fadein {
   from {
     bottom: 0;
@@ -71,7 +66,6 @@ toaster-message {
     opacity: 1;
   }
 }
-
 @keyframes fadein {
   from {
     bottom: 0;
@@ -82,7 +76,6 @@ toaster-message {
     opacity: 1;
   }
 }
-
 @-webkit-keyframes fadeout {
   from {
     bottom: 30px;
@@ -93,7 +86,6 @@ toaster-message {
     opacity: 0;
   }
 }
-
 @keyframes fadeout {
   from {
     bottom: 30px;

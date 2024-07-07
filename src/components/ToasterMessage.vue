@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref} from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 
 const props = defineProps({
   text: {
@@ -12,29 +12,35 @@ const props = defineProps({
   },
 });
 
-const messages = {};
-
-const levels = [
-  'success',
-  'info',
-  'error'
-];
+const state = reactive({
+  visible: true,
+  startingStyle: {
+    display: 'block',
+    '@starting-style': 'display: none;',
+  },
+});
 
 const toasterMessage = ref(null);
 
+
 function closeToast() {
+  state.visible = false;
   toasterMessage.value.remove();
 }
 
-onMounted(() => {});
+onMounted(() => {
+  setTimeout(closeToast, 2500);
+});
 
 </script>
 
 <template>
-  <div ref="toasterMessage" class="toast" :class="'toast-' + level">
-    <button class="toast-close-message" @click="closeToast">x</button>
-    <div>{{ text }}</div>
-  </div>
+  <transition name="fade">
+    <div v-if="state.visible" ref="toasterMessage" class="toast" :class="'toast-' + level">
+      <button class="btn toast-close-message" @click="closeToast">x</button>
+      <span>{{ props.text }}</span>
+    </div>
+  </transition>
 </template>
 
 <style scoped>
@@ -55,29 +61,20 @@ onMounted(() => {});
   text-overflow: ellipsis;
   overflow: hidden;
 }
-
 .toast-close-message {
   float: right;
-  font-size: larger;
   margin-top: -8px;
   background-color: transparent;
   border: none;
 }
-
-.toast-close-message:active {
-  transform: translate(1px, 2px);
-}
-
 /*noinspection CssUnusedSymbol*/
 .toast-error {
   background-color: red;
 }
-
 /*noinspection CssUnusedSymbol*/
 .toast-info {
   background-color: yellow;
 }
-
 /*noinspection CssUnusedSymbol*/
 .toast-success {
   background-color: greenyellow;
