@@ -1,5 +1,8 @@
 <script setup>
-import {onMounted, reactive, ref} from 'vue';
+import {onMounted, ref} from 'vue';
+
+const TOAST_TIMEOUT = 2.5 * 1000;
+
 
 const props = defineProps({
   text: {
@@ -10,33 +13,30 @@ const props = defineProps({
     type: String,
     default: 'info',
   },
-});
-
-const state = reactive({
-  visible: true,
-  startingStyle: {
-    display: 'block',
-    '@starting-style': 'display: none;',
+  closeFunc: {
+    type: Function,
+    required: true,
   },
 });
 
-const toasterMessage = ref(null);
+const isVisible = ref(false);
 
 
 function closeToast() {
-  state.visible = false;
-  toasterMessage.value.remove();
+  isVisible.value = false;
+  setTimeout(props.closeFunc, 1000);
 }
 
 onMounted(() => {
-  setTimeout(closeToast, 2500);
+  isVisible.value = true;
+  setTimeout(closeToast, TOAST_TIMEOUT);
 });
 
 </script>
 
 <template>
   <transition name="fade">
-    <div v-if="state.visible" ref="toasterMessage" class="toast" :class="'toast-' + level">
+    <div v-if="isVisible" class="toast" :class="'toast-' + level">
       <button class="btn toast-close-message" @click="closeToast">x</button>
       <span>{{ props.text }}</span>
     </div>
@@ -44,6 +44,14 @@ onMounted(() => {
 </template>
 
 <style scoped>
+/*noinspection CssUnusedSymbol*/
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s ease;
+}
+/*noinspection CssUnusedSymbol*/
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
 .toast {
   padding: 10px;
   margin: 5px;
