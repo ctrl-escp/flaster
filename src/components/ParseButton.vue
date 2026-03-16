@@ -32,7 +32,7 @@ function setContentUnparsed() {
 function resetParsedState() {
   // noinspection JSValidateTypes
   store.arb = {ast: [], script: ''};
-  store.matchingNodes = [];
+  store.clearKnownStructureResults();
   setContentUnparsed();
   store.page = 0;
 }
@@ -54,7 +54,10 @@ function parseContent() {
         // noinspection JSValidateTypes
         store.arb = new window.flast.Arborist(code);
         if (!store.arb?.ast?.length) store.logMessage(messages.astParseFail, 'error');
-        else store.logMessage(`Parsed ${code.length} chars into ${store.arb.ast.length} nodes`, 'success');
+        else {
+          store.logMessage(`Parsed ${code.length} chars into ${store.arb.ast.length} nodes`, 'success');
+          store.rerunKnownStructureMatching();
+        }
         store.filteredNodes = store.arb.ast;
         setContentParsed();
       }).catch(e => store.logMessage(e.message, 'error'));

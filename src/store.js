@@ -1,4 +1,11 @@
 import {reactive} from 'vue';
+import {
+  createEmptyMatchGroups,
+  createExecutionStatus,
+  createKnownStructureState,
+  getInitialActiveStructureId,
+  runKnownStructureMatchingSession,
+} from './integrations/restringer/matchingEngine.js';
 
 /**
  * @typedef {import('@codemirror/view').EditorView} EditorView
@@ -27,6 +34,8 @@ function setContent(editor, content) {
     ],
   });
 }
+
+const knownStructureState = createKnownStructureState();
 
 const store = reactive({
   currentBottomPane: 'filter',
@@ -85,6 +94,7 @@ const store = reactive({
     store.page = 0;
     this.filteredNodes = this.arb.ast;
     this.filters.length = 0;
+    this.runKnownStructureMatching();
   },
   combineFilters(filtersArr) {
     let filterSrc = `(${filtersArr[0]})\n`;
@@ -103,10 +113,111 @@ const store = reactive({
   isTransformed: false,
   filteredNodes: [],
   areFiltersActive: true,
+  availableKnownStructures: knownStructureState.availableKnownStructures,
+  selectedKnownStructureIds: knownStructureState.selectedKnownStructureIds,
+  activeKnownStructureId: knownStructureState.activeKnownStructureId,
+  latestKnownStructureMatches: knownStructureState.latestKnownStructureMatches,
+  knownStructureMatchesById: knownStructureState.knownStructureMatchesById,
+  knownStructureMatchCounts: knownStructureState.knownStructureMatchCounts,
+  knownStructureExecutionErrors: knownStructureState.knownStructureExecutionErrors,
+  knownStructureGroupedMatches: knownStructureState.knownStructureGroupedMatches,
+  knownStructureExecutionStatus: knownStructureState.knownStructureExecutionStatus,
+  lastKnownStructureRunIds: knownStructureState.lastKnownStructureRunIds,
+  clearKnownStructureResults() {
+    this.latestKnownStructureMatches = [];
+    this.knownStructureMatchesById = {};
+    this.knownStructureMatchCounts = {};
+    this.knownStructureExecutionErrors = {};
+    this.knownStructureGroupedMatches = createEmptyMatchGroups();
+    this.knownStructureExecutionStatus = createExecutionStatus();
+    this.lastKnownStructureRunIds = [];
+  },
+  setSelectedKnownStructureIds(structureIds = []) {
+    const availableStructureIds = new Set(this.availableKnownStructures.map((structure) => structure.id));
+    this.selectedKnownStructureIds = [...new Set(structureIds)].filter((structureId) =>
+      availableStructureIds.has(structureId),
+    );
+
+    if (!this.selectedKnownStructureIds.includes(this.activeKnownStructureId)) {
+      this.activeKnownStructureId = getInitialActiveStructureId(
+        this.availableKnownStructures,
+        this.selectedKnownStructureIds,
+      );
+    }
+  },
+  setActiveKnownStructure(structureId) {
+    if (!structureId) {
+      this.activeKnownStructureId = null;
+      return;
+    }
+
+    const nextActiveStructure = this.availableKnownStructures.find((structure) => structure.id === structureId);
+    if (nextActiveStructure) {
+      this.activeKnownStructureId = nextActiveStructure.id;
+    }
+  },
+  runKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
+    const idsToRun = Array.isArray(structureIds) ? structureIds : [];
+    const hasParsedAst = !!this.arb?.ast?.length;
+
+    this.knownStructureExecutionStatus = {
+      ...createExecutionStatus(),
+      state: 'running',
+      totalStructures: idsToRun.length,
+    };
+
+    if (!hasParsedAst || !idsToRun.length) {
+      this.clearKnownStructureResults();
+      return this.knownStructureExecutionStatus;
+    }
+
+    const session = runKnownStructureMatchingSession(this.arb, idsToRun);
+
+    this.latestKnownStructureMatches = session.matches;
+    this.knownStructureMatchesById = Object.fromEntries(
+      session.runs.map((run) => [run.structureId, [...run.matches]]),
+    );
+    this.knownStructureMatchCounts = session.matchCounts;
+    this.knownStructureExecutionErrors = session.errors;
+    this.knownStructureGroupedMatches = session.groupedMatches;
+    this.knownStructureExecutionStatus = {
+      state: 'complete',
+      totalStructures: session.structureIds.length,
+      completedStructures: session.runs.length,
+      totalMatches: session.totalMatches,
+      lastRunAt: session.ranAt,
+    };
+    this.lastKnownStructureRunIds = [...session.structureIds];
+
+    if (!this.activeKnownStructureId || !session.structureIds.includes(this.activeKnownStructureId)) {
+      this.activeKnownStructureId = getInitialActiveStructureId(
+        this.availableKnownStructures,
+        session.structureIds,
+      );
+    }
+
+    return this.knownStructureExecutionStatus;
+  },
+  runActiveKnownStructureMatching() {
+    if (!this.activeKnownStructureId) {
+      return this.runKnownStructureMatching([]);
+    }
+
+    return this.runKnownStructureMatching([this.activeKnownStructureId]);
+  },
+  rerunKnownStructureMatching() {
+    const structureIds = this.lastKnownStructureRunIds.length
+      ? this.lastKnownStructureRunIds
+      : this.selectedKnownStructureIds;
+
+    return this.runKnownStructureMatching(structureIds);
+  },
   // placeholders
   resetParsedState() {},
   parseContent() {},
 });
 
-window.store = store;   // DEBUG
+if (typeof window !== 'undefined') {
+  window.store = store;   // DEBUG
+}
 export default store;

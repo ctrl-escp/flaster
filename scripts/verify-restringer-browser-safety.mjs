@@ -6,6 +6,8 @@ import {Arborist} from 'flast/src/arborist.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const adapterPath = path.resolve(projectRoot, 'src/integrations/restringer/index.js');
+const matchingEnginePath = path.resolve(projectRoot, 'src/integrations/restringer/matchingEngine.js');
+const storePath = path.resolve(projectRoot, 'src/store.js');
 const sourceRoot = path.resolve(projectRoot, 'src');
 
 const disallowedImportPatterns = [
@@ -41,6 +43,7 @@ for (const pattern of disallowedImportPatterns) {
 }
 
 const adapterModule = await import(pathToFileURL(adapterPath).href);
+const matchingEngineModule = await import(pathToFileURL(matchingEnginePath).href);
 const sampleScript = `
 function proxy(a, b) { return target(a, b); }
 const alias = original;
@@ -134,7 +137,96 @@ if (typeof transformResult.pendingChanges !== 'number' || transformResult.pendin
   throw new Error('runKnownStructureTransform did not mark any pending changes');
 }
 
-console.log('REstringer browser safety checks passed.');
+const session = matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
+  'proxy-calls',
+  'computed-members',
+  'missing-structure',
+]);
+
+if (session.structureIds.includes('missing-structure')) {
+  throw new Error('runKnownStructureMatchingSession accepted an unknown structure ID');
+}
+
+if (!session.matchCounts['proxy-calls'] || !session.matchCounts['computed-members']) {
+  throw new Error('runKnownStructureMatchingSession did not collect match counts');
+}
+
+if (!session.groupedMatches.byStructureId['proxy-calls']?.length) {
+  throw new Error('runKnownStructureMatchingSession did not group matches by structure');
+}
+
+const groupedNodeType = session.matches.find((match) => match.type)?.type;
+if (!groupedNodeType || !session.groupedMatches.byNodeType[groupedNodeType]?.length) {
+  throw new Error('runKnownStructureMatchingSession did not group matches by node type');
+}
+
+if (!matchingEngineModule.getDefaultSelectedStructureIds().length) {
+  throw new Error('getDefaultSelectedStructureIds did not return any built-in structures');
+}
+
+const errorSession = matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
+  'proxy-calls',
+  'proxy-variables',
+], {
+  candidateFilter() {
+    throw new Error('candidate filter failure');
+  },
+});
+
+if (!(errorSession.errors['proxy-calls'] instanceof Error) ||
+  !(errorSession.errors['proxy-variables'] instanceof Error)) {
+  throw new Error('runKnownStructureMatchingSession did not isolate per-structure matcher errors');
+}
+
+globalThis.window ??= {};
+globalThis.window.flast = {Arborist};
+const {default: store} = await import(pathToFileURL(storePath).href);
+
+store.arb = new Arborist(sampleScript);
+store.runKnownStructureMatching(['proxy-calls', 'computed-members']);
+
+if (store.knownStructureExecutionStatus.state !== 'complete') {
+  throw new Error('store.runKnownStructureMatching did not mark the session complete');
+}
+
+if (store.knownStructureExecutionStatus.totalStructures !== 2) {
+  throw new Error('store.runKnownStructureMatching did not track structure totals');
+}
+
+if (!store.latestKnownStructureMatches.length) {
+  throw new Error('store.runKnownStructureMatching did not store normalized matches');
+}
+
+if (!store.knownStructureMatchesById['proxy-calls']?.length) {
+  throw new Error('store.runKnownStructureMatching did not store matches by structure ID');
+}
+
+const groupedParentType = store.latestKnownStructureMatches.find((match) => match.parentType)?.parentType;
+if (!groupedParentType || !store.knownStructureGroupedMatches.byParentType?.[groupedParentType]?.length) {
+  throw new Error('store.runKnownStructureMatching did not store grouped parent-type matches');
+}
+
+store.setSelectedKnownStructureIds(['proxy-calls', 'missing-structure']);
+if (store.selectedKnownStructureIds.length !== 1 || store.selectedKnownStructureIds[0] !== 'proxy-calls') {
+  throw new Error('store.setSelectedKnownStructureIds did not filter unknown structure IDs');
+}
+
+store.setActiveKnownStructure('computed-members');
+if (store.activeKnownStructureId !== 'computed-members') {
+  throw new Error('store.setActiveKnownStructure did not update the active structure');
+}
+
+store.runActiveKnownStructureMatching();
+if (store.lastKnownStructureRunIds.length !== 1 || store.lastKnownStructureRunIds[0] !== 'computed-members') {
+  throw new Error('store.runActiveKnownStructureMatching did not run only the active structure');
+}
+
+store.clearKnownStructureResults();
+if (store.latestKnownStructureMatches.length || store.knownStructureExecutionStatus.state !== 'idle') {
+  throw new Error('store.clearKnownStructureResults did not reset known structure state');
+}
+
+console.log('REstringer browser safety and matching engine checks passed.');
 
 async function readSourceFiles(rootDir) {
   const entries = await readDirectory(rootDir);
