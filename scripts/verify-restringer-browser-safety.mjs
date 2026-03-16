@@ -65,6 +65,10 @@ for (const structure of adapterModule.knownStructures) {
   if (typeof structure.searchText !== 'string' || !structure.searchText.length) {
     throw new Error(`Structure is missing search metadata: ${structure.id}`);
   }
+
+  if (!structure.implementation?.moduleName || !structure.implementation?.matcherName) {
+    throw new Error(`Structure is missing implementation metadata: ${structure.id}`);
+  }
 }
 
 for (const [id, matcher] of Object.entries(adapterModule.safeMatchers)) {
@@ -219,6 +223,30 @@ if (store.activeKnownStructureId !== 'computed-members') {
 store.runActiveKnownStructureMatching();
 if (store.lastKnownStructureRunIds.length !== 1 || store.lastKnownStructureRunIds[0] !== 'computed-members') {
   throw new Error('store.runActiveKnownStructureMatching did not run only the active structure');
+}
+
+const selectedMatch = store.getSelectedKnownStructureMatch();
+if (!selectedMatch || selectedMatch.structureId !== 'computed-members') {
+  throw new Error('store did not expose the selected known structure match');
+}
+
+store.selectKnownStructureMatchStep(1);
+if (!store.getSelectedKnownStructureMatch()) {
+  throw new Error('store.selectKnownStructureMatchStep did not keep a selected match');
+}
+
+const copiedSeed = store.copyKnownStructureRuleSeed('proxy-calls');
+if (!copiedSeed.includes('proxy-calls') || !copiedSeed.includes('Seeded from known structure')) {
+  throw new Error('store.copyKnownStructureRuleSeed did not return the expected seed text');
+}
+
+store.clearKnownStructureMatches('computed-members');
+if (store.knownStructureMatchesById['computed-members']) {
+  throw new Error('store.clearKnownStructureMatches did not remove the targeted structure matches');
+}
+
+if (store.activeKnownStructureId === 'computed-members') {
+  throw new Error('store.clearKnownStructureMatches did not move the active structure away from cleared results');
 }
 
 store.clearKnownStructureResults();

@@ -5,12 +5,14 @@ import CodeAndNodes from './CodeAndNodes.vue';
 import FilterEditor from './FilterEditor.vue';
 import TransformEditor from './TransformEditor.vue';
 import ComposeEditor from './ComposeEditor.vue';
+import KnownStructures from './KnownStructures.vue';
 import ToasterView from './components/ToasterView.vue';
 
 const bottomPanes = {
   filter: FilterEditor,
   transform: TransformEditor,
   compose: ComposeEditor,
+  structures: KnownStructures,
 };
 
 </script>
