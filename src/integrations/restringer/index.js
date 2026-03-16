@@ -6,10 +6,12 @@ import * as rearrangeSwitchesModule from 'restringer/src/modules/safe/rearrangeS
 import * as removeRedundantBlockStatementsModule from 'restringer/src/modules/safe/removeRedundantBlockStatements.js';
 import * as replaceBooleanExpressionsWithIfModule from 'restringer/src/modules/safe/replaceBooleanExpressionsWithIf.js';
 import * as replaceCallExpressionsWithUnwrappedIdentifierModule from 'restringer/src/modules/safe/replaceCallExpressionsWithUnwrappedIdentifier.js';
+import * as replaceEvalCallsWithLiteralContentModule from 'restringer/src/modules/safe/replaceEvalCallsWithLiteralContent.js';
 import * as replaceFunctionShellsWithWrappedValueModule from 'restringer/src/modules/safe/replaceFunctionShellsWithWrappedValue.js';
 import * as replaceFunctionShellsWithWrappedValueIIFEModule from 'restringer/src/modules/safe/replaceFunctionShellsWithWrappedValueIIFE.js';
 import * as replaceIdentifierWithFixedAssignedValueModule from 'restringer/src/modules/safe/replaceIdentifierWithFixedAssignedValue.js';
 import * as replaceIdentifierWithFixedValueNotAssignedAtDeclarationModule from 'restringer/src/modules/safe/replaceIdentifierWithFixedValueNotAssignedAtDeclaration.js';
+import * as replaceNewFuncCallsWithLiteralContentModule from 'restringer/src/modules/safe/replaceNewFuncCallsWithLiteralContent.js';
 import * as replaceSequencesWithExpressionsModule from 'restringer/src/modules/safe/replaceSequencesWithExpressions.js';
 import * as resolveDeterministicIfStatementsModule from 'restringer/src/modules/safe/resolveDeterministicIfStatements.js';
 import * as resolveFunctionConstructorCallsModule from 'restringer/src/modules/safe/resolveFunctionConstructorCalls.js';
@@ -29,8 +31,10 @@ import {areReferencesModified} from 'restringer/src/modules/utils/areReferencesM
 import {createNewNode} from 'restringer/src/modules/utils/createNewNode.js';
 import {createOrderedSrc} from 'restringer/src/modules/utils/createOrderedSrc.js';
 import {doesDescendantMatchCondition} from 'restringer/src/modules/utils/doesDescendantMatchCondition.js';
+import {generateHash} from 'restringer/src/modules/utils/generateHash.js';
 import {getCache} from 'restringer/src/modules/utils/getCache.js';
 import {getCalleeName} from 'restringer/src/modules/utils/getCalleeName.js';
+import {getDeclarationWithContext} from 'restringer/src/modules/utils/getDeclarationWithContext.js';
 import {getDescendants} from 'restringer/src/modules/utils/getDescendants.js';
 import {getMainDeclaredObjectOfMemberExpression} from 'restringer/src/modules/utils/getMainDeclaredObjectOfMemberExpression.js';
 import {getObjType} from 'restringer/src/modules/utils/getObjType.js';
@@ -84,6 +88,18 @@ const curatedStructureDefinitions = [
     module: replaceFunctionShellsWithWrappedValueModule,
     matcherExport: 'replaceFunctionShellsWithWrappedValueMatch',
     transformExport: 'replaceFunctionShellsWithWrappedValueTransform',
+  },
+  {
+    id: 'eval-literal-content',
+    title: 'Eval Literal Content',
+    category: 'calls',
+    description: 'Matches eval calls whose literal string content can be parsed directly into AST nodes.',
+    tags: ['eval', 'calls', 'literals'],
+    browserSafe: true,
+    experimental: false,
+    module: replaceEvalCallsWithLiteralContentModule,
+    matcherExport: 'replaceEvalCallsWithLiteralContentMatch',
+    transformExport: 'replaceEvalCallsWithLiteralContentTransform',
   },
   {
     id: 'wrapped-value-iifes',
@@ -156,6 +172,18 @@ const curatedStructureDefinitions = [
     module: replaceIdentifierWithFixedValueNotAssignedAtDeclarationModule,
     matcherExport: 'replaceIdentifierWithFixedValueNotAssignedAtDeclarationMatch',
     transformExport: 'replaceIdentifierWithFixedValueNotAssignedAtDeclarationTransform',
+  },
+  {
+    id: 'new-function-literal-content',
+    title: 'New Function Literal Content',
+    category: 'calls',
+    description: 'Matches immediately executed Function constructors with literal content.',
+    tags: ['calls', 'function-constructor', 'literals'],
+    browserSafe: true,
+    experimental: false,
+    module: replaceNewFuncCallsWithLiteralContentModule,
+    matcherExport: 'replaceNewFuncCallsWithLiteralContentMatch',
+    transformExport: 'replaceNewFuncCallsWithLiteralContentTransform',
   },
   {
     id: 'deterministic-if-statements',
@@ -368,8 +396,10 @@ export const safeUtils = Object.freeze({
   createNewNode,
   createOrderedSrc,
   doesDescendantMatchCondition,
+  generateHash,
   getCache,
   getCalleeName,
+  getDeclarationWithContext,
   getDescendants,
   getMainDeclaredObjectOfMemberExpression,
   getObjType,

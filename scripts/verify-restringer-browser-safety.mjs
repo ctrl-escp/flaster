@@ -15,7 +15,6 @@ const disallowedImportPatterns = [
   /from\s+['"]restringer\/src\/modules\/unsafe\//,
   /from\s+['"]restringer\/src\/modules\/utils\/index\.js['"]/,
   /from\s+['"]restringer\/src\/modules\/utils\/evalInVm\.js['"]/,
-  /from\s+['"]restringer\/src\/modules\/utils\/generateHash\.js['"]/,
   /from\s+['"]restringer\/src\/modules\/utils\/normalizeScript\.js['"]/,
   /from\s+['"]restringer\/src\/modules\/utils\/sandbox\.js['"]/,
   /from\s+['"]restringer\/src\/processors\//,
