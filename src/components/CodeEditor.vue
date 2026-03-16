@@ -44,6 +44,14 @@ const props = defineProps({
 
 const editorElement = ref(null);
 
+/**
+ * @typedef {{
+ *   from: number,
+ *   to: number,
+ *   className?: string,
+ * }} EditorHighlightRange
+ */
+
 const highlightEffect = StateEffect.define();
 const highlightRangeExt = StateField.define({
   create() {
@@ -71,9 +79,22 @@ const highlight_decoration = Decoration.mark({
   class: 'highlighted-code',
 });
 
+/**
+ * Creates a CodeMirror decoration range from normalized highlight metadata.
+ *
+ * @param {EditorHighlightRange} range
+ * @returns {import('@codemirror/view').Range<Decoration>}
+ */
+function createHighlightDecoration(range) {
+  const className = range.className || 'highlighted-code';
+  return Decoration.mark({class: className}).range(range.from, range.to);
+}
+
 function highlightRange(start, end) {
   if (!arguments.length) {
-    document.querySelectorAll('.highlighted-code').forEach(el => el.classList.remove('highlighted-code'));
+    this.dispatch({
+      effects: highlightEffect.of([]),
+    });
   } else {
     // noinspection JSCheckFunctionSignatures
     this.dispatch({
@@ -88,6 +109,43 @@ function highlightRange(start, end) {
       }),
     });
   }
+}
+
+/**
+ * Applies one or more persistent highlight ranges to the editor and optionally
+ * scrolls the active range into view.
+ *
+ * @this {EditorView}
+ * @param {EditorHighlightRange[]} ranges
+ * @param {EditorHighlightRange | null} [activeRange=null]
+ * @param {{scrollToActive?: boolean}} [options={}]
+ * @returns {void}
+ */
+function highlightRanges(ranges, activeRange = null, options = {}) {
+  const normalizedRanges = Array.isArray(ranges)
+    ? ranges
+      .filter((range) => Number.isInteger(range?.from) && Number.isInteger(range?.to) && range.from < range.to)
+      .map((range) => createHighlightDecoration(range))
+    : [];
+
+  this.dispatch({
+    effects: highlightEffect.of(normalizedRanges),
+  });
+
+  if (!options.scrollToActive ||
+    !activeRange ||
+    !Number.isInteger(activeRange.from) ||
+    !Number.isInteger(activeRange.to)) {
+    return;
+  }
+
+  const range = new SelectionRange(activeRange.from, activeRange.to);
+  this.dispatch({
+    effects: EditorView.scrollIntoView(range, {
+      y: 'center',
+      x: 'center',
+    }),
+  });
 }
 
 onMounted(() => {
@@ -132,6 +190,7 @@ onMounted(() => {
   });
   editor.editorId = props.editorId;
   editor.highlightRange = highlightRange;
+  editor.highlightRanges = highlightRanges;
   store.editors.push(editor);
 });
 </script>

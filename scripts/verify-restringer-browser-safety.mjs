@@ -235,6 +235,39 @@ if (!store.getSelectedKnownStructureMatch()) {
   throw new Error('store.selectKnownStructureMatchStep did not keep a selected match');
 }
 
+store.runKnownStructureMatching(['proxy-calls', 'computed-members']);
+store.setSelectedKnownStructureMatch('computed-members', 0);
+store.setSelectedKnownStructureMatch('proxy-calls', 0);
+store.setActiveKnownStructure('computed-members');
+
+if (store.getSelectedKnownStructureMatch()?.structureId !== 'computed-members') {
+  throw new Error('store.setActiveKnownStructure did not restore the remembered structure selection');
+}
+
+const navigableStructureIds = store.getNavigableKnownStructureIds();
+if (!navigableStructureIds.includes('proxy-calls') || !navigableStructureIds.includes('computed-members')) {
+  throw new Error('store.getNavigableKnownStructureIds did not return the active comparison set');
+}
+
+store.selectKnownStructureStep(1);
+if (store.activeKnownStructureId !== 'proxy-calls') {
+  throw new Error('store.selectKnownStructureStep did not move to the next structure');
+}
+
+const overlappingMatches = store.getKnownStructureOverlaps({
+  structureId: 'proxy-calls',
+  index: 0,
+  range: [0, sampleScript.length],
+});
+if (!overlappingMatches.length) {
+  throw new Error('store.getKnownStructureOverlaps did not report overlapping structure matches');
+}
+
+store.setKnownStructureAutoScroll(false);
+if (store.scrollKnownStructureSelectionIntoView !== false) {
+  throw new Error('store.setKnownStructureAutoScroll did not update the scroll preference');
+}
+
 const copiedSeed = store.copyKnownStructureRuleSeed('proxy-calls');
 if (!copiedSeed.includes('proxy-calls') || !copiedSeed.includes('Seeded from known structure')) {
   throw new Error('store.copyKnownStructureRuleSeed did not return the expected seed text');

@@ -137,6 +137,11 @@ export const knownStructures = Object.freeze(
       transform,
       transformAvailable: typeof transform === 'function',
       transformEnabled: definition.transformEnabled && typeof transform === 'function',
+      implementation: Object.freeze({
+        moduleName: definition.moduleName,
+        matcherName: definition.matcherName,
+        transformName: definition.transformName,
+      }),
     });
   }),
 );
