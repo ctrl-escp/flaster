@@ -11,7 +11,7 @@ import {reactive} from 'vue';
  */
 function getEditor(editorId) {
   // noinspection JSUnresolvedReference
-  return store.editors.find(e => e.editorId === editorId);
+  return store.editors.find((e) => e.editorId === editorId);
 }
 
 /**
@@ -69,7 +69,7 @@ const store = reactive({
     if (changes > 0) {
       this.transformationCode = transformSrc;
       this.steps.push({
-        filters: this.filters.filter(f => f.enabled),
+        filters: this.filters.filter((f) => f.enabled),
         transformationCode: transformSrc,
       });
       this.logMessage(`${changes} changes were made`, 'success');

@@ -1,5 +1,4 @@
 <script setup>
-/* eslint-disable no-unused-vars */
 import store from './store';
 import CodeEditor from './components/CodeEditor.vue';
 
@@ -19,7 +18,6 @@ function applyTransformation(transformSrc) {
   store.saveState();
   try {
     transformSrc = transformSrc.trim();
-    // noinspection JSUnusedLocalSymbols
     const arb = store.arb;
     for (const n of store.filteredNodes) {
       eval(transformSrc);
