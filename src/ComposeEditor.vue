@@ -2,62 +2,16 @@
 import store from './store';
 import {onActivated} from 'vue';
 import CodeEditor from './components/CodeEditor.vue';
-
-/**
- * Creates the generated source block for one stored transformation step.
- *
- * Stage 5 records built-in known-structure transforms explicitly in the step
- * history, but script export for those steps is deferred to Stage 6. Until
- * then we keep the generated output readable by emitting a TODO comment
- * instead of breaking composition.
- *
- * @param {any} step
- * @returns {string}
- */
-function composeStepBlock(step) {
-  if (step?.kind === 'known-structure-transform') {
-    return `// TODO(Stage 6): re-emit known structure transform step ${step.sequenceIndex}
-// ${step.structureTitle} (${step.structureId}) via ${step.transformName}
-// Applied ${step.appliedChanges} changes across ${step.affectedMatchCount} matches on ${step.appliedAt}
-br();
-`;
-  }
-
-  const enabledFilters = step?.filters?.filter((filter) => filter?.enabled && !!filter?.src) ?? [];
-  const filter = enabledFilters.length
-    ? store.combineFilters(enabledFilters.map((filter) => filter.src))
-    : 'true';
-
-  return `script = utils.applyIteratively(script, [
-  utils.treeModifier(
-    (n, arb) => {return ${filter}},
-    (n, arb) => {${step?.transformationCode ?? ''}}
-  )]);
-br();
-utils.logger.setLogLevelLog();
-`;
-}
+import {
+  composeTransformationScript,
+  getGeneratedScriptFilename,
+} from './composition/scriptGenerator.js';
 
 function composeCode() {
-  let code = `const fs = require('node:fs');
-const {utils} = require('flast');
-br(); // fake code that'll be replaced with a new line
-const inputFilename = process.argv[2];
-const code = fs.readFileSync(inputFilename, 'utf-8');
-utils.logger.setLogLevelNone();  // Replace with setLogLevelDebug to debug
-let script = code;
-br();
-`;
-  for (const step of store.steps) {
-    code += composeStepBlock(step);
-  }
-  code += `if (script !== code) {
-  console.debug('[+] Transformation successful');
-  console.log(script);
-  fs.writeFileSync(inputFilename + '-flastered.js', script, 'utf-8');
-} else console.log('[-] Nothing transformed :/');`;
-  code = '// Generated via flASTer (https://ctrl-escp.github.io/flaster)\n' + window.flast.generateCode(window.flast.parseCode(code));
-  return code.replaceAll('br();\n', '\n');
+  return composeTransformationScript({
+    steps: store.steps,
+    combineFilters: store.combineFilters,
+  });
 }
 
 function downloadFlaster() {
@@ -66,7 +20,7 @@ function downloadFlaster() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'flaster.js';
+  a.download = getGeneratedScriptFilename();
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

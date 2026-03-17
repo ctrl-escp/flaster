@@ -7,6 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const adapterPath = path.resolve(projectRoot, 'src/integrations/restringer/index.js');
 const matchingEnginePath = path.resolve(projectRoot, 'src/integrations/restringer/matchingEngine.js');
+const scriptGeneratorPath = path.resolve(projectRoot, 'src/composition/scriptGenerator.js');
 const storePath = path.resolve(projectRoot, 'src/store.js');
 const sourceRoot = path.resolve(projectRoot, 'src');
 
@@ -44,6 +45,7 @@ for (const pattern of disallowedImportPatterns) {
 
 const adapterModule = await import(pathToFileURL(adapterPath).href);
 const matchingEngineModule = await import(pathToFileURL(matchingEnginePath).href);
+const scriptGeneratorModule = await import(pathToFileURL(scriptGeneratorPath).href);
 const sampleScript = `
 function proxy(a, b) { return target(a, b); }
 const alias = original;
@@ -101,6 +103,14 @@ if (typeof adapterModule.runKnownStructureTransform !== 'function') {
 
 if (typeof adapterModule.runKnownStructureTransformSession !== 'function') {
   throw new Error('runKnownStructureTransformSession helper is not exported');
+}
+
+if (typeof scriptGeneratorModule.composeTransformationScript !== 'function') {
+  throw new Error('composeTransformationScript helper is not exported');
+}
+
+if (scriptGeneratorModule.getGeneratedScriptFilename() !== 'flaster.mjs') {
+  throw new Error('getGeneratedScriptFilename did not return the expected Stage 6 filename');
 }
 
 const listedStructures = adapterModule.listKnownStructures({browserSafe: true});
@@ -310,6 +320,8 @@ const latestStep = store.steps.at(-1);
 if (store.steps.length !== previousStepCount + 1 ||
   latestStep?.kind !== 'known-structure-transform' ||
   latestStep.structureId !== 'computed-members' ||
+  latestStep.moduleName !== 'normalizeComputed' ||
+  latestStep.matcherName !== 'normalizeComputedMatch' ||
   !latestStep.appliedChanges ||
   !latestStep.affectedMatchCount) {
   throw new Error('store.applyKnownStructureTransform did not record the expected step metadata');
@@ -317,6 +329,45 @@ if (store.steps.length !== previousStepCount + 1 ||
 
 if (store.knownStructureTransformPreview !== null) {
   throw new Error('store.applyKnownStructureTransform did not clear the stored preview');
+}
+
+const generatedScript = scriptGeneratorModule.composeTransformationScript({
+  steps: [
+    {
+      kind: 'custom',
+      filters: [{enabled: true, src: "n.type === 'Identifier'"}],
+      transformationCode: 'arb.markNode(n);',
+    },
+    latestStep,
+  ],
+  combineFilters(filters) {
+    return filters.map((filter) => `(${filter})`).join(' && ');
+  },
+});
+
+if (!generatedScript.includes("import {applyIteratively, Arborist, logger, treeModifier} from 'flast';") &&
+  !generatedScript.includes("import {Arborist, applyIteratively, logger, treeModifier} from 'flast';")) {
+  throw new Error('composeTransformationScript did not include the expected flAST imports');
+}
+
+if (!generatedScript.includes("from 'restringer/src/modules/safe/normalizeComputed.js';")) {
+  throw new Error('composeTransformationScript did not import the expected safe REstringer module');
+}
+
+if (!generatedScript.includes('applyKnownStructureTransformStep(script, {')) {
+  throw new Error('composeTransformationScript did not emit the built-in transform helper call');
+}
+
+if (!generatedScript.includes('Step 2: Built-in known structure transform')) {
+  throw new Error('composeTransformationScript did not emit readable built-in step comments');
+}
+
+if (!generatedScript.includes('Generated via flASTer')) {
+  throw new Error('composeTransformationScript did not include the generated-script header');
+}
+
+if (generatedScript.includes('TODO(Stage 6)')) {
+  throw new Error('composeTransformationScript still contains the Stage 6 TODO placeholder');
 }
 
 store.clearKnownStructureMatches('computed-members');
