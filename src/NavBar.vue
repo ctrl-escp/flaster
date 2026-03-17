@@ -8,6 +8,7 @@ import ParseButton from './components/ParseButton.vue';
 import IconFilter from './components/icons/IconFilter.vue';
 import IconTransform from './components/icons/IconTransform.vue';
 import IconCompose from './components/icons/IconCompose.vue';
+import IconStructure from './components/icons/IconStructure.vue';
 
 const topButtons = [
   {
@@ -23,6 +24,7 @@ const topButtons = [
 // noinspection JSUnresolvedReference
 const isReadyToTransform = computed(() => !!store.arb?.ast?.length && store.areFiltersActive && store.filters.find(f => f?.enabled));
 const isReadyToCompose = computed(() => store.states.length);
+const isReadyForKnownStructures = computed(() => !!store.arb?.ast?.length);
 </script>
 
 <template>
@@ -42,6 +44,11 @@ const isReadyToCompose = computed(() => store.states.length);
               @click="store.changeViewTo('transform')" title="Transform the code">
           <icon-transform/>
           <span class="top-btn-text">Transform</span>
+        </span>
+        <span class="top-btn" :class="{active: store.currentBottomPane === 'structures', disabled: !isReadyForKnownStructures}"
+              @click="store.changeViewTo('structures')" title="Browse known structures">
+          <icon-structure/>
+          <span class="top-btn-text">Structures</span>
         </span>
         <span class="top-btn" :class="{active: store.currentBottomPane === 'compose', disabled: !isReadyToCompose}"
               @click="store.changeViewTo('compose')" title="Compose a script">

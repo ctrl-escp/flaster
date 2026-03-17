@@ -2,35 +2,16 @@
 import store from './store';
 import {onActivated} from 'vue';
 import CodeEditor from './components/CodeEditor.vue';
+import {
+  composeTransformationScript,
+  getGeneratedScriptFilename,
+} from './composition/scriptGenerator.js';
 
 function composeCode() {
-  let code = `const fs = require('node:fs');
-const {utils} = require('flast');
-br(); // fake code that'll be replaced with a new line
-const inputFilename = process.argv[2];
-const code = fs.readFileSync(inputFilename, 'utf-8');
-utils.logger.setLogLevelNone();  // Replace with setLogLevelDebug to debug
-let script = code;
-br();
-`;
-  for (const step of store.steps) {
-    const filter = store.combineFilters(step?.filters.filter(f => f?.enabled && !!f?.src).map(f => f?.src));
-    code += `script = utils.applyIteratively(script, [
-  utils.treeModifier(
-    (n, arb) => {return ${filter}},
-    (n, arb) => {${step?.transformationCode}}
-  )]);
-br();
-utils.logger.setLogLevelLog();
-`;
-  }
-  code += `if (script !== code) {
-  console.debug('[+] Transformation successful');
-  console.log(script);
-  fs.writeFileSync(inputFilename + '-flastered.js', script, 'utf-8');
-} else console.log('[-] Nothing transformed :/');`;
-  code = '// Generated via flASTer (https://ctrl-escp.github.io/flaster)\n' + window.flast.generateCode(window.flast.parseCode(code));
-  return code.replaceAll('br();\n', '\n');
+  return composeTransformationScript({
+    steps: store.steps,
+    combineFilters: store.combineFilters,
+  });
 }
 
 function downloadFlaster() {
@@ -39,7 +20,7 @@ function downloadFlaster() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'flaster.js';
+  a.download = getGeneratedScriptFilename();
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
