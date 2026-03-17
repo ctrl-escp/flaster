@@ -37,7 +37,7 @@ import {
  */
 export function getDefaultSelectedStructureIds(structures = knownStructures) {
   return structures
-    .filter((structure) => structure.enabledByDefault && structure.matcherAvailable)
+    .filter((structure) => structure.enabledByDefault && structure.browserRunnable)
     .map((structure) => structure.id);
 }
 
@@ -72,6 +72,8 @@ export function getInitialActiveStructureId(
  *     state: 'idle' | 'running' | 'complete',
  *     totalStructures: number,
  *     completedStructures: number,
+ *     runnableStructures: number,
+ *     blockedStructures: number,
  *     totalMatches: number,
  *     lastRunAt: string | null,
  *   },
@@ -119,6 +121,8 @@ export function createEmptyMatchGroups() {
  *   state: 'idle' | 'running' | 'complete',
  *   totalStructures: number,
  *   completedStructures: number,
+ *   runnableStructures: number,
+ *   blockedStructures: number,
  *   totalMatches: number,
  *   lastRunAt: string | null,
  * }}
@@ -128,6 +132,8 @@ export function createExecutionStatus() {
     state: 'idle',
     totalStructures: 0,
     completedStructures: 0,
+    runnableStructures: 0,
+    blockedStructures: 0,
     totalMatches: 0,
     lastRunAt: null,
   };
@@ -157,6 +163,7 @@ export function groupStructureMatches(matches) {
  * @param {{candidateFilter?: (node: KnownStructureMatch['node']) => boolean}} [options={}]
  * @returns {{
  *   structureIds: string[],
+ *   skippedStructureIds: string[],
  *   runs: KnownStructureRun[],
  *   matches: KnownStructureMatch[],
  *   matchCounts: Record<string, number>,
@@ -167,7 +174,8 @@ export function groupStructureMatches(matches) {
  * }}
  */
 export function runKnownStructureMatchingSession(arb, structureIds, options = {}) {
-  const idsToRun = getRunnableStructureIds(structureIds);
+  const requestedIds = getRequestedStructureIds(structureIds);
+  const idsToRun = getRunnableStructureIds(requestedIds);
   const runs = idsToRun.map((structureId) => runKnownStructureMatcher(arb, structureId, options));
   const matches = runs.flatMap((run) => run.matches);
   const groupedMatches = groupStructureMatches(matches);
@@ -176,6 +184,7 @@ export function runKnownStructureMatchingSession(arb, structureIds, options = {}
 
   return {
     structureIds: idsToRun,
+    skippedStructureIds: requestedIds.filter((structureId) => !idsToRun.includes(structureId)),
     runs,
     matches,
     matchCounts,
@@ -192,14 +201,24 @@ export function runKnownStructureMatchingSession(arb, structureIds, options = {}
  * @param {readonly string[] | undefined} structureIds
  * @returns {string[]}
  */
-export function getRunnableStructureIds(structureIds) {
+export function getRequestedStructureIds(structureIds) {
   const requestedIds = Array.isArray(structureIds) && structureIds.length
     ? structureIds
     : getDefaultSelectedStructureIds();
 
-  return [...new Set(requestedIds)].filter((structureId) => {
+  return [...new Set(requestedIds)].filter((structureId) => !!getKnownStructure(structureId));
+}
+
+/**
+ * Filters a requested structure list down to the entries runnable in the current browser.
+ *
+ * @param {readonly string[] | undefined} structureIds
+ * @returns {string[]}
+ */
+export function getRunnableStructureIds(structureIds) {
+  return getRequestedStructureIds(structureIds).filter((structureId) => {
     const structure = getKnownStructure(structureId);
-    return !!structure?.matcherAvailable;
+    return !!structure?.browserRunnable && !!structure.matcherAvailable;
   });
 }
 

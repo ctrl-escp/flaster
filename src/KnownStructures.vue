@@ -9,6 +9,7 @@ import store from './store';
 const filters = reactive({
   search: '',
   category: '',
+  availability: 'all',
   transformAvailability: 'all',
 });
 
@@ -38,6 +39,10 @@ const filteredStructures = computed(() => {
     }
 
     if (filters.transformAvailability === 'unavailable' && structure.transformAvailable) {
+      return false;
+    }
+
+    if (filters.availability !== 'all' && structure.availabilityStatus !== filters.availability) {
       return false;
     }
 
@@ -373,6 +378,13 @@ function createDeterministicRandom(match, seed) {
             {{ category }}
           </option>
         </select>
+        <select v-model="filters.availability" class="toolbar-select">
+          <option value="all">All availability</option>
+          <option value="available">Runnable now</option>
+          <option value="unavailable-in-browser">Browser unavailable</option>
+          <option value="planned">Planned</option>
+          <option value="disabled">Disabled</option>
+        </select>
         <select v-model="filters.transformAvailability" class="toolbar-select">
           <option value="all">All transforms</option>
           <option value="available">Transform available</option>
@@ -388,6 +400,9 @@ function createDeterministicRandom(match, seed) {
           Clear all
         </button>
         <span class="toolbar-meta">{{ selectedStructureCount }} selected</span>
+        <span class="toolbar-meta" v-if="store.knownStructureExecutionStatus.blockedStructures">
+          {{ store.knownStructureExecutionStatus.blockedStructures }} blocked
+        </span>
       </div>
     </div>
     <div class="known-structures-layout">
@@ -405,6 +420,7 @@ function createDeterministicRandom(match, seed) {
               <label class="structure-toggle" @click.stop>
                 <input
                   :checked="store.selectedKnownStructureIds.includes(structure.id)"
+                  :disabled="!structure.browserRunnable"
                   type="checkbox"
                   @change="toggleStructureSelection(structure.id)"
                 >
@@ -414,10 +430,14 @@ function createDeterministicRandom(match, seed) {
             </div>
             <div class="structure-title-row">
               <strong>{{ structure.title }}</strong>
-              <span class="structure-badge safe">Safe</span>
+              <span class="structure-badge" :class="structure.availabilityStatus">
+                {{ structure.availabilityStatus }}
+              </span>
+              <span class="structure-badge safe">{{ structure.executionMode }}</span>
               <span v-if="structure.transformAvailable" class="structure-badge transform">Transform</span>
             </div>
             <p class="structure-description">{{ structure.description }}</p>
+            <p class="structure-support-note">{{ structure.support.note }}</p>
             <div class="structure-tags">
               <span v-for="tag of structure.tags" :key="tag" class="tag">#{{ tag }}</span>
             </div>
@@ -428,7 +448,7 @@ function createDeterministicRandom(match, seed) {
               </span>
             </div>
             <div class="structure-actions" @click.stop>
-              <button class="btn btn-inline btn-run" @click="runStructures([structure.id])">Run</button>
+              <button class="btn btn-inline btn-run" :disabled="!structure.browserRunnable" @click="runStructures([structure.id])">Run</button>
               <button class="btn btn-inline" @click="showStructure(structure.id)">Show</button>
               <button class="btn btn-inline" @click="store.clearKnownStructureMatches(structure.id)">Clear</button>
               <button class="btn btn-inline" @click="copyRuleSeed(structure.id)">Copy seed</button>
@@ -576,6 +596,15 @@ function createDeterministicRandom(match, seed) {
                 <div class="inspector-line">
                   <strong>Transform</strong> {{ inspectedStructure.transformAvailable ? 'available' : 'matcher only' }}
                 </div>
+                <div class="inspector-line">
+                  <strong>Execution</strong> {{ inspectedStructure.executionMode }}
+                </div>
+                <div class="inspector-line">
+                  <strong>Availability</strong> {{ inspectedStructure.availabilityStatus }}
+                </div>
+                <div class="inspector-line">
+                  <strong>Support</strong> {{ inspectedStructure.support.note }}
+                </div>
               </div>
               <div class="detail-card" v-if="selectedMatch">
                 <div class="detail-heading">Active result</div>
@@ -613,7 +642,7 @@ function createDeterministicRandom(match, seed) {
                 <div class="detail-heading">Safe transform</div>
                 <div class="inspector-line">
                   <strong>Status</strong>
-                  {{ inspectedStructure.transformEnabled ? 'browser-runnable' : 'matcher only' }}
+                  {{ inspectedStructure.transformEnabled ? 'browser-runnable' : inspectedStructure.availabilityStatus }}
                 </div>
                 <div class="inspector-line">
                   <strong>Current matches</strong> {{ store.knownStructureMatchCounts[inspectedStructure.id] ?? 0 }}
@@ -624,6 +653,9 @@ function createDeterministicRandom(match, seed) {
                   </div>
                   <div class="inspector-line">
                     <strong>Pending changes</strong> {{ activeTransformPreview.pendingChanges }}
+                  </div>
+                  <div class="inspector-line">
+                    <strong>Execution mode</strong> {{ activeTransformPreview.executionMode }}
                   </div>
                   <div class="inspector-line">
                     <strong>Previewed at</strong> {{ activeTransformPreview.previewedAt }}
@@ -708,6 +740,10 @@ function createDeterministicRandom(match, seed) {
 
 .detail-heading,
 .result-group-header {
+  color: #9bf76b;
+}
+
+.available {
   color: #9bf76b;
 }
 
@@ -902,6 +938,12 @@ function createDeterministicRandom(match, seed) {
   margin: 0.35rem 0 0.45rem;
 }
 
+.structure-support-note {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin: 0 0 0.45rem;
+}
+
 .structure-error {
   color: #ff8a80;
 }
@@ -944,6 +986,15 @@ function createDeterministicRandom(match, seed) {
 .tag,
 .transform {
   color: #ffd54f;
+}
+
+.disabled,
+.unavailable-in-browser {
+  color: #ff8a80;
+}
+
+.planned {
+  color: #64b5f6;
 }
 
 @media (max-width: 900px) {

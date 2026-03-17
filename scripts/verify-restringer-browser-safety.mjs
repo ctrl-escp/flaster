@@ -60,6 +60,18 @@ for (const structure of adapterModule.knownStructures) {
     throw new Error(`Non-browser-safe structure exported: ${structure.id}`);
   }
 
+  if (structure.executionMode !== 'browser-safe') {
+    throw new Error(`Unexpected execution mode for shipped structure: ${structure.id}`);
+  }
+
+  if (structure.availabilityStatus !== 'available') {
+    throw new Error(`Unexpected availability status for shipped structure: ${structure.id}`);
+  }
+
+  if (!structure.browserRunnable) {
+    throw new Error(`Browser-safe structure was not marked runnable: ${structure.id}`);
+  }
+
   if (typeof structure.matcher !== 'function') {
     throw new Error(`Structure is missing a matcher: ${structure.id}`);
   }
@@ -70,6 +82,10 @@ for (const structure of adapterModule.knownStructures) {
 
   if (!structure.implementation?.moduleName || !structure.implementation?.matcherName) {
     throw new Error(`Structure is missing implementation metadata: ${structure.id}`);
+  }
+
+  if (typeof structure.support?.note !== 'string' || !structure.support.note.length) {
+    throw new Error(`Structure is missing support metadata: ${structure.id}`);
   }
 }
 
@@ -105,6 +121,18 @@ if (typeof adapterModule.runKnownStructureTransformSession !== 'function') {
   throw new Error('runKnownStructureTransformSession helper is not exported');
 }
 
+if (typeof adapterModule.getMatcherRunner !== 'function') {
+  throw new Error('getMatcherRunner helper is not exported');
+}
+
+if (typeof adapterModule.getTransformRunner !== 'function') {
+  throw new Error('getTransformRunner helper is not exported');
+}
+
+if (typeof adapterModule.getTransformSessionRunner !== 'function') {
+  throw new Error('getTransformSessionRunner helper is not exported');
+}
+
 if (typeof scriptGeneratorModule.composeTransformationScript !== 'function') {
   throw new Error('composeTransformationScript helper is not exported');
 }
@@ -116,6 +144,11 @@ if (scriptGeneratorModule.getGeneratedScriptFilename() !== 'flaster.mjs') {
 const listedStructures = adapterModule.listKnownStructures({browserSafe: true});
 if (listedStructures.length !== adapterModule.knownStructures.length) {
   throw new Error('listKnownStructures did not return the expected browser-safe structures');
+}
+
+const runnableStructures = adapterModule.listKnownStructures({browserRunnable: true});
+if (runnableStructures.length !== adapterModule.knownStructures.length) {
+  throw new Error('listKnownStructures did not return the expected browser-runnable structures');
 }
 
 const filteredStructures = adapterModule.listKnownStructures({search: 'proxy'});
@@ -192,6 +225,16 @@ if (!matchingEngineModule.getDefaultSelectedStructureIds().length) {
   throw new Error('getDefaultSelectedStructureIds did not return any built-in structures');
 }
 
+const requestedIds = matchingEngineModule.getRequestedStructureIds([
+  'proxy-calls',
+  'proxy-calls',
+  'missing-structure',
+]);
+
+if (requestedIds.length !== 1 || requestedIds[0] !== 'proxy-calls') {
+  throw new Error('getRequestedStructureIds did not normalize known structure IDs');
+}
+
 const errorSession = matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
   'proxy-calls',
   'proxy-variables',
@@ -219,6 +262,11 @@ if (store.knownStructureExecutionStatus.state !== 'complete') {
 
 if (store.knownStructureExecutionStatus.totalStructures !== 2) {
   throw new Error('store.runKnownStructureMatching did not track structure totals');
+}
+
+if (store.knownStructureExecutionStatus.runnableStructures !== 2 ||
+  store.knownStructureExecutionStatus.blockedStructures !== 0) {
+  throw new Error('store.runKnownStructureMatching did not track runnable and blocked totals');
 }
 
 if (!store.latestKnownStructureMatches.length) {

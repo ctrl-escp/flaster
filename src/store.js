@@ -37,6 +37,8 @@ import {runKnownStructureTransformSession} from './integrations/restringer/index
  *   structureId: string,
  *   structureTitle: string,
  *   transformName: string,
+ *   executionMode: string,
+ *   availabilityStatus: string,
  *   targetedMatchCount: number,
  *   pendingChanges: number,
  *   selectedMatchCount: number,
@@ -164,6 +166,7 @@ function createKnownStructureRuleSeed(structure) {
   return `// Seeded from known structure: ${structure.title} (${structure.id})
 // Category: ${structure.category}
 // Tags: ${structure.tags.join(', ')}
+// Execution: ${structure.executionMode} / ${structure.availabilityStatus}
 // Description: ${structure.description}
 //
 // Replace this placeholder with a custom flAST filter predicate.
@@ -300,6 +303,9 @@ const store = reactive({
   getKnownStructureById(structureId) {
     return this.availableKnownStructures.find((structure) => structure.id === structureId) ?? null;
   },
+  isKnownStructureBrowserRunnable(structureId) {
+    return !!this.getKnownStructureById(structureId)?.browserRunnable;
+  },
   getKnownStructureMatches(structureId = this.activeKnownStructureId) {
     return this.knownStructureMatchesById[structureId] ?? [];
   },
@@ -388,6 +394,8 @@ const store = reactive({
       ...this.knownStructureExecutionStatus,
       totalStructures: Object.keys(nextMatchesById).length,
       completedStructures: Object.keys(nextMatchesById).length,
+      runnableStructures: Object.keys(nextMatchesById).length,
+      blockedStructures: 0,
       totalMatches: this.latestKnownStructureMatches.length,
     };
 
@@ -429,7 +437,9 @@ const store = reactive({
     if (!this.selectedKnownStructureIds.includes(this.activeKnownStructureId)) {
       this.activeKnownStructureId = getInitialActiveStructureId(
         this.availableKnownStructures,
-        this.selectedKnownStructureIds,
+        this.selectedKnownStructureIds.filter((structureId) =>
+          this.isKnownStructureBrowserRunnable(structureId),
+        ),
       );
     }
 
@@ -591,6 +601,12 @@ const store = reactive({
       return null;
     }
 
+    if (!structure.browserRunnable) {
+      this.logMessage(structure.support.note, 'error');
+      this.clearKnownStructureTransformPreview(structure.id);
+      return null;
+    }
+
     if (!structure.transformEnabled) {
       this.logMessage(`${structure.title} does not expose a browser-safe transform`, 'error');
       this.clearKnownStructureTransformPreview(structure.id);
@@ -610,6 +626,8 @@ const store = reactive({
         structureId: structure.id,
         structureTitle: structure.title,
         transformName: previewSession.transformName,
+        executionMode: structure.executionMode,
+        availabilityStatus: structure.availabilityStatus,
         targetedMatchCount: previewSession.targetedMatchCount,
         pendingChanges: previewSession.pendingChanges ?? 0,
         selectedMatchCount: this.getKnownStructureMatches(structure.id).length,
@@ -635,6 +653,8 @@ const store = reactive({
         structureId: structure.id,
         structureTitle: structure.title,
         transformName: structure.implementation.transformName,
+        executionMode: structure.executionMode,
+        availabilityStatus: structure.availabilityStatus,
         targetedMatchCount: 0,
         pendingChanges: 0,
         selectedMatchCount: this.getKnownStructureMatches(structure.id).length,
@@ -660,6 +680,11 @@ const store = reactive({
 
     if (!structure) {
       this.logMessage('Pick a known structure before applying its transform', 'error');
+      return false;
+    }
+
+    if (!structure.browserRunnable) {
+      this.logMessage(structure.support.note, 'error');
       return false;
     }
 
@@ -717,21 +742,35 @@ const store = reactive({
     }
   },
   runKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
-    const idsToRun = Array.isArray(structureIds) ? structureIds : [];
+    const requestedIds = Array.isArray(structureIds) ? structureIds : [];
+    const runnableIds = requestedIds.filter((structureId) =>
+      this.isKnownStructureBrowserRunnable(structureId),
+    );
     const hasParsedAst = !!this.arb?.ast?.length;
 
     this.knownStructureExecutionStatus = {
       ...createExecutionStatus(),
       state: 'running',
-      totalStructures: idsToRun.length,
+      totalStructures: requestedIds.length,
+      runnableStructures: runnableIds.length,
+      blockedStructures: requestedIds.length - runnableIds.length,
     };
 
-    if (!hasParsedAst || !idsToRun.length) {
+    if (!hasParsedAst || !runnableIds.length) {
       this.clearKnownStructureResults();
+      this.knownStructureExecutionStatus = {
+        state: 'complete',
+        totalStructures: requestedIds.length,
+        completedStructures: 0,
+        runnableStructures: hasParsedAst ? runnableIds.length : 0,
+        blockedStructures: requestedIds.length - (hasParsedAst ? runnableIds.length : 0),
+        totalMatches: 0,
+        lastRunAt: new Date().toISOString(),
+      };
       return this.knownStructureExecutionStatus;
     }
 
-    const session = runKnownStructureMatchingSession(this.arb, idsToRun);
+    const session = runKnownStructureMatchingSession(this.arb, requestedIds);
 
     this.latestKnownStructureMatches = session.matches;
     this.knownStructureMatchesById = Object.fromEntries(
@@ -742,8 +781,10 @@ const store = reactive({
     this.knownStructureGroupedMatches = session.groupedMatches;
     this.knownStructureExecutionStatus = {
       state: 'complete',
-      totalStructures: session.structureIds.length,
+      totalStructures: requestedIds.length,
       completedStructures: session.runs.length,
+      runnableStructures: session.structureIds.length,
+      blockedStructures: requestedIds.length - session.structureIds.length,
       totalMatches: session.totalMatches,
       lastRunAt: session.ranAt,
     };
@@ -786,7 +827,7 @@ const store = reactive({
     return this.knownStructureExecutionStatus;
   },
   runActiveKnownStructureMatching() {
-    if (!this.activeKnownStructureId) {
+    if (!this.activeKnownStructureId || !this.isKnownStructureBrowserRunnable(this.activeKnownStructureId)) {
       return this.runKnownStructureMatching([]);
     }
 

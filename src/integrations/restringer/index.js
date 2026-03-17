@@ -32,6 +32,14 @@ import {knownStructureRegistry} from './registry.js';
  * @typedef {import('flast/src/types.js').ASTNode} ASTNode
  */
 
+/**
+ * @typedef {'browser-safe' | 'iframe-sandbox' | 'node-only'} KnownStructureExecutionMode
+ */
+
+/**
+ * @typedef {'available' | 'unavailable-in-browser' | 'planned' | 'disabled'} KnownStructureAvailabilityStatus
+ */
+
 const safeModules = Object.freeze({
   normalizeComputed: normalizeComputedModule,
   parseTemplateLiteralsIntoStringLiterals: parseTemplateLiteralsIntoStringLiteralsModule,
@@ -116,10 +124,106 @@ function createSearchText(definition) {
   ].join(' ').toLowerCase();
 }
 
+/**
+ * Normalizes the execution mode for a structure registry entry.
+ *
+ * @param {{executionMode?: KnownStructureExecutionMode, browserSafe?: boolean}} definition
+ * @returns {KnownStructureExecutionMode}
+ */
+function getExecutionMode(definition) {
+  if (definition.executionMode) {
+    return definition.executionMode;
+  }
+
+  return definition.browserSafe ? 'browser-safe' : 'node-only';
+}
+
+/**
+ * Normalizes the availability state for a structure registry entry.
+ *
+ * @param {{
+ *   availabilityStatus?: KnownStructureAvailabilityStatus,
+ *   executionMode?: KnownStructureExecutionMode,
+ *   browserSafe?: boolean,
+ * }} definition
+ * @returns {KnownStructureAvailabilityStatus}
+ */
+function getAvailabilityStatus(definition) {
+  if (definition.availabilityStatus) {
+    return definition.availabilityStatus;
+  }
+
+  const executionMode = getExecutionMode(definition);
+
+  if (executionMode === 'browser-safe') {
+    return 'available';
+  }
+
+  return definition.browserSafe ? 'available' : 'unavailable-in-browser';
+}
+
+/**
+ * Returns whether the current browser bundle can run the structure directly.
+ *
+ * @param {{
+ *   executionMode?: KnownStructureExecutionMode,
+ *   availabilityStatus?: KnownStructureAvailabilityStatus,
+ *   browserSafe?: boolean,
+ * }} definition
+ * @returns {boolean}
+ */
+function isBrowserRunnable(definition) {
+  return getExecutionMode(definition) === 'browser-safe' &&
+    getAvailabilityStatus(definition) === 'available';
+}
+
+/**
+ * Creates a readable capability note for future UI affordances.
+ *
+ * @param {{
+ *   title: string,
+ *   executionMode?: KnownStructureExecutionMode,
+ *   availabilityStatus?: KnownStructureAvailabilityStatus,
+ *   browserSafe?: boolean,
+ * }} definition
+ * @returns {string}
+ */
+function createAvailabilityNote(definition) {
+  const executionMode = getExecutionMode(definition);
+  const availabilityStatus = getAvailabilityStatus(definition);
+
+  if (availabilityStatus === 'available') {
+    return executionMode === 'browser-safe'
+      ? 'Runnable in the current browser session.'
+      : 'Runnable in a supported non-browser environment.';
+  }
+
+  if (availabilityStatus === 'planned') {
+    return `${definition.title} is reserved for a future execution path.`;
+  }
+
+  if (availabilityStatus === 'disabled') {
+    return `${definition.title} is currently disabled.`;
+  }
+
+  if (executionMode === 'iframe-sandbox') {
+    return `${definition.title} will require a future iframe-backed sandbox runner.`;
+  }
+
+  if (executionMode === 'node-only') {
+    return `${definition.title} is intended for a future Node-only execution path.`;
+  }
+
+  return `${definition.title} is not runnable in the current browser environment.`;
+}
+
 export const knownStructures = Object.freeze(
   structureRegistryDefinitions.map((definition) => {
     const matcher = getSafeModuleMember(definition.moduleName, definition.matcherName);
     const transform = getSafeModuleMember(definition.moduleName, definition.transformName);
+    const executionMode = getExecutionMode(definition);
+    const availabilityStatus = getAvailabilityStatus(definition);
+    const browserRunnable = isBrowserRunnable(definition);
 
     return Object.freeze({
       id: definition.id,
@@ -130,13 +234,29 @@ export const knownStructures = Object.freeze(
       searchTerms: freezeArray(definition.searchTerms),
       searchText: createSearchText(definition),
       browserSafe: definition.browserSafe,
+      executionMode,
+      availabilityStatus,
+      browserRunnable,
       experimental: definition.experimental,
       enabledByDefault: definition.enabledByDefault,
       matcher,
-      matcherAvailable: typeof matcher === 'function',
+      matcherAvailable: browserRunnable && typeof matcher === 'function',
       transform,
-      transformAvailable: typeof transform === 'function',
-      transformEnabled: definition.transformEnabled && typeof transform === 'function',
+      transformAvailable: browserRunnable && typeof transform === 'function',
+      transformEnabled: browserRunnable &&
+        definition.transformEnabled &&
+        typeof transform === 'function',
+      support: Object.freeze({
+        browserMatch: browserRunnable && typeof matcher === 'function',
+        browserTransform: browserRunnable &&
+          definition.transformEnabled &&
+          typeof transform === 'function',
+        sandboxMatch: executionMode === 'iframe-sandbox',
+        sandboxTransform: executionMode === 'iframe-sandbox',
+        nodeMatch: executionMode === 'node-only',
+        nodeTransform: executionMode === 'node-only',
+        note: createAvailabilityNote(definition),
+      }),
       implementation: Object.freeze({
         moduleName: definition.moduleName,
         matcherName: definition.matcherName,
@@ -176,6 +296,9 @@ export const safeTransforms = Object.freeze(
  *   transformAvailable?: boolean,
  *   transformEnabled?: boolean,
  *   browserSafe?: boolean,
+ *   browserRunnable?: boolean,
+ *   executionMode?: KnownStructureExecutionMode,
+ *   availabilityStatus?: KnownStructureAvailabilityStatus,
  *   enabledByDefault?: boolean,
  *   experimental?: boolean,
  * }} [filters={}]
@@ -207,6 +330,19 @@ export function listKnownStructures(filters = {}) {
 
     if (typeof filters.browserSafe === 'boolean' &&
       structure.browserSafe !== filters.browserSafe) {
+      return false;
+    }
+
+    if (typeof filters.browserRunnable === 'boolean' &&
+      structure.browserRunnable !== filters.browserRunnable) {
+      return false;
+    }
+
+    if (filters.executionMode && structure.executionMode !== filters.executionMode) {
+      return false;
+    }
+
+    if (filters.availabilityStatus && structure.availabilityStatus !== filters.availabilityStatus) {
       return false;
     }
 
@@ -409,38 +545,11 @@ export function runKnownStructureMatcher(arb, structureOrId, options = {}) {
     throw new Error(`Unknown known structure: ${structureOrId}`);
   }
 
-  if (!structure.matcherAvailable) {
-    throw new Error(`Known structure ${structure.id} does not have an available matcher`);
-  }
-
   const candidateFilter = typeof options.candidateFilter === 'function'
     ? options.candidateFilter
     : () => true;
 
-  try {
-    const rawMatches = structure.matcher(arb, candidateFilter) ?? [];
-    const normalizedMatches = rawMatches.map((match, index) =>
-      normalizeStructureMatch(structure, match, index),
-    );
-
-    return Object.freeze({
-      structure,
-      structureId: structure.id,
-      rawMatches,
-      matches: Object.freeze(normalizedMatches),
-      count: normalizedMatches.length,
-      error: null,
-    });
-  } catch (error) {
-    return Object.freeze({
-      structure,
-      structureId: structure.id,
-      rawMatches: Object.freeze([]),
-      matches: Object.freeze([]),
-      count: 0,
-      error,
-    });
-  }
+  return getMatcherRunner(structure)(structure, arb, candidateFilter);
 }
 
 /**
@@ -466,19 +575,7 @@ export function runKnownStructureTransform(arb, structureOrId, match) {
     throw new Error(`Unknown known structure: ${structureOrId}`);
   }
 
-  if (!structure.transformEnabled) {
-    throw new Error(`Known structure ${structure.id} does not have an enabled browser transform`);
-  }
-
-  const normalizedMatch = normalizeStructureMatch(structure, match);
-  structure.transform(arb, match);
-
-  return Object.freeze({
-    structure,
-    structureId: structure.id,
-    match: normalizedMatch,
-    pendingChanges: typeof arb.getNumberOfChanges === 'function' ? arb.getNumberOfChanges() : null,
-  });
+  return getTransformRunner(structure)(structure, arb, match);
 }
 
 /**
@@ -519,28 +616,150 @@ export function runKnownStructureTransformSession(arb, structureOrId, options = 
     });
   }
 
-  if (!matchRun.structure.transformEnabled) {
+  return getTransformSessionRunner(matchRun.structure)(matchRun.structure, arb, matchRun);
+}
+
+/**
+ * Creates a consistent unsupported-capability error for placeholder runners.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @param {'match' | 'transform'} operation
+ * @returns {Error}
+ */
+function createUnsupportedExecutionError(structure, operation) {
+  const modeLabel = structure.executionMode === 'iframe-sandbox'
+    ? 'a future iframe-backed sandbox'
+    : structure.executionMode === 'node-only'
+      ? 'a future Node-only runtime'
+      : 'the current browser runtime';
+
+  return new Error(
+    `${structure.title} cannot ${operation} in the current browser session; it is reserved for ${modeLabel}.`,
+  );
+}
+
+/**
+ * Runs a browser-safe matcher and normalizes its output.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @param {Arborist} arb
+ * @param {(node: ASTNode) => boolean} candidateFilter
+ * @returns {ReturnType<typeof runKnownStructureMatcher>}
+ */
+function runBrowserSafeMatcher(structure, arb, candidateFilter) {
+  if (!structure.matcherAvailable) {
+    throw createUnsupportedExecutionError(structure, 'match');
+  }
+
+  try {
+    const rawMatches = structure.matcher(arb, candidateFilter) ?? [];
+    const normalizedMatches = rawMatches.map((match, index) =>
+      normalizeStructureMatch(structure, match, index),
+    );
+
     return Object.freeze({
-      structure: matchRun.structure,
-      structureId: matchRun.structureId,
-      transformName: matchRun.structure.implementation.transformName,
-      matches: matchRun.matches,
-      rawMatches: matchRun.rawMatches,
-      targetedMatchCount: matchRun.count,
-      pendingChanges: 0,
-      error: new Error(`Known structure ${matchRun.structureId} does not have an enabled browser transform`),
+      structure,
+      structureId: structure.id,
+      rawMatches,
+      matches: Object.freeze(normalizedMatches),
+      count: normalizedMatches.length,
+      error: null,
     });
+  } catch (error) {
+    return Object.freeze({
+      structure,
+      structureId: structure.id,
+      rawMatches: Object.freeze([]),
+      matches: Object.freeze([]),
+      count: 0,
+      error,
+    });
+  }
+}
+
+/**
+ * Returns a placeholder matcher result for future non-browser execution paths.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @returns {ReturnType<typeof runKnownStructureMatcher>}
+ */
+function runUnsupportedMatcher(structure) {
+  return Object.freeze({
+    structure,
+    structureId: structure.id,
+    rawMatches: Object.freeze([]),
+    matches: Object.freeze([]),
+    count: 0,
+    error: createUnsupportedExecutionError(structure, 'match'),
+  });
+}
+
+/**
+ * Runs a browser-safe transform against one raw match.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @param {Arborist} arb
+ * @param {unknown} match
+ * @returns {ReturnType<typeof runKnownStructureTransform>}
+ */
+function runBrowserSafeTransform(structure, arb, match) {
+  if (!structure.transformEnabled) {
+    throw createUnsupportedExecutionError(structure, 'transform');
+  }
+
+  const normalizedMatch = normalizeStructureMatch(structure, match);
+  structure.transform(arb, match);
+
+  return Object.freeze({
+    structure,
+    structureId: structure.id,
+    match: normalizedMatch,
+    pendingChanges: typeof arb.getNumberOfChanges === 'function' ? arb.getNumberOfChanges() : null,
+  });
+}
+
+/**
+ * Returns a placeholder transform-session result for future non-browser execution paths.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @param {ReturnType<typeof runKnownStructureMatcher>} [matchRun]
+ * @returns {ReturnType<typeof runKnownStructureTransformSession>}
+ */
+function runUnsupportedTransformSession(structure, matchRun) {
+  return Object.freeze({
+    structure,
+    structureId: structure.id,
+    transformName: structure.implementation.transformName,
+    matches: matchRun?.matches ?? Object.freeze([]),
+    rawMatches: matchRun?.rawMatches ?? Object.freeze([]),
+    targetedMatchCount: matchRun?.count ?? 0,
+    pendingChanges: 0,
+    error: createUnsupportedExecutionError(structure, 'transform'),
+  });
+}
+
+/**
+ * Runs a browser-safe transform session across all matches from the current AST.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @param {Arborist} arb
+ * @param {ReturnType<typeof runKnownStructureMatcher>} matchRun
+ * @returns {ReturnType<typeof runKnownStructureTransformSession>}
+ */
+function runBrowserSafeTransformSession(structure, arb, matchRun) {
+  if (!structure.transformEnabled) {
+    return runUnsupportedTransformSession(structure, matchRun);
   }
 
   try {
     for (const rawMatch of matchRun.rawMatches) {
-      matchRun.structure.transform(arb, rawMatch);
+      structure.transform(arb, rawMatch);
     }
 
     return Object.freeze({
-      structure: matchRun.structure,
-      structureId: matchRun.structureId,
-      transformName: matchRun.structure.implementation.transformName,
+      structure,
+      structureId: structure.id,
+      transformName: structure.implementation.transformName,
       matches: matchRun.matches,
       rawMatches: matchRun.rawMatches,
       targetedMatchCount: matchRun.count,
@@ -549,9 +768,9 @@ export function runKnownStructureTransformSession(arb, structureOrId, options = 
     });
   } catch (error) {
     return Object.freeze({
-      structure: matchRun.structure,
-      structureId: matchRun.structureId,
-      transformName: matchRun.structure.implementation.transformName,
+      structure,
+      structureId: structure.id,
+      transformName: structure.implementation.transformName,
       matches: matchRun.matches,
       rawMatches: matchRun.rawMatches,
       targetedMatchCount: matchRun.count,
@@ -559,6 +778,59 @@ export function runKnownStructureTransformSession(arb, structureOrId, options = 
       error,
     });
   }
+}
+
+const matchRunnersByMode = Object.freeze({
+  'browser-safe': runBrowserSafeMatcher,
+  'iframe-sandbox': runUnsupportedMatcher,
+  'node-only': runUnsupportedMatcher,
+});
+
+const transformRunnersByMode = Object.freeze({
+  'browser-safe': runBrowserSafeTransform,
+  'iframe-sandbox': (structure) => {
+    throw createUnsupportedExecutionError(structure, 'transform');
+  },
+  'node-only': (structure) => {
+    throw createUnsupportedExecutionError(structure, 'transform');
+  },
+});
+
+const transformSessionRunnersByMode = Object.freeze({
+  'browser-safe': runBrowserSafeTransformSession,
+  'iframe-sandbox': runUnsupportedTransformSession,
+  'node-only': runUnsupportedTransformSession,
+});
+
+/**
+ * Returns the matcher runner for the structure's execution mode.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @returns {typeof runBrowserSafeMatcher}
+ */
+export function getMatcherRunner(structure) {
+  return matchRunnersByMode[structure.executionMode] ?? runUnsupportedMatcher;
+}
+
+/**
+ * Returns the single-match transform runner for the structure's execution mode.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @returns {typeof runBrowserSafeTransform}
+ */
+export function getTransformRunner(structure) {
+  return transformRunnersByMode[structure.executionMode] ?? transformRunnersByMode['node-only'];
+}
+
+/**
+ * Returns the transform-session runner for the structure's execution mode.
+ *
+ * @param {typeof knownStructures[number]} structure
+ * @returns {typeof runBrowserSafeTransformSession}
+ */
+export function getTransformSessionRunner(structure) {
+  return transformSessionRunnersByMode[structure.executionMode] ??
+    transformSessionRunnersByMode['node-only'];
 }
 
 export const restringerBrowser = Object.freeze({
@@ -571,6 +843,9 @@ export const restringerBrowser = Object.freeze({
   listKnownStructures,
   getKnownStructure,
   normalizeStructureMatch,
+  getMatcherRunner,
+  getTransformRunner,
+  getTransformSessionRunner,
   runKnownStructureMatcher,
   runKnownStructureTransform,
   runKnownStructureTransformSession,
