@@ -58,7 +58,9 @@ export function getGeneratedScriptFilename() {
  * @returns {string}
  */
 export function composeTransformationScript(options = {}) {
-  const steps = Array.isArray(options.steps) ? options.steps : [];
+  const steps = Array.isArray(options.steps)
+    ? options.steps.filter((step) => step?.enabled !== false)
+    : [];
   const combineFilters = typeof options.combineFilters === 'function'
     ? options.combineFilters
     : createFallbackFilterCombiner;
@@ -69,13 +71,7 @@ export function composeTransformationScript(options = {}) {
     runtimeBlocks.push(createKnownStructureRuntimeBlock());
   }
 
-  const stepBlocks = steps.map((step, index) => {
-    if (step?.kind === 'known-structure-transform') {
-      return createKnownStructureStepBlock(step, index + 1);
-    }
-
-    return createCustomStepBlock(step, index + 1, combineFilters);
-  });
+  const stepBlocks = createStepBlocks(steps, combineFilters);
 
   const scriptSections = [
     GENERATED_HEADER,
@@ -230,6 +226,82 @@ script = applyIteratively(script, [
     (n, arb) => {return ${filter};},
     (n, arb) => {${transformationCode}}
   ),
+]);
+logger.setLogLevelLog();`;
+}
+
+/**
+ * Creates script blocks while preserving the pipeline order.
+ *
+ * Consecutive custom steps are emitted into the same `applyIteratively([...])`
+ * array in top-to-bottom order so the generated Node pipeline mirrors the UI.
+ *
+ * @param {readonly StoredTransformationStep[]} steps
+ * @param {(filters: string[]) => string} combineFilters
+ * @returns {string[]}
+ */
+function createStepBlocks(steps, combineFilters) {
+  const blocks = [];
+  let customBuffer = [];
+
+  const flushCustomBuffer = () => {
+    if (!customBuffer.length) {
+      return;
+    }
+
+    blocks.push(createCustomStepGroupBlock(customBuffer, combineFilters));
+    customBuffer = [];
+  };
+
+  steps.forEach((step, index) => {
+    if (step?.kind === 'known-structure-transform') {
+      flushCustomBuffer();
+      blocks.push(createKnownStructureStepBlock(step, index + 1));
+      return;
+    }
+
+    customBuffer.push({step, stepNumber: index + 1});
+  });
+
+  flushCustomBuffer();
+  return blocks;
+}
+
+/**
+ * Creates a single applyIteratively block for adjacent custom steps.
+ *
+ * @param {Array<{step: StoredTransformationStep, stepNumber: number}>} stepEntries
+ * @param {(filters: string[]) => string} combineFilters
+ * @returns {string}
+ */
+function createCustomStepGroupBlock(stepEntries, combineFilters) {
+  const modifiers = stepEntries.map(({step, stepNumber}) => {
+    const enabledFilters = step?.kind === 'custom'
+      ? step.filters?.filter((filter) => filter?.enabled && !!filter?.src) ?? []
+      : [];
+    const filter = enabledFilters.length
+      ? combineFilters(enabledFilters.map((filter) => filter.src))
+      : 'true';
+    const transformationCode = step?.kind === 'custom' ? step.transformationCode ?? '' : '';
+
+    return `  /**
+   * Step ${stepNumber}: ${step?.label ?? 'Custom filter + transform'}
+   */
+  treeModifier(
+    (n, arb) => {return ${filter};},
+    (n, arb) => {${transformationCode}}
+  )`;
+  });
+
+  const firstStepNumber = stepEntries[0]?.stepNumber ?? 1;
+  const lastStepNumber = stepEntries[stepEntries.length - 1]?.stepNumber ?? firstStepNumber;
+
+  return `/**
+ * Steps ${firstStepNumber}-${lastStepNumber}: Custom filter + transform pipeline
+ * Order matters and is preserved from the flASTer pipeline builder.
+ */
+script = applyIteratively(script, [
+${modifiers.join(',\n')}
 ]);
 logger.setLogLevelLog();`;
 }

@@ -24,11 +24,20 @@ const initialValue = `// This is the default code for flASTer
 <style scoped>
 .code-editor-wrapper {
 	flex: 1;
-	min-width: 40vw;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
 	padding: 0;
 	width: 100%;
-	height: 50vh;
+	height: 100%;
 }
+
+.code-editor-wrapper :deep(.code-editor) {
+  flex: 1;
+  min-height: 0;
+}
+
 legend {
 	font-size: larger;
   display: flex;

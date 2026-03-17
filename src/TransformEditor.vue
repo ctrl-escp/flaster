@@ -13,20 +13,14 @@ if (replacements[n.value]) arb.markNode(n, {
 `;
 
 function applyTransformation(transformSrc) {
-  transformSrc = transformSrc || store.getEditor(store.editorIds.transformEditor)?.state?.doc?.toString();
-  if (!transformSrc) return store.logMessage('Missing transformation code', 'error');
-  store.saveState();
-  try {
-    transformSrc = transformSrc.trim();
-    const arb = store.arb;
-    for (const n of store.filteredNodes) {
-      eval(transformSrc);
-    }
-    if (!store.applyAndUpdateTransformation(transformSrc)) store.states.pop();
-  } catch (e) {
-    console.log(`Invalid transformer code: ${e.message}`);
-    store.states.pop();
-  }
+  store.applyCustomTransformation(transformSrc, {
+    label: 'Advanced JS transform',
+    templateType: 'advanced-js-step',
+    previewSummary: 'Raw JS transformation using the active filter selection',
+    selectionSource: {
+      kind: 'advanced-js',
+    },
+  });
 }
 
 function setTransformEditorContent(transformSrc) {

@@ -4,8 +4,6 @@ import {onMounted, ref} from 'vue';
 import IconParse from './icons/IconParse.vue';
 
 const messages = {
-  parseContent: 'Parse',
-  contentParsed: 'Parsed ',
   astParseFail: 'Unable to Parse AST',
   emptyCode: 'N/A',
 };
@@ -13,86 +11,96 @@ const messages = {
 const parsedStatusEl = ref(null);
 
 function setContentParsed() {
-  /** @type {HTMLElement} */
-  const ps = parsedStatusEl.value;
+  const icon = parsedStatusEl.value;
   store.getEditor(store.editorIds.inputCodeEditor).isParsed = true;
-  ps?.classList?.add('parsed');
-  ps?.classList?.remove('unparsed');
+  icon?.classList?.add('parsed');
+  icon?.classList?.remove('unparsed');
 }
 
 function setContentUnparsed() {
-  /** @type {HTMLElement} */
-  const ps = parsedStatusEl.value;
+  const icon = parsedStatusEl.value;
   const editor = store.getEditor(store.editorIds.inputCodeEditor);
-  editor ? editor.isParsed = false : void 0;
-  ps?.classList?.add('unparsed');
-  ps?.classList?.remove('parsed');
+  if (editor) {
+    editor.isParsed = false;
+  }
+  icon?.classList?.add('unparsed');
+  icon?.classList?.remove('parsed');
 }
 
 function resetParsedState() {
-  // noinspection JSValidateTypes
   store.arb = {ast: [], script: ''};
   store.clearKnownStructureResults();
   setContentUnparsed();
   store.page = 0;
 }
 
-onMounted(() => {
-  store.resetParsedState = resetParsedState;
-  store.parseContent = parseContent;
-  if (parsedStatusEl.value) setContentUnparsed();
-});
-
 function parseContent() {
   try {
     resetParsedState();
     const code = store.getEditor(store.editorIds.inputCodeEditor)?.state.doc.toString();
-    if (!code?.length) store.logMessage(messages.emptyCode, 'error');
-    else {
-      new Promise(() => {
-        store.filteredNodes = [];
-        // noinspection JSValidateTypes
-        store.arb = new window.flast.Arborist(code);
-        if (!store.arb?.ast?.length) store.logMessage(messages.astParseFail, 'error');
-        else {
-          store.logMessage(`Parsed ${code.length} chars into ${store.arb.ast.length} nodes`, 'success');
-          store.rerunKnownStructureMatching();
-        }
-        store.filteredNodes = store.arb.ast;
-        setContentParsed();
-      }).catch(e => store.logMessage(e.message, 'error'));
+
+    if (!code?.length) {
+      store.logMessage(messages.emptyCode, 'error');
+      return;
     }
-  } catch (e) {
-    store.logMessage(e.message, 'error');
+
+    new Promise(() => {
+      store.filteredNodes = [];
+      store.arb = new window.flast.Arborist(code);
+      if (!store.arb?.ast?.length) {
+        store.logMessage(messages.astParseFail, 'error');
+      } else {
+        store.logMessage(`Parsed ${code.length} chars into ${store.arb.ast.length} nodes`, 'success');
+        store.rerunKnownStructureMatching();
+      }
+      store.filteredNodes = store.arb.ast;
+      setContentParsed();
+    }).catch((error) => store.logMessage(error.message, 'error'));
+  } catch (error) {
+    store.logMessage(error.message, 'error');
   }
 }
 
-// TOOD: change to unparsed on content change
+onMounted(() => {
+  store.resetParsedState = resetParsedState;
+  store.parseContent = parseContent;
+  if (parsedStatusEl.value) {
+    setContentUnparsed();
+  }
+});
 </script>
 
 <template>
-  <span>
-    <icon-parse ref="parsedStatusEl" class="btn btn-parse unparsed" @click="parseContent"></icon-parse>
-    <span class="top-btn-text">Parse</span>
-  </span>
+  <button class="toolbar-btn parse-btn" type="button" title="Parse the current script into AST nodes and rerun structure matching" @click="parseContent">
+    <icon-parse ref="parsedStatusEl" class="toolbar-icon unparsed" />
+    <span>Parse</span>
+  </button>
 </template>
 
 <style scoped>
-.btn-parse {
-  border: none;
-  height: 2rem;
+.toolbar-btn {
+  min-height: 2.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  padding: 0.55rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
 }
+
+.toolbar-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
 .unparsed {
   fill: #d05858;
 }
-/*noinspection CssUnusedSymbol*/
+
 .parsed {
-  fill: #41e804;
-}
-.top-btn-text {
-  font-size: 1rem;
-  @media (max-width: 700px) {
-    display: none;
-  }
+  fill: #67df8d;
 }
 </style>

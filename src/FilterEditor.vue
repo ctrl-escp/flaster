@@ -20,57 +20,37 @@ const numOfAvailableFilters = computed(() => store.filters.length);
 const displayedNumOfFilters = computed(() => numOfAvailableFilters.value ? `${numOfEnabledFilters.value} / ${numOfAvailableFilters.value}` : 'No');
 
 function findFilter(filterSrc) {
-  return store.filters.find(f => f?.src === filterSrc);
+  return store.findFilter(filterSrc);
 }
 
 function applyFilter(filterSrc) {
-  if (!filterSrc) return store.logMessage('Missing filter code', 'error');
-  try {
-    filterSrc = filterSrc.trim();
-    store.filteredNodes = store.filteredNodes.filter(eval(`n => ${filterSrc}`));
-    if (!findFilter(filterSrc)) store.filters.push({
-      src: filterSrc,
-      enabled: true,
-    });
-    store.page = 0;
-  } catch (e) {
-    console.log(`Invalid filter code: ${e.message}`);
-  }
+  return store.addFilter(filterSrc, {
+    label: 'Advanced filter',
+    templateType: 'advanced-js-step',
+    selectionSource: {
+      kind: 'advanced-js',
+    },
+  });
 }
 
 function reapplyFilters() {
-  // noinspection JSUnresolvedReference
-  store.filteredNodes = store.arb.ast;
-  for (const filter of store.filters) {
-    if (filter?.enabled) applyFilter(filter.src);
-  }
-  store.page = 0;
+  store.reapplyFilters();
 }
 
 function toggleFilter(filter) {
-  filter.enabled = !filter.enabled;
-  reapplyFilters();
+  store.toggleFilterEnabled(filter);
 }
 
 function clearAllFilters() {
-  store.filters.length = 0;
-  // noinspection JSUnresolvedReference
-  store.filteredNodes = store.arb.ast;
-  store.page = 0;
+  store.clearAllFilters();
 }
 
 function deleteFilter(filter) {
-  store.filters = store.filters.filter(f => f !== filter);
-  reapplyFilters();
+  store.deleteFilter(filter);
 }
 
 function combineEnabledFilters() {
-  const enabledFilters = store.filters.filter(f => f?.enabled && !!f?.src);
-  if (enabledFilters.length > 1) {
-    const filterSrc = store.combineFilters(enabledFilters.map(f => f?.src));
-    store.filters = store.filters.filter(f => !enabledFilters.includes(f));
-    applyFilter(filterSrc);
-  }
+  store.combineEnabledFilters();
 }
 
 function setFilterEditorContent(filterSrc) {

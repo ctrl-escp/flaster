@@ -1,48 +1,168 @@
 <script setup>
+import {ref} from 'vue';
 import store from '../store';
 import IconFolder from './icons/IconFolder.vue';
 
 const inputCodeEditorId = store.editorIds.inputCodeEditor;
+const fileInput = ref(null);
+const isOpen = ref(false);
+const showSamples = ref(false);
 
-function fileChanged(el) {
-  const files = el.target?.files || [];
-  let file;
-  if (files.length) file = files[0];
-  if (file) {
-    file.text().then(c => {
-      store.setContent(store.getEditor(inputCodeEditorId), c);
-      store.resetParsedState();
-    });
-  } else {
-    store.setContent(store.getEditor(inputCodeEditorId), '');
-    store.resetParsedState();
+function toggleMenu() {
+  isOpen.value = !isOpen.value;
+  if (!isOpen.value) {
+    showSamples.value = false;
   }
+}
+
+function closeMenu() {
+  isOpen.value = false;
+  showSamples.value = false;
+}
+
+function chooseUpload() {
+  fileInput.value?.click();
+}
+
+function chooseSamples() {
+  showSamples.value = true;
+}
+
+function fileChanged(event) {
+  const files = event.target?.files || [];
+  const file = files[0];
+
+  if (file) {
+    file.text().then((content) => {
+      store.setContent(store.getEditor(inputCodeEditorId), content);
+      store.resetParsedState();
+      closeMenu();
+    });
+    return;
+  }
+
+  closeMenu();
+}
+
+function loadSample(sampleId) {
+  store.activeSampleScriptId = sampleId;
+  store.loadSampleScript(sampleId);
+  closeMenu();
 }
 </script>
 
 <template>
-  <span>
-    <icon-folder class="btn btn-load-file">
-        <label><input class="inputFile" type="file" @change="fileChanged"></label>
-    </icon-folder>
-    <span class="top-btn-text">Load</span>
-  </span>
+  <div class="file-loader">
+    <button
+      class="toolbar-btn"
+      type="button"
+      title="Load a local file or choose a built-in sample script"
+      @click="toggleMenu"
+    >
+      <icon-folder class="toolbar-icon" />
+      <span>Load</span>
+    </button>
+
+    <div v-if="isOpen" class="load-menu">
+      <div v-if="!showSamples" class="menu-stack">
+        <button class="menu-btn" type="button" title="Upload a local JavaScript file" @click="chooseUpload">
+          Upload file
+        </button>
+        <button class="menu-btn" type="button" title="Choose from bundled sample scripts" @click="chooseSamples">
+          Load sample
+        </button>
+      </div>
+
+      <div v-else class="menu-stack">
+        <button class="back-btn" type="button" title="Go back to load options" @click="showSamples = false">
+          ‹ Back
+        </button>
+        <button
+          v-for="sample in store.availableSampleScripts"
+          :key="sample.id"
+          class="sample-btn"
+          type="button"
+          :title="sample.description"
+          @click="loadSample(sample.id)"
+        >
+          <strong>{{ sample.title }}</strong>
+          <span>{{ sample.family }}</span>
+        </button>
+      </div>
+    </div>
+
+    <input ref="fileInput" class="input-file" type="file" @change="fileChanged">
+  </div>
 </template>
 
 <style scoped>
-.btn-load-file {
-  padding: 0;
-  width: 2rem;
-  height: 2rem;
-  border: none;
+.file-loader {
+  position: relative;
 }
-.inputFile {
+
+.toolbar-btn {
+  min-height: 2.5rem;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  padding: 0.55rem 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+}
+
+.toolbar-icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.load-menu {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  left: 0;
+  min-width: 14rem;
+  max-width: 20rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: #0f1724;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  padding: 0.5rem;
+  z-index: 10;
+}
+
+.menu-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.menu-btn,
+.sample-btn,
+.back-btn {
+  width: 100%;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sample-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.sample-btn span,
+.back-btn {
+  color: var(--text-muted);
+}
+
+.input-file {
   display: none;
-}
-.top-btn-text {
-  font-size: 1rem;
-  @media (max-width: 700px) {
-    display: none;
-  }
 }
 </style>

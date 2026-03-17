@@ -8,6 +8,7 @@ import {
   runKnownStructureMatchingSession,
 } from './integrations/restringer/matchingEngine.js';
 import {runKnownStructureTransformSession} from './integrations/restringer/index.js';
+import {getSampleScript, sampleScripts} from './sampleScripts.js';
 
 /**
  * @typedef {import('@codemirror/view').EditorView} EditorView
@@ -189,6 +190,122 @@ function createArborist(script) {
   return new ArboristConstructor(script);
 }
 
+const templateCatalog = Object.freeze([
+  {
+    type: 'apply-known-transform',
+    title: 'Apply known REstringer transform',
+    description: 'Use the browser-safe transform exposed by the active known structure.',
+    kind: 'transform',
+  },
+  {
+    type: 'rename-identifiers',
+    title: 'Rename identifiers',
+    description: 'Rename selected or filtered identifiers with a reproducible template.',
+    kind: 'transform',
+  },
+  {
+    type: 'replace-literals',
+    title: 'Replace literals',
+    description: 'Replace matched literals with a new static value.',
+    kind: 'transform',
+  },
+  {
+    type: 'remove-dead-wrapper',
+    title: 'Remove dead wrapper',
+    description: 'Jump to wrapper-oriented built-in transforms when those structures are active.',
+    kind: 'transform',
+  },
+  {
+    type: 'inline-call-result',
+    title: 'Inline call/result',
+    description: 'Reserved for a future higher-level inlining template.',
+    kind: 'planned',
+  },
+  {
+    type: 'custom-node-selection',
+    title: 'Custom node selection',
+    description: 'Create a reusable node-selection filter from the current inspector context.',
+    kind: 'selection',
+  },
+  {
+    type: 'match-structure',
+    title: 'Match structure',
+    description: 'Seed a reusable filter from the active known structure.',
+    kind: 'selection',
+  },
+  {
+    type: 'advanced-js-step',
+    title: 'Advanced JS step',
+    description: 'Open the raw filter and transform editors for power-user workflows.',
+    kind: 'advanced',
+  },
+]);
+
+function cloneValue(value) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return value;
+  }
+}
+
+function getNodeId(node) {
+  return Number.isInteger(node?.nodeId) ? node.nodeId : null;
+}
+
+function createNodeSummary(node) {
+  if (!node) {
+    return 'No node selected';
+  }
+
+  const bits = [node.type];
+  if (typeof node.name === 'string' && node.name.length) {
+    bits.push(node.name);
+  } else if (typeof node.value === 'string' && node.value.length) {
+    bits.push(JSON.stringify(node.value));
+  } else if (typeof node.src === 'string' && node.src.length) {
+    bits.push(node.src.slice(0, 60));
+  }
+
+  return bits.join(' ');
+}
+
+function createNodeAttributeEntries(node) {
+  if (!node || typeof node !== 'object') {
+    return [];
+  }
+
+  return Object.entries(node)
+    .filter(([key, value]) =>
+      !['parentNode', 'body', 'children', 'loc', 'range', 'src'].includes(key) &&
+      typeof value !== 'object' &&
+      typeof value !== 'function',
+    )
+    .slice(0, 16)
+    .map(([key, value]) => ({key, value: String(value)}));
+}
+
+function createTemplateDrafts() {
+  return {
+    'apply-known-transform': {},
+    'rename-identifiers': {
+      nextName: 'renamedIdentifier',
+      useSelectedName: true,
+    },
+    'replace-literals': {
+      nextValue: '',
+      valueType: 'string',
+    },
+    'remove-dead-wrapper': {},
+    'inline-call-result': {},
+    'custom-node-selection': {
+      mode: 'selected-node-type',
+    },
+    'match-structure': {},
+    'advanced-js-step': {},
+  };
+}
+
 const knownStructureState = createKnownStructureState();
 
 const store = reactive({
@@ -212,8 +329,8 @@ const store = reactive({
     // noinspection JSUnresolvedReference
     this.states.push({
       script: store.arb.script,
-      filters: this.filters,
-      steps: this.steps,
+      filters: cloneValue(this.filters),
+      steps: cloneValue(this.steps),
       transformationCode: this.transformationCode,
     });
   },
@@ -226,6 +343,7 @@ const store = reactive({
       this.steps = state.steps;
       this.transformationCode = state.transformationCode;
       this.clearKnownStructureTransformPreview();
+      this.selectedPipelineStepIndex = this.steps.length ? 0 : -1;
     }
   },
   /**
@@ -243,11 +361,15 @@ const store = reactive({
         this.transformationCode = transformSrc;
       }
 
-      this.steps.push(stepEntry ?? {
+      const nextStep = this.normalizeStepEntry(stepEntry ?? {
         kind: 'custom',
         filters: this.filters.filter((f) => f.enabled),
         transformationCode: typeof transformSrc === 'string' ? transformSrc : '',
       });
+      nextStep.previewSummary = nextStep.previewSummary || `${changes} pending edits applied`;
+      this.steps.push(nextStep);
+      this.selectedPipelineStepIndex = this.steps.length - 1;
+      this.activeInspectorPanel = 'pipeline';
       this.logMessage(`${changes} changes were made`, 'success');
       this.loadNewScript(this.arb.script);
       return true;
@@ -266,6 +388,9 @@ const store = reactive({
     store.page = 0;
     this.filteredNodes = this.arb.ast;
     this.filters.length = 0;
+    this.selectedNodeId = null;
+    this.selectedNodeSource = null;
+    this.activeResultMode = 'matches';
     this.runKnownStructureMatching();
   },
   combineFilters(filtersArr) {
@@ -285,6 +410,20 @@ const store = reactive({
   isTransformed: false,
   filteredNodes: [],
   areFiltersActive: true,
+  activeWorkspaceTab: 'explorer',
+  activeResultMode: 'matches',
+  activeInspectorPanel: 'inspector',
+  activeNodeInspectorSection: 'overview',
+  selectedNodeId: null,
+  selectedNodeSource: null,
+  selectedPipelineStepIndex: -1,
+  advancedToolsOpen: false,
+  exportPanelOpen: false,
+  availableSampleScripts: sampleScripts,
+  activeSampleScriptId: sampleScripts[0]?.id ?? null,
+  templateCatalog,
+  activeTemplateType: 'apply-known-transform',
+  templateDrafts: createTemplateDrafts(),
   availableKnownStructures: knownStructureState.availableKnownStructures,
   selectedKnownStructureIds: knownStructureState.selectedKnownStructureIds,
   activeKnownStructureId: knownStructureState.activeKnownStructureId,
@@ -300,8 +439,173 @@ const store = reactive({
   knownStructureTransformPreview: /** @type {KnownStructureTransformPreview} */ (null),
   inspectedKnownStructureId: null,
   scrollKnownStructureSelectionIntoView: true,
+  normalizeStepEntry(stepEntry = {}) {
+    const nextLabel = stepEntry.label ||
+      (stepEntry.kind === 'known-structure-transform'
+        ? `Apply ${stepEntry.structureTitle ?? stepEntry.structureId}`
+        : 'Custom JS transform');
+
+    return {
+      enabled: stepEntry.enabled ?? true,
+      label: nextLabel,
+      templateType: stepEntry.templateType ?? (stepEntry.kind === 'known-structure-transform'
+        ? 'apply-known-transform'
+        : 'advanced-js-step'),
+      params: stepEntry.params ?? {},
+      previewSummary: stepEntry.previewSummary ?? '',
+      selectionSource: stepEntry.selectionSource ?? null,
+      ...stepEntry,
+    };
+  },
   getKnownStructureById(structureId) {
     return this.availableKnownStructures.find((structure) => structure.id === structureId) ?? null;
+  },
+  getSelectedNode() {
+    if (!Number.isInteger(this.selectedNodeId)) {
+      return null;
+    }
+
+    return this.arb?.ast?.find((node) => node.nodeId === this.selectedNodeId) ?? null;
+  },
+  getNodeById(nodeId) {
+    return this.arb?.ast?.find((node) => node.nodeId === nodeId) ?? null;
+  },
+  getSelectedNodeAttributes() {
+    return createNodeAttributeEntries(this.getSelectedNode());
+  },
+  getNodeParentChain(node = this.getSelectedNode()) {
+    const chain = [];
+    let current = node?.parentNode ?? null;
+
+    while (current) {
+      chain.unshift(current);
+      current = current.parentNode ?? null;
+    }
+
+    return chain;
+  },
+  getNodeScopeChain(node = this.getSelectedNode()) {
+    const chain = [];
+    let current = node?.parentNode ?? null;
+
+    while (current) {
+      chain.unshift(current);
+      if (['Program', 'BlockStatement', 'FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(current.type)) {
+        break;
+      }
+      current = current.parentNode ?? null;
+    }
+
+    return chain;
+  },
+  getNodeChildren(node = this.getSelectedNode()) {
+    if (!node) {
+      return [];
+    }
+
+    return this.arb?.ast?.filter((candidate) => candidate.parentNode?.nodeId === node.nodeId) ?? [];
+  },
+  getNodeMatches(node = this.getSelectedNode()) {
+    if (!node?.range) {
+      return [];
+    }
+
+    return this.latestKnownStructureMatches.filter((match) =>
+      doRangesOverlap(match.range, node.range),
+    );
+  },
+  getRelatedNodes(node = this.getSelectedNode()) {
+    if (!node) {
+      return [];
+    }
+
+    const parent = node.parentNode ? [node.parentNode] : [];
+    const children = this.getNodeChildren(node);
+    const siblings = node.parentNode
+      ? this.getNodeChildren(node.parentNode).filter((candidate) => candidate.nodeId !== node.nodeId)
+      : [];
+
+    return [...parent, ...children, ...siblings].slice(0, 24);
+  },
+  setActiveWorkspaceTab(tabName = 'explorer') {
+    this.activeWorkspaceTab = tabName;
+  },
+  setActiveInspectorPanel(panelName = 'inspector') {
+    this.activeInspectorPanel = panelName;
+  },
+  setActiveNodeInspectorSection(sectionName = 'overview') {
+    this.activeNodeInspectorSection = sectionName;
+  },
+  openAdvancedTools() {
+    this.advancedToolsOpen = true;
+    this.activeInspectorPanel = 'advanced';
+  },
+  setActiveResultMode(mode = 'matches') {
+    this.activeResultMode = mode;
+  },
+  setActiveTemplate(templateType = 'apply-known-transform') {
+    this.activeTemplateType = this.templateCatalog.some((template) => template.type === templateType)
+      ? templateType
+      : 'apply-known-transform';
+    this.activeInspectorPanel = 'templates';
+  },
+  updateTemplateDraft(templateType, key, value) {
+    if (!this.templateDrafts[templateType]) {
+      this.templateDrafts[templateType] = {};
+    }
+
+    this.templateDrafts[templateType][key] = value;
+  },
+  setSelectedNode(node, source = 'ast') {
+    const nodeId = getNodeId(node);
+    this.selectedNodeId = nodeId;
+    this.selectedNodeSource = nodeId === null ? null : source;
+
+    if (node?.range?.length >= 2) {
+      const editor = this.getEditor(this.editorIds.inputCodeEditor);
+      editor?.highlightRange?.(node.range[0], node.range[1]);
+    }
+  },
+  inspectNode(node, source = 'ast') {
+    if (!node) {
+      this.setSelectedNode(null);
+      return;
+    }
+
+    this.setSelectedNode(node, source);
+    this.activeResultMode = source === 'related' ? 'related' : this.activeResultMode;
+    this.activeInspectorPanel = 'inspector';
+  },
+  async loadSampleScript(sampleId = this.activeSampleScriptId) {
+    const sample = getSampleScript(sampleId);
+
+    if (!sample) {
+      this.logMessage('Unknown sample script', 'error');
+      return false;
+    }
+
+    const inputEditor = this.getEditor(this.editorIds.inputCodeEditor);
+    if (!inputEditor) {
+      this.logMessage('Editor is not ready yet', 'error');
+      return false;
+    }
+
+    try {
+      const response = await fetch(sample.publicPath);
+      if (!response.ok) {
+        throw new Error(`Unable to load ${sample.title}`);
+      }
+
+      const source = await response.text();
+      this.activeSampleScriptId = sample.id;
+      this.setContent(inputEditor, source);
+      this.parseContent();
+      this.logMessage(`Loaded sample: ${sample.title}`, 'success');
+      return true;
+    } catch (error) {
+      this.logMessage(error.message, 'error');
+      return false;
+    }
   },
   isKnownStructureBrowserRunnable(structureId) {
     return !!this.getKnownStructureById(structureId)?.browserRunnable;
@@ -369,6 +673,7 @@ const store = reactive({
     this.knownStructureSelectionById = {};
     this.clearKnownStructureTransformPreview();
     this.setInspectedKnownStructure(null);
+    this.setSelectedNode(null);
     this.clearKnownStructureHighlights();
   },
   clearKnownStructureMatches(structureId = this.activeKnownStructureId) {
@@ -469,6 +774,7 @@ const store = reactive({
 
     if (!match) {
       this.selectedKnownStructureMatch = null;
+      this.setSelectedNode(null);
       this.refreshKnownStructureHighlights();
       return;
     }
@@ -483,6 +789,8 @@ const store = reactive({
       ...this.knownStructureSelectionById,
       [match.structureId]: match.index,
     };
+    this.setSelectedNode(match.node, 'match');
+    this.activeInspectorPanel = 'inspector';
     this.refreshKnownStructureHighlights();
   },
   selectKnownStructureMatchStep(direction = 1) {
@@ -582,6 +890,108 @@ const store = reactive({
     }
 
     return createKnownStructureRuleSeed(structure);
+  },
+  findFilter(filterSrc) {
+    return this.filters.find((filter) => filter?.src === filterSrc);
+  },
+  addFilter(filterSrc, options = {}) {
+    if (!filterSrc) {
+      this.logMessage('Missing filter code', 'error');
+      return false;
+    }
+
+    try {
+      const normalizedFilter = filterSrc.trim();
+      this.filteredNodes = this.filteredNodes.filter(eval(`n => ${normalizedFilter}`));
+      if (!this.findFilter(normalizedFilter)) {
+        this.filters.push({
+          src: normalizedFilter,
+          enabled: options.enabled ?? true,
+          label: options.label ?? '',
+          selectionSource: options.selectionSource ?? null,
+          templateType: options.templateType ?? null,
+        });
+      }
+      this.page = 0;
+      return true;
+    } catch (error) {
+      this.logMessage(`Invalid filter code: ${error.message}`, 'error');
+      return false;
+    }
+  },
+  reapplyFilters() {
+    this.filteredNodes = this.arb?.ast ?? [];
+    for (const filter of this.filters) {
+      if (filter?.enabled) {
+        this.addFilter(filter.src, filter);
+      }
+    }
+    this.page = 0;
+  },
+  clearAllFilters() {
+    this.filters.length = 0;
+    this.filteredNodes = this.arb?.ast ?? [];
+    this.page = 0;
+  },
+  deleteFilter(filterToDelete) {
+    this.filters = this.filters.filter((filter) => filter !== filterToDelete);
+    this.reapplyFilters();
+  },
+  toggleFilterEnabled(filter) {
+    filter.enabled = !filter.enabled;
+    this.reapplyFilters();
+  },
+  combineEnabledFilters() {
+    const enabledFilters = this.filters.filter((filter) => filter?.enabled && !!filter?.src);
+    if (enabledFilters.length > 1) {
+      const filterSrc = this.combineFilters(enabledFilters.map((filter) => filter.src));
+      this.filters = this.filters.filter((filter) => !enabledFilters.includes(filter));
+      this.addFilter(filterSrc, {
+        label: 'Combined filter',
+        templateType: 'advanced-js-step',
+      });
+    }
+  },
+  applyCustomTransformation(transformSrc, metadata = {}) {
+    const source = transformSrc || this.getEditor(this.editorIds.transformEditor)?.state?.doc?.toString();
+    if (!source) {
+      this.logMessage('Missing transformation code', 'error');
+      return false;
+    }
+
+    this.saveState();
+
+    try {
+      const normalizedSource = source.trim();
+      const arb = this.arb;
+      const candidateFilters = Array.isArray(metadata.filters) && metadata.filters.length
+        ? metadata.filters.filter((filter) => filter?.enabled && filter?.src)
+        : this.filters.filter((filter) => filter?.enabled && filter?.src);
+      const candidateNodes = candidateFilters.length
+        ? this.arb.ast.filter((node) =>
+          candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node)))
+        : this.filteredNodes;
+
+      for (const n of candidateNodes) {
+        eval(normalizedSource);
+      }
+
+      const stepEntry = this.normalizeStepEntry({
+        kind: 'custom',
+        filters: candidateFilters,
+        transformationCode: normalizedSource,
+        ...metadata,
+      });
+      const applied = this.applyAndUpdateTransformation(normalizedSource, stepEntry);
+      if (!applied) {
+        this.states.pop();
+      }
+      return applied;
+    } catch (error) {
+      this.states.pop();
+      this.logMessage(`Invalid transformer code: ${error.message}`, 'error');
+      return false;
+    }
   },
   /**
    * Builds a lightweight transform preview for a browser-safe known structure
@@ -720,6 +1130,17 @@ const store = reactive({
         appliedChanges: transformSession.pendingChanges ?? 0,
         appliedAt: new Date().toISOString(),
         sequenceIndex: this.steps.length + 1,
+        label: `Apply ${structure.title}`,
+        templateType: 'apply-known-transform',
+        params: {
+          structureId: structure.id,
+          transformName: transformSession.transformName,
+        },
+        previewSummary: `${transformSession.pendingChanges ?? 0} changes across ${transformSession.targetedMatchCount} matches`,
+        selectionSource: {
+          kind: 'known-structure',
+          structureId: structure.id,
+        },
       };
 
       const applied = this.applyAndUpdateTransformation(null, stepEntry);
@@ -740,6 +1161,224 @@ const store = reactive({
       this.logMessage(`Unable to apply ${structure.title}: ${error.message}`, 'error');
       return false;
     }
+  },
+  getPipelineStep(index = this.selectedPipelineStepIndex) {
+    return this.steps[index] ?? null;
+  },
+  setSelectedPipelineStep(index = -1) {
+    this.selectedPipelineStepIndex = index >= 0 && index < this.steps.length ? index : -1;
+    if (this.selectedPipelineStepIndex !== -1) {
+      this.activeInspectorPanel = 'pipeline';
+    }
+  },
+  movePipelineStep(index, direction) {
+    const nextIndex = index + direction;
+    if (index < 0 || nextIndex < 0 || index >= this.steps.length || nextIndex >= this.steps.length) {
+      return;
+    }
+
+    const nextSteps = [...this.steps];
+    [nextSteps[index], nextSteps[nextIndex]] = [nextSteps[nextIndex], nextSteps[index]];
+    this.steps = nextSteps.map((step, sequenceIndex) => ({
+      ...step,
+      sequenceIndex: sequenceIndex + 1,
+    }));
+    this.selectedPipelineStepIndex = nextIndex;
+  },
+  togglePipelineStep(index) {
+    const step = this.steps[index];
+    if (!step) {
+      return;
+    }
+
+    step.enabled = step.enabled === false;
+  },
+  removePipelineStep(index) {
+    if (index < 0 || index >= this.steps.length) {
+      return;
+    }
+
+    this.steps.splice(index, 1);
+    this.steps = this.steps.map((step, sequenceIndex) => ({
+      ...step,
+      sequenceIndex: sequenceIndex + 1,
+    }));
+    this.selectedPipelineStepIndex = Math.min(index, this.steps.length - 1);
+  },
+  getDefaultSelectionFilter() {
+    const selectedNode = this.getSelectedNode();
+    if (selectedNode?.type) {
+      return `n.type === ${JSON.stringify(selectedNode.type)}`;
+    }
+
+    if (this.activeKnownStructureId) {
+      const structure = this.getKnownStructureById(this.activeKnownStructureId);
+      return `n.type === ${JSON.stringify(structure?.category === 'calls' ? 'CallExpression' : 'Identifier')}`;
+    }
+
+    return 'true';
+  },
+  createNodeSelectionFilter() {
+    const selectedNode = this.getSelectedNode();
+    if (!selectedNode) {
+      return this.getDefaultSelectionFilter();
+    }
+
+    if (selectedNode.type === 'Identifier' && typeof selectedNode.name === 'string') {
+      return `n.type === 'Identifier' && n.name === ${JSON.stringify(selectedNode.name)}`;
+    }
+
+    if (selectedNode.type === 'Literal') {
+      return `n.type === 'Literal' && n.value === ${JSON.stringify(selectedNode.value)}`;
+    }
+
+    return `n.type === ${JSON.stringify(selectedNode.type)}`;
+  },
+  applyTemplate(templateType = this.activeTemplateType) {
+    const selectedNode = this.getSelectedNode();
+    const activeStructure = this.getKnownStructureById(this.inspectedKnownStructureId ?? this.activeKnownStructureId);
+    const selectionSource = selectedNode
+      ? {
+        kind: 'node',
+        nodeId: selectedNode.nodeId,
+        nodeType: selectedNode.type,
+      }
+      : activeStructure
+        ? {
+          kind: 'known-structure',
+          structureId: activeStructure.id,
+        }
+        : null;
+
+    if (templateType === 'apply-known-transform') {
+      return this.applyKnownStructureTransform(activeStructure?.id);
+    }
+
+    if (templateType === 'remove-dead-wrapper') {
+      const preferredStructure = ['iife-wrappers', 'wrapped-value-shells']
+        .map((structureId) => this.getKnownStructureById(structureId))
+        .find((structure) => structure?.id === activeStructure?.id) ?? activeStructure;
+
+      if (!preferredStructure?.transformEnabled) {
+        this.logMessage('Select a wrapper-oriented built-in structure before using this template', 'error');
+        return false;
+      }
+
+      return this.applyKnownStructureTransform(preferredStructure.id);
+    }
+
+    if (templateType === 'match-structure') {
+      const filterSrc = this.copyKnownStructureRuleSeed(activeStructure?.id);
+      if (!filterSrc) {
+        this.logMessage('Pick a known structure before creating a structure template', 'error');
+        return false;
+      }
+
+      this.addFilter(filterSrc, {
+        label: activeStructure.title,
+        selectionSource,
+        templateType,
+      });
+      this.advancedToolsOpen = true;
+      this.setActiveTemplate(templateType);
+      return true;
+    }
+
+    if (templateType === 'custom-node-selection') {
+      const filterSrc = this.createNodeSelectionFilter();
+      this.addFilter(filterSrc, {
+        label: selectedNode ? `Select ${selectedNode.type}` : 'Node selection',
+        selectionSource,
+        templateType,
+      });
+      this.advancedToolsOpen = true;
+      return true;
+    }
+
+    if (templateType === 'advanced-js-step') {
+      this.openAdvancedTools();
+      return true;
+    }
+
+    if (templateType === 'inline-call-result') {
+      this.logMessage('Inline call/result is planned but not implemented yet', 'info');
+      return false;
+    }
+
+    const filterSrc = this.filters.filter((filter) => filter.enabled).map((filter) => filter.src);
+    const selectionFilter = filterSrc.length ? this.combineFilters(filterSrc) : this.getDefaultSelectionFilter();
+
+    if (templateType === 'rename-identifiers') {
+      const draft = this.templateDrafts['rename-identifiers'];
+      const fromName = draft.useSelectedName ? selectedNode?.name : '';
+      const nextName = draft.nextName?.trim();
+
+      if (!nextName) {
+        this.logMessage('Provide a replacement identifier name', 'error');
+        return false;
+      }
+
+      const combinedFilter = draft.useSelectedName && fromName
+        ? `${selectionFilter} && n.type === 'Identifier' && n.name === ${JSON.stringify(fromName)}`
+        : `${selectionFilter} && n.type === 'Identifier'`;
+
+      const transformSrc = `
+if (n.type === 'Identifier') {
+  arb.markNode(n, {...n, name: ${JSON.stringify(nextName)}});
+}
+`;
+
+      return this.applyCustomTransformation(transformSrc, {
+        label: draft.useSelectedName && fromName
+          ? `Rename ${fromName} -> ${nextName}`
+          : `Rename identifiers -> ${nextName}`,
+        templateType,
+        params: {
+          nextName,
+          fromName,
+        },
+        previewSummary: `Template rename over ${draft.useSelectedName && fromName ? fromName : 'filtered identifiers'}`,
+        selectionSource,
+        filters: [{src: combinedFilter, enabled: true}],
+      });
+    }
+
+    if (templateType === 'replace-literals') {
+      const draft = this.templateDrafts['replace-literals'];
+      const nextValue = draft.nextValue;
+      const nextLiteralValue = draft.valueType === 'number'
+        ? Number(nextValue)
+        : draft.valueType === 'boolean'
+          ? nextValue === 'true'
+          : nextValue;
+
+      if (draft.valueType === 'number' && Number.isNaN(nextLiteralValue)) {
+        this.logMessage('Provide a numeric literal value', 'error');
+        return false;
+      }
+
+      const combinedFilter = `${selectionFilter} && n.type === 'Literal'`;
+      const transformSrc = `
+if (n.type === 'Literal') {
+  arb.markNode(n, {type: 'Literal', value: ${JSON.stringify(nextLiteralValue)}});
+}
+`;
+
+      return this.applyCustomTransformation(transformSrc, {
+        label: `Replace literals -> ${String(nextLiteralValue)}`,
+        templateType,
+        params: {
+          nextValue: nextLiteralValue,
+          valueType: draft.valueType,
+        },
+        previewSummary: 'Template literal replacement across the active selection',
+        selectionSource,
+        filters: [{src: combinedFilter, enabled: true}],
+      });
+    }
+
+    this.logMessage(`Unsupported template: ${templateType}`, 'error');
+    return false;
   },
   runKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
     const requestedIds = Array.isArray(structureIds) ? structureIds : [];
@@ -815,12 +1454,14 @@ const store = reactive({
       };
     }
 
-    this.restoreKnownStructureSelection(this.activeKnownStructureId);
+    const restoredMatch = this.restoreKnownStructureSelection(this.activeKnownStructureId);
     this.clearKnownStructureTransformPreview();
 
     if (!this.inspectedKnownStructureId) {
       this.setInspectedKnownStructure(this.activeKnownStructureId);
     }
+
+    this.setSelectedNode(restoredMatch?.node ?? null, restoredMatch ? 'match' : null);
 
     this.refreshKnownStructureHighlights();
 
