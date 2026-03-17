@@ -22,6 +22,7 @@ import {getDescendants} from 'restringer/src/modules/utils/getDescendants.js';
 import {getMainDeclaredObjectOfMemberExpression} from 'restringer/src/modules/utils/getMainDeclaredObjectOfMemberExpression.js';
 import {getObjType} from 'restringer/src/modules/utils/getObjType.js';
 import {isNodeInRanges} from 'restringer/src/modules/utils/isNodeInRanges.js';
+import restringerPackage from 'restringer/package.json' with {type: 'json'};
 import {knownStructureRegistry} from './registry.js';
 
 /**
@@ -834,6 +835,7 @@ export function getTransformSessionRunner(structure) {
 }
 
 export const restringerBrowser = Object.freeze({
+  version: restringerPackage.version,
   knownStructureRegistry: structureRegistryDefinitions,
   knownStructures,
   knownStructuresById,
