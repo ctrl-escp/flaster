@@ -129,6 +129,7 @@ function isActive(item) {
   flex-direction: column;
   gap: 0.65rem;
   min-height: 0;
+  min-width: 0;
   height: 100%;
 }
 
@@ -144,10 +145,18 @@ function isActive(item) {
 
 .panel-header {
   justify-content: space-between;
+  min-height: 1.5rem;
+  min-width: 0;
+}
+
+.panel-header h2 {
+  min-width: 0;
 }
 
 .panel-meta {
   color: var(--text-muted);
+  min-height: 1.25rem;
+  white-space: nowrap;
 }
 
 .mode-btn,
@@ -180,6 +189,7 @@ function isActive(item) {
   gap: 0.65rem;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   overflow: auto;
 }
 
@@ -190,8 +200,23 @@ function isActive(item) {
   padding: 0.7rem 0.8rem;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 0.18rem;
   cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.result-item strong,
+.result-item span,
+.result-item small {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .result-item span,

@@ -64,6 +64,7 @@ const hasResults = computed(() => {
   flex-direction: column;
   gap: 0.75rem;
   min-height: 0;
+  min-width: 0;
   height: 100%;
 }
 
@@ -113,6 +114,7 @@ const hasResults = computed(() => {
 .panel-content {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   display: flex;
   overflow: hidden;
 }
@@ -120,5 +122,7 @@ const hasResults = computed(() => {
 .panel-content :deep(.workspace-panel) {
   flex: 1;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
 }
 </style>
