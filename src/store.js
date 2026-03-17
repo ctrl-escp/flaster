@@ -7,6 +7,7 @@ import {
   groupStructureMatches,
   runKnownStructureMatchingSession,
 } from './integrations/restringer/matchingEngine.js';
+import {runKnownStructureTransformSession} from './integrations/restringer/index.js';
 
 /**
  * @typedef {import('@codemirror/view').EditorView} EditorView
@@ -29,6 +30,45 @@ import {
 
 /**
  * @typedef {Record<string, number>} KnownStructureSelectionIndexMap
+ */
+
+/**
+ * @typedef {{
+ *   structureId: string,
+ *   structureTitle: string,
+ *   transformName: string,
+ *   targetedMatchCount: number,
+ *   pendingChanges: number,
+ *   selectedMatchCount: number,
+ *   previewedAt: string,
+ *   hasChanges: boolean,
+ *   error: Error | null,
+ * } | null} KnownStructureTransformPreview
+ */
+
+/**
+ * @typedef {{
+ *   kind: 'custom',
+ *   filters: unknown[],
+ *   transformationCode: string,
+ * }} StoredCustomStep
+ */
+
+/**
+ * @typedef {{
+ *   kind: 'known-structure-transform',
+ *   structureId: string,
+ *   structureTitle: string,
+ *   transformName: string,
+ *   affectedMatchCount: number,
+ *   appliedChanges: number,
+ *   appliedAt: string,
+ *   sequenceIndex: number,
+ * }} StoredKnownStructureTransformStep
+ */
+
+/**
+ * @typedef {StoredCustomStep | StoredKnownStructureTransformStep} StoredTransformationStep
  */
 
 /**
@@ -128,6 +168,22 @@ function createKnownStructureRuleSeed(structure) {
 n.type === '${structure.category === 'calls' ? 'CallExpression' : 'Identifier'}'`;
 }
 
+/**
+ * Creates an Arborist instance for preview or reparse flows.
+ *
+ * @param {string} script
+ * @returns {import('flast/src/arborist.js').Arborist}
+ */
+function createArborist(script) {
+  const ArboristConstructor = window.flast?.Arborist;
+
+  if (typeof ArboristConstructor !== 'function') {
+    throw new Error('flAST Arborist is not available');
+  }
+
+  return new ArboristConstructor(script);
+}
+
 const knownStructureState = createKnownStructureState();
 
 const store = reactive({
@@ -164,15 +220,28 @@ const store = reactive({
       this.filters = state.filters;
       this.steps = state.steps;
       this.transformationCode = state.transformationCode;
+      this.clearKnownStructureTransformPreview();
     }
   },
-  applyAndUpdateTransformation(transformSrc) {
+  /**
+   * Applies the Arborist pending changes and records the mutation as either a
+   * custom transform step or a built-in known-structure transform step.
+   *
+   * @param {string | null | undefined} transformSrc
+   * @param {StoredTransformationStep | null} [stepEntry=null]
+   * @returns {boolean}
+   */
+  applyAndUpdateTransformation(transformSrc, stepEntry = null) {
     const changes = this.arb.applyChanges();
     if (changes > 0) {
-      this.transformationCode = transformSrc;
-      this.steps.push({
+      if (typeof transformSrc === 'string') {
+        this.transformationCode = transformSrc;
+      }
+
+      this.steps.push(stepEntry ?? {
+        kind: 'custom',
         filters: this.filters.filter((f) => f.enabled),
-        transformationCode: transformSrc,
+        transformationCode: typeof transformSrc === 'string' ? transformSrc : '',
       });
       this.logMessage(`${changes} changes were made`, 'success');
       this.loadNewScript(this.arb.script);
@@ -182,8 +251,13 @@ const store = reactive({
     return false;
   },
   loadNewScript(script) {
-    this.setContent(this.getEditor(this.editorIds.inputCodeEditor), script);
-    this.arb = new window.flast.Arborist(script);
+    const inputEditor = this.getEditor(this.editorIds.inputCodeEditor);
+
+    if (inputEditor) {
+      this.setContent(inputEditor, script);
+    }
+
+    this.arb = createArborist(script);
     store.page = 0;
     this.filteredNodes = this.arb.ast;
     this.filters.length = 0;
@@ -218,6 +292,7 @@ const store = reactive({
   lastKnownStructureRunIds: knownStructureState.lastKnownStructureRunIds,
   selectedKnownStructureMatch: /** @type {KnownStructureMatchSelection} */ (null),
   knownStructureSelectionById: /** @type {KnownStructureSelectionIndexMap} */ ({}),
+  knownStructureTransformPreview: /** @type {KnownStructureTransformPreview} */ (null),
   inspectedKnownStructureId: null,
   scrollKnownStructureSelectionIntoView: true,
   getKnownStructureById(structureId) {
@@ -258,6 +333,22 @@ const store = reactive({
       ? structureId
       : null;
   },
+  clearKnownStructureTransformPreview(structureId = null) {
+    if (!this.knownStructureTransformPreview) {
+      return;
+    }
+
+    if (structureId && this.knownStructureTransformPreview.structureId !== structureId) {
+      return;
+    }
+
+    this.knownStructureTransformPreview = null;
+  },
+  getKnownStructureTransformPreview(structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId) {
+    return this.knownStructureTransformPreview?.structureId === structureId
+      ? this.knownStructureTransformPreview
+      : null;
+  },
   clearKnownStructureResults() {
     this.latestKnownStructureMatches = [];
     this.knownStructureMatchesById = {};
@@ -268,6 +359,7 @@ const store = reactive({
     this.lastKnownStructureRunIds = [];
     this.selectedKnownStructureMatch = null;
     this.knownStructureSelectionById = {};
+    this.clearKnownStructureTransformPreview();
     this.setInspectedKnownStructure(null);
     this.clearKnownStructureHighlights();
   },
@@ -317,6 +409,8 @@ const store = reactive({
     if (this.inspectedKnownStructureId === structureId) {
       this.setInspectedKnownStructure(this.activeKnownStructureId);
     }
+
+    this.clearKnownStructureTransformPreview(structureId);
 
     if (this.activeKnownStructureId) {
       this.restoreKnownStructureSelection(this.activeKnownStructureId);
@@ -477,6 +571,147 @@ const store = reactive({
 
     return createKnownStructureRuleSeed(structure);
   },
+  /**
+   * Builds a lightweight transform preview for a browser-safe known structure
+   * without mutating the currently active Arborist instance.
+   *
+   * @param {string | null} [structureId=this.inspectedKnownStructureId ?? this.activeKnownStructureId]
+   * @returns {KnownStructureTransformPreview}
+   */
+  previewKnownStructureTransform(
+    structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId,
+  ) {
+    const structure = this.getKnownStructureById(structureId);
+
+    if (!structure) {
+      this.logMessage('Pick a known structure before previewing its transform', 'error');
+      this.clearKnownStructureTransformPreview();
+      return null;
+    }
+
+    if (!structure.transformEnabled) {
+      this.logMessage(`${structure.title} does not expose a browser-safe transform`, 'error');
+      this.clearKnownStructureTransformPreview(structure.id);
+      return null;
+    }
+
+    if (!this.arb?.script?.length) {
+      this.logMessage('Parse code before previewing a known structure transform', 'error');
+      this.clearKnownStructureTransformPreview(structure.id);
+      return null;
+    }
+
+    try {
+      const previewArborist = createArborist(this.arb.script);
+      const previewSession = runKnownStructureTransformSession(previewArborist, structure.id);
+      const preview = {
+        structureId: structure.id,
+        structureTitle: structure.title,
+        transformName: previewSession.transformName,
+        targetedMatchCount: previewSession.targetedMatchCount,
+        pendingChanges: previewSession.pendingChanges ?? 0,
+        selectedMatchCount: this.getKnownStructureMatches(structure.id).length,
+        previewedAt: new Date().toISOString(),
+        hasChanges: (previewSession.pendingChanges ?? 0) > 0,
+        error: previewSession.error,
+      };
+
+      this.knownStructureTransformPreview = preview;
+
+      if (preview.error) {
+        this.logMessage(`Unable to preview ${structure.title}: ${preview.error.message}`, 'error');
+      } else {
+        this.logMessage(
+          `Previewed ${structure.title}: ${preview.targetedMatchCount} matches, ${preview.pendingChanges} pending changes`,
+          'success',
+        );
+      }
+
+      return preview;
+    } catch (error) {
+      this.knownStructureTransformPreview = {
+        structureId: structure.id,
+        structureTitle: structure.title,
+        transformName: structure.implementation.transformName,
+        targetedMatchCount: 0,
+        pendingChanges: 0,
+        selectedMatchCount: this.getKnownStructureMatches(structure.id).length,
+        previewedAt: new Date().toISOString(),
+        hasChanges: false,
+        error,
+      };
+      this.logMessage(`Unable to preview ${structure.title}: ${error.message}`, 'error');
+      return this.knownStructureTransformPreview;
+    }
+  },
+  /**
+   * Applies a browser-safe known structure transform to the current script
+   * after a preview has been generated for the same structure.
+   *
+   * @param {string | null} [structureId=this.inspectedKnownStructureId ?? this.activeKnownStructureId]
+   * @returns {boolean}
+   */
+  applyKnownStructureTransform(
+    structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId,
+  ) {
+    const structure = this.getKnownStructureById(structureId);
+
+    if (!structure) {
+      this.logMessage('Pick a known structure before applying its transform', 'error');
+      return false;
+    }
+
+    const preview = this.getKnownStructureTransformPreview(structure.id) ??
+      this.previewKnownStructureTransform(structure.id);
+
+    if (!preview || preview.error) {
+      return false;
+    }
+
+    this.saveState();
+
+    try {
+      const transformSession = runKnownStructureTransformSession(this.arb, structure.id);
+
+      if (transformSession.error || (transformSession.pendingChanges ?? 0) < 1) {
+        this.states.pop();
+        this.logMessage(
+          transformSession.error?.message ?? `${structure.title} did not produce any pending changes`,
+          'error',
+        );
+        return false;
+      }
+
+      const stepEntry = {
+        kind: 'known-structure-transform',
+        structureId: structure.id,
+        structureTitle: structure.title,
+        transformName: transformSession.transformName,
+        affectedMatchCount: transformSession.targetedMatchCount,
+        appliedChanges: transformSession.pendingChanges ?? 0,
+        appliedAt: new Date().toISOString(),
+        sequenceIndex: this.steps.length + 1,
+      };
+
+      const applied = this.applyAndUpdateTransformation(null, stepEntry);
+
+      if (!applied) {
+        this.states.pop();
+        return false;
+      }
+
+      this.clearKnownStructureTransformPreview(structure.id);
+      this.logMessage(
+        `Applied ${structure.title}: ${stepEntry.appliedChanges} changes across ${stepEntry.affectedMatchCount} matches`,
+        'success',
+      );
+      return true;
+    } catch (error) {
+      this.states.pop();
+      this.logMessage(`Unable to apply ${structure.title}: ${error.message}`, 'error');
+      return false;
+    }
+  },
   runKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
     const idsToRun = Array.isArray(structureIds) ? structureIds : [];
     const hasParsedAst = !!this.arb?.ast?.length;
@@ -536,6 +771,7 @@ const store = reactive({
     }
 
     this.restoreKnownStructureSelection(this.activeKnownStructureId);
+    this.clearKnownStructureTransformPreview();
 
     if (!this.inspectedKnownStructureId) {
       this.setInspectedKnownStructure(this.activeKnownStructureId);

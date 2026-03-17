@@ -3,6 +3,41 @@ import store from './store';
 import {onActivated} from 'vue';
 import CodeEditor from './components/CodeEditor.vue';
 
+/**
+ * Creates the generated source block for one stored transformation step.
+ *
+ * Stage 5 records built-in known-structure transforms explicitly in the step
+ * history, but script export for those steps is deferred to Stage 6. Until
+ * then we keep the generated output readable by emitting a TODO comment
+ * instead of breaking composition.
+ *
+ * @param {any} step
+ * @returns {string}
+ */
+function composeStepBlock(step) {
+  if (step?.kind === 'known-structure-transform') {
+    return `// TODO(Stage 6): re-emit known structure transform step ${step.sequenceIndex}
+// ${step.structureTitle} (${step.structureId}) via ${step.transformName}
+// Applied ${step.appliedChanges} changes across ${step.affectedMatchCount} matches on ${step.appliedAt}
+br();
+`;
+  }
+
+  const enabledFilters = step?.filters?.filter((filter) => filter?.enabled && !!filter?.src) ?? [];
+  const filter = enabledFilters.length
+    ? store.combineFilters(enabledFilters.map((filter) => filter.src))
+    : 'true';
+
+  return `script = utils.applyIteratively(script, [
+  utils.treeModifier(
+    (n, arb) => {return ${filter}},
+    (n, arb) => {${step?.transformationCode ?? ''}}
+  )]);
+br();
+utils.logger.setLogLevelLog();
+`;
+}
+
 function composeCode() {
   let code = `const fs = require('node:fs');
 const {utils} = require('flast');
@@ -14,15 +49,7 @@ let script = code;
 br();
 `;
   for (const step of store.steps) {
-    const filter = store.combineFilters(step?.filters.filter(f => f?.enabled && !!f?.src).map(f => f?.src));
-    code += `script = utils.applyIteratively(script, [
-  utils.treeModifier(
-    (n, arb) => {return ${filter}},
-    (n, arb) => {${step?.transformationCode}}
-  )]);
-br();
-utils.logger.setLogLevelLog();
-`;
+    code += composeStepBlock(step);
   }
   code += `if (script !== code) {
   console.debug('[+] Transformation successful');

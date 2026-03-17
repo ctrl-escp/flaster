@@ -161,7 +161,7 @@ export const safeMatchers = Object.freeze(
 export const safeTransforms = Object.freeze(
   Object.fromEntries(
     knownStructures
-      .filter((structure) => structure.transformAvailable)
+      .filter((structure) => structure.transformEnabled)
       .map((structure) => [structure.id, structure.transform]),
   ),
 );
@@ -466,8 +466,8 @@ export function runKnownStructureTransform(arb, structureOrId, match) {
     throw new Error(`Unknown known structure: ${structureOrId}`);
   }
 
-  if (!structure.transformAvailable) {
-    throw new Error(`Known structure ${structure.id} does not have an available transform`);
+  if (!structure.transformEnabled) {
+    throw new Error(`Known structure ${structure.id} does not have an enabled browser transform`);
   }
 
   const normalizedMatch = normalizeStructureMatch(structure, match);
@@ -479,6 +479,86 @@ export function runKnownStructureTransform(arb, structureOrId, match) {
     match: normalizedMatch,
     pendingChanges: typeof arb.getNumberOfChanges === 'function' ? arb.getNumberOfChanges() : null,
   });
+}
+
+/**
+ * Runs the full safe transform path for a known structure against an Arborist
+ * instance without applying the pending changes.
+ *
+ * This helper is used for both preview and apply flows. It intentionally reruns
+ * the matcher on the provided Arborist instance so the transform always acts on
+ * matches produced from the same AST that will receive the pending mutations.
+ *
+ * @param {Arborist} arb
+ * @param {string | typeof knownStructures[number]} structureOrId
+ * @param {{candidateFilter?: (node: ASTNode) => boolean}} [options={}]
+ * @returns {{
+ *   structure: typeof knownStructures[number],
+ *   structureId: string,
+ *   transformName: string,
+ *   matches: ReadonlyArray<ReturnType<typeof normalizeStructureMatch>>,
+ *   rawMatches: unknown[],
+ *   targetedMatchCount: number,
+ *   pendingChanges: number | null,
+ *   error: Error | null,
+ * }}
+ */
+export function runKnownStructureTransformSession(arb, structureOrId, options = {}) {
+  const matchRun = runKnownStructureMatcher(arb, structureOrId, options);
+
+  if (matchRun.error) {
+    return Object.freeze({
+      structure: matchRun.structure,
+      structureId: matchRun.structureId,
+      transformName: matchRun.structure.implementation.transformName,
+      matches: Object.freeze([]),
+      rawMatches: Object.freeze([]),
+      targetedMatchCount: 0,
+      pendingChanges: 0,
+      error: matchRun.error,
+    });
+  }
+
+  if (!matchRun.structure.transformEnabled) {
+    return Object.freeze({
+      structure: matchRun.structure,
+      structureId: matchRun.structureId,
+      transformName: matchRun.structure.implementation.transformName,
+      matches: matchRun.matches,
+      rawMatches: matchRun.rawMatches,
+      targetedMatchCount: matchRun.count,
+      pendingChanges: 0,
+      error: new Error(`Known structure ${matchRun.structureId} does not have an enabled browser transform`),
+    });
+  }
+
+  try {
+    for (const rawMatch of matchRun.rawMatches) {
+      matchRun.structure.transform(arb, rawMatch);
+    }
+
+    return Object.freeze({
+      structure: matchRun.structure,
+      structureId: matchRun.structureId,
+      transformName: matchRun.structure.implementation.transformName,
+      matches: matchRun.matches,
+      rawMatches: matchRun.rawMatches,
+      targetedMatchCount: matchRun.count,
+      pendingChanges: typeof arb.getNumberOfChanges === 'function' ? arb.getNumberOfChanges() : null,
+      error: null,
+    });
+  } catch (error) {
+    return Object.freeze({
+      structure: matchRun.structure,
+      structureId: matchRun.structureId,
+      transformName: matchRun.structure.implementation.transformName,
+      matches: matchRun.matches,
+      rawMatches: matchRun.rawMatches,
+      targetedMatchCount: matchRun.count,
+      pendingChanges: 0,
+      error,
+    });
+  }
 }
 
 export const restringerBrowser = Object.freeze({
@@ -493,6 +573,7 @@ export const restringerBrowser = Object.freeze({
   normalizeStructureMatch,
   runKnownStructureMatcher,
   runKnownStructureTransform,
+  runKnownStructureTransformSession,
 });
 
 export default restringerBrowser;

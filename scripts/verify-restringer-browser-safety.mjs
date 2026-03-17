@@ -99,6 +99,10 @@ if (typeof adapterModule.runKnownStructureTransform !== 'function') {
   throw new Error('runKnownStructureTransform helper is not exported');
 }
 
+if (typeof adapterModule.runKnownStructureTransformSession !== 'function') {
+  throw new Error('runKnownStructureTransformSession helper is not exported');
+}
+
 const listedStructures = adapterModule.listKnownStructures({browserSafe: true});
 if (listedStructures.length !== adapterModule.knownStructures.length) {
   throw new Error('listKnownStructures did not return the expected browser-safe structures');
@@ -139,6 +143,16 @@ const transformResult = adapterModule.runKnownStructureTransform(
 
 if (typeof transformResult.pendingChanges !== 'number' || transformResult.pendingChanges < 1) {
   throw new Error('runKnownStructureTransform did not mark any pending changes');
+}
+
+const transformSessionArborist = new Arborist(sampleScript);
+const transformSession = adapterModule.runKnownStructureTransformSession(
+  transformSessionArborist,
+  'computed-members',
+);
+
+if (transformSession.error || transformSession.targetedMatchCount < 1 || transformSession.pendingChanges < 1) {
+  throw new Error('runKnownStructureTransformSession did not preview a browser-safe transform session');
 }
 
 const session = matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
@@ -271,6 +285,38 @@ if (store.scrollKnownStructureSelectionIntoView !== false) {
 const copiedSeed = store.copyKnownStructureRuleSeed('proxy-calls');
 if (!copiedSeed.includes('proxy-calls') || !copiedSeed.includes('Seeded from known structure')) {
   throw new Error('store.copyKnownStructureRuleSeed did not return the expected seed text');
+}
+
+store.runKnownStructureMatching(['computed-members']);
+store.setInspectedKnownStructure('computed-members');
+const transformPreview = store.previewKnownStructureTransform('computed-members');
+
+if (!transformPreview || transformPreview.structureId !== 'computed-members' || transformPreview.pendingChanges < 1) {
+  throw new Error('store.previewKnownStructureTransform did not produce a usable preview');
+}
+
+if (!store.getKnownStructureTransformPreview('computed-members')) {
+  throw new Error('store.getKnownStructureTransformPreview did not return the stored preview');
+}
+
+const previousStepCount = store.steps.length;
+const applyTransformResult = store.applyKnownStructureTransform('computed-members');
+
+if (!applyTransformResult) {
+  throw new Error('store.applyKnownStructureTransform did not apply a previewed safe transform');
+}
+
+const latestStep = store.steps.at(-1);
+if (store.steps.length !== previousStepCount + 1 ||
+  latestStep?.kind !== 'known-structure-transform' ||
+  latestStep.structureId !== 'computed-members' ||
+  !latestStep.appliedChanges ||
+  !latestStep.affectedMatchCount) {
+  throw new Error('store.applyKnownStructureTransform did not record the expected step metadata');
+}
+
+if (store.knownStructureTransformPreview !== null) {
+  throw new Error('store.applyKnownStructureTransform did not clear the stored preview');
 }
 
 store.clearKnownStructureMatches('computed-members');

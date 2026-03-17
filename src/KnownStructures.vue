@@ -138,6 +138,8 @@ const overlapSummary = computed(() => {
 });
 
 const activeRuleSeed = computed(() => store.copyKnownStructureRuleSeed(inspectedStructure.value?.id));
+const activeTransformPreview = computed(() =>
+  store.getKnownStructureTransformPreview(inspectedStructure.value?.id));
 
 /**
  * Toggles whether a structure is part of the current "run selected" set.
@@ -197,6 +199,26 @@ async function copyRuleSeed(structureId) {
 function showStructure(structureId) {
   store.setActiveKnownStructure(structureId);
   store.changeViewTo('structures');
+}
+
+/**
+ * Builds a preview for a structure's browser-safe transform.
+ *
+ * @param {string} structureId
+ * @returns {void}
+ */
+function previewTransform(structureId) {
+  store.previewKnownStructureTransform(structureId);
+}
+
+/**
+ * Applies a structure's browser-safe transform after preview.
+ *
+ * @param {string} structureId
+ * @returns {void}
+ */
+function applyTransform(structureId) {
+  store.applyKnownStructureTransform(structureId);
 }
 
 /**
@@ -410,6 +432,13 @@ function createDeterministicRandom(match, seed) {
               <button class="btn btn-inline" @click="showStructure(structure.id)">Show</button>
               <button class="btn btn-inline" @click="store.clearKnownStructureMatches(structure.id)">Clear</button>
               <button class="btn btn-inline" @click="copyRuleSeed(structure.id)">Copy seed</button>
+              <button
+                v-if="structure.transformEnabled"
+                class="btn btn-inline"
+                @click="previewTransform(structure.id)"
+              >
+                Preview
+              </button>
               <button class="btn btn-inline" @click="store.setInspectedKnownStructure(structure.id)">Inspect</button>
             </div>
           </article>
@@ -579,6 +608,56 @@ function createDeterministicRandom(match, seed) {
                 </div>
                 <pre class="rule-seed">{{ activeRuleSeed }}</pre>
                 <button class="btn btn-inline" @click="copyRuleSeed(inspectedStructure.id)">Copy seed</button>
+              </div>
+              <div class="detail-card">
+                <div class="detail-heading">Safe transform</div>
+                <div class="inspector-line">
+                  <strong>Status</strong>
+                  {{ inspectedStructure.transformEnabled ? 'browser-runnable' : 'matcher only' }}
+                </div>
+                <div class="inspector-line">
+                  <strong>Current matches</strong> {{ store.knownStructureMatchCounts[inspectedStructure.id] ?? 0 }}
+                </div>
+                <template v-if="activeTransformPreview">
+                  <div class="inspector-line">
+                    <strong>Preview matches</strong> {{ activeTransformPreview.targetedMatchCount }}
+                  </div>
+                  <div class="inspector-line">
+                    <strong>Pending changes</strong> {{ activeTransformPreview.pendingChanges }}
+                  </div>
+                  <div class="inspector-line">
+                    <strong>Previewed at</strong> {{ activeTransformPreview.previewedAt }}
+                  </div>
+                  <div v-if="activeTransformPreview.error" class="inspector-line structure-error">
+                    <strong>Error</strong> {{ activeTransformPreview.error.message }}
+                  </div>
+                </template>
+                <div v-else class="results-empty">
+                  Preview this structure's safe transform before applying it.
+                </div>
+                <div class="structure-actions">
+                  <button
+                    class="btn btn-inline"
+                    :disabled="!inspectedStructure.transformEnabled"
+                    @click="previewTransform(inspectedStructure.id)"
+                  >
+                    Preview transform
+                  </button>
+                  <button
+                    class="btn btn-inline btn-run"
+                    :disabled="!inspectedStructure.transformEnabled || !activeTransformPreview || !!activeTransformPreview.error || !activeTransformPreview.hasChanges"
+                    @click="applyTransform(inspectedStructure.id)"
+                  >
+                    Apply transform
+                  </button>
+                  <button
+                    class="btn btn-inline"
+                    :disabled="!activeTransformPreview"
+                    @click="store.clearKnownStructureTransformPreview(inspectedStructure.id)"
+                  >
+                    Clear preview
+                  </button>
+                </div>
               </div>
               <div class="detail-card">
                 <div class="detail-heading">Implementation</div>
