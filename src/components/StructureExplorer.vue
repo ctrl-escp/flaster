@@ -13,9 +13,7 @@ const PAGE_SIZE = 100;
 
 const filters = reactive({
   search: '',
-  readiness: 'all',
   category: '',
-  resultScope: 'selected',
 });
 
 const expandedStructureId = ref(null);
@@ -28,29 +26,19 @@ const categories = computed(() => [...new Set(
 const visibleStructures = computed(() => {
   const search = filters.search.trim().toLowerCase();
 
-  return store.availableKnownStructures.filter((structure) => {
-    if (filters.category && structure.category !== filters.category) {
-      return false;
-    }
+  return store.availableKnownStructures
+    .filter((structure) => {
+      if (filters.category && structure.category !== filters.category) {
+        return false;
+      }
 
-    if (filters.readiness === 'transform-ready' && !structure.transformEnabled) {
-      return false;
-    }
+      if (!search) {
+        return true;
+      }
 
-    if (filters.readiness === 'matcher-only' && structure.transformEnabled) {
-      return false;
-    }
-
-    if (filters.readiness === 'blocked' && structure.browserRunnable) {
-      return false;
-    }
-
-    if (!search) {
-      return true;
-    }
-
-    return structure.searchText.includes(search);
-  });
+      return structure.searchText.includes(search);
+    })
+    .sort((left, right) => left.title.localeCompare(right.title));
 });
 
 const totalStructures = computed(() => visibleStructures.value.length);
@@ -87,30 +75,6 @@ function toggleSelection(structureId) {
 function activateStructure(structureId) {
   store.setActiveKnownStructure(structureId);
   store.setActiveWorkspaceTab('explorer');
-}
-
-function useSavedView(view) {
-  filters.resultScope = view;
-
-  if (view === 'active' && store.activeKnownStructureId) {
-    store.runKnownStructureMatching([store.activeKnownStructureId]);
-    return;
-  }
-
-  if (view === 'last-run') {
-    store.rerunKnownStructureMatching();
-    return;
-  }
-
-  if (view === 'transformed') {
-    const transformedStructureIds = store.steps
-      .filter((step) => step.kind === 'known-structure-transform')
-      .map((step) => step.structureId);
-    store.runKnownStructureMatching(transformedStructureIds);
-    return;
-  }
-
-  store.runKnownStructureMatching(store.selectedKnownStructureIds);
 }
 
 function canFindStructure(structure) {
@@ -162,7 +126,6 @@ function prevPage() {
 watch(
   [
     () => filters.search,
-    () => filters.readiness,
     () => filters.category,
     () => store.availableKnownStructures.length,
   ],
@@ -192,11 +155,11 @@ watch(totalPages, (nextTotalPages) => {
       </div>
     </div>
 
-    <p class="helper-copy">Choose the structures you care about, then find matches in the current script.</p>
+    <p class="helper-copy">Look for known structures in the code</p>
 
     <div class="filter-grid">
       <label class="search-field search-filter" title="Search structures by name, category, or tag">
-        <span class="search-icon">/</span>
+        <icon-search class="search-icon" />
         <input
           v-model="filters.search"
           type="search"
@@ -205,33 +168,10 @@ watch(totalPages, (nextTotalPages) => {
           title="Search structures by name, tag, or category"
         >
       </label>
-      <label class="filter-field">
-        <span class="filter-label">Show</span>
-        <select
-          v-model="filters.resultScope"
-          class="panel-select"
-          title="Choose which structure set to run when you search for matches"
-          @change="useSavedView(filters.resultScope)"
-        >
-          <option value="selected">Selected structures</option>
-          <option value="last-run">Last run</option>
-          <option value="active">Active structure</option>
-          <option value="transformed">Transformed structures</option>
-        </select>
-      </label>
-      <label class="filter-field">
-        <span class="filter-label">Readiness</span>
-        <select v-model="filters.readiness" class="panel-select" title="Filter structures by transform support and browser availability">
-          <option value="all">All</option>
-          <option value="transform-ready">Transform-ready</option>
-          <option value="matcher-only">Matcher only</option>
-          <option value="blocked">Blocked</option>
-        </select>
-      </label>
-      <label class="filter-field filter-field-wide">
+      <label class="filter-field filter-field-inline">
         <span class="filter-label">Category</span>
         <select v-model="filters.category" class="panel-select" title="Filter structures by category">
-          <option value="">All categories</option>
+          <option value="">All</option>
           <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
         </select>
       </label>
@@ -458,7 +398,9 @@ h2 {
 
 .search-icon {
   color: var(--text-muted);
-  font-size: 0.95rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
 }
 
 .filter-field {
@@ -466,6 +408,22 @@ h2 {
   flex-direction: column;
   gap: 0.35rem;
   min-width: 0;
+}
+
+.filter-field-inline {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.filter-field-inline .filter-label {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.filter-field-inline .panel-select {
+  flex: 1 1 auto;
 }
 
 .panel-input,

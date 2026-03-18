@@ -37,7 +37,7 @@ import {
  */
 export function getDefaultSelectedStructureIds(structures = knownStructures) {
   return structures
-    .filter((structure) => structure.enabledByDefault && structure.browserRunnable)
+    .filter(Boolean)
     .map((structure) => structure.id);
 }
 
