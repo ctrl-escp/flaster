@@ -131,8 +131,12 @@ function canInspectStructure(structure) {
   );
 }
 
+function getStructureMatchCount(structure) {
+  return store.knownStructureMatchCounts[structure?.id] ?? 0;
+}
+
 function hasStructureMatches(structure) {
-  return store.getKnownStructureMatches(structure?.id).length > 0;
+  return getStructureMatchCount(structure) > 0;
 }
 
 function canPreviewStructure(structure) {
@@ -284,6 +288,7 @@ watch(totalPages, (nextTotalPages) => {
         :class="{
           active: structure.id === store.activeKnownStructureId,
           expanded: expandedStructureId === structure.id,
+          'has-matches': hasStructureMatches(structure),
         }"
       >
         <button
@@ -308,8 +313,8 @@ watch(totalPages, (nextTotalPages) => {
             <strong>{{ structure.title }}</strong>
           </span>
           <span class="structure-summary-side">
-            <span class="structure-summary-count">
-              {{ store.knownStructureMatchCounts[structure.id] ?? 0 }} matches
+            <span class="structure-summary-count" :class="{highlighted: hasStructureMatches(structure)}">
+              {{ getStructureMatchCount(structure) }} matches
             </span>
             <span class="structure-summary-indicator" aria-hidden="true"></span>
           </span>
@@ -331,7 +336,7 @@ watch(totalPages, (nextTotalPages) => {
           </div>
 
           <div class="card-stats">
-            <span>{{ store.knownStructureMatchCounts[structure.id] ?? 0 }} matches</span>
+            <span :class="{highlighted: hasStructureMatches(structure)}">{{ getStructureMatchCount(structure) }} matches</span>
             <span>{{ structure.executionMode }}</span>
           </div>
 
@@ -556,6 +561,15 @@ h2 {
   background: var(--panel-card);
   display: flex;
   flex-direction: column;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.structure-card.has-matches {
+  border-color: rgba(126, 202, 255, 0.42);
+  background:
+    linear-gradient(180deg, rgba(126, 202, 255, 0.08), rgba(126, 202, 255, 0.02)),
+    var(--panel-card);
+  box-shadow: 0 0 0 1px rgba(126, 202, 255, 0.1);
 }
 
 .structure-card.active {
@@ -611,6 +625,20 @@ h2 {
 .structure-summary-count {
   color: var(--text-muted);
   font-size: 0.82rem;
+}
+
+.structure-summary-count.highlighted,
+.card-stats .highlighted {
+  color: #d7f0ff;
+  font-weight: 700;
+}
+
+.structure-summary-count.highlighted {
+  border: 1px solid rgba(126, 202, 255, 0.28);
+  background: rgba(126, 202, 255, 0.14);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  box-shadow: 0 0 18px rgba(126, 202, 255, 0.12);
 }
 
 .structure-summary-indicator {
