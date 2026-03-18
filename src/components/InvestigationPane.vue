@@ -33,7 +33,8 @@ const hasResults = computed(() => {
         aria-label="Open structures panel"
         @click="store.setActiveWorkspaceTab('explorer')"
       >
-        <icon-browse />
+        <icon-browse class="pane-switch-icon" />
+        <span>Structures</span>
       </button>
       <button
         class="pane-switch icon-btn"
@@ -44,7 +45,8 @@ const hasResults = computed(() => {
         aria-label="Open results panel"
         @click="hasResults && store.setActiveWorkspaceTab('results')"
       >
-        <icon-list-checks />
+        <icon-list-checks class="pane-switch-icon" />
+        <span>Nodes</span>
       </button>
     </div>
 
@@ -78,6 +80,10 @@ const hasResults = computed(() => {
 }
 
 .pane-switch {
+  width: auto;
+  min-width: 0;
+  min-height: 2.3rem;
+  padding: 0.1rem 0.3rem;
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
@@ -86,6 +92,16 @@ const hasResults = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.1rem;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+
+.pane-switch-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: block;
+  flex: 0 0 auto;
 }
 
 .pane-switch.active {

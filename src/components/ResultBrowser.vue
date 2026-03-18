@@ -200,8 +200,8 @@ watch(totalPages, (nextTotalPages) => {
       >
         <icon-arrow-down />
       </button>
+      <button class="mini-btn" type="button" :disabled="!canOpenMode('ast')" title="Show raw AST nodes in the result list" @click="store.setActiveResultMode('ast')">All</button>
       <button class="mini-btn" type="button" :disabled="!canOpenMode('related')" title="Show nodes related to the current selection" @click="store.setActiveResultMode('related')">Related</button>
-      <button class="mini-btn" type="button" :disabled="!canOpenMode('ast')" title="Show raw AST nodes in the result list" @click="store.setActiveResultMode('ast')">AST</button>
     </div>
 
     <div class="result-list">
