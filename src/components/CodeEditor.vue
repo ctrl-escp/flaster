@@ -169,6 +169,8 @@ onMounted(() => {
           }
 
           const content = update.state.doc.toString();
+          store.handleInputEditorChange();
+
           if (store.currentScriptKind === 'custom') {
             store.markCurrentScriptAsCustom(content);
             return;
@@ -212,6 +214,8 @@ onMounted(() => {
       label: store.currentScriptLabel,
       baselineContent: editor.state.doc.toString(),
     });
+
+    store.tryAutoParseInitialInput();
   }
 });
 </script>

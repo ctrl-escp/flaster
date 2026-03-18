@@ -406,6 +406,7 @@ const store = reactive({
     this.selectedNodeId = null;
     this.selectedNodeSource = null;
     this.activeResultMode = 'matches';
+    this.markCurrentInputParsed();
     this.runKnownStructureMatching();
   },
   combineFilters(filtersArr) {
@@ -422,8 +423,14 @@ const store = reactive({
   currentScriptKind: 'custom',
   currentScriptBaseline: '',
   isCurrentScriptModified: true,
+  inputContentVersion: 0,
+  parsedContentVersion: -1,
+  shouldAutoParseInitialInput: true,
   // eslint-disable-next-line no-unused-vars
   logMessage(text, level) {},
+  tryAutoParseInitialInput() {
+    return false;
+  },
   nodesPageSize: 100,
   page: 0,
   isTransformed: false,
@@ -498,6 +505,25 @@ const store = reactive({
   },
   updateCurrentScriptDirtyState(content = this.getCurrentScriptContent()) {
     this.isCurrentScriptModified = content !== this.currentScriptBaseline;
+  },
+  handleInputEditorChange() {
+    this.inputContentVersion += 1;
+
+    if (this.parsedContentVersion !== -1 || this.arb?.ast?.length) {
+      this.resetParsedState();
+    }
+  },
+  markCurrentInputParsed() {
+    this.parsedContentVersion = this.inputContentVersion;
+  },
+  hasParsableInput() {
+    return this.getCurrentScriptContent().trim().length > 0;
+  },
+  isCurrentInputParsed() {
+    return this.hasParsableInput() && this.parsedContentVersion === this.inputContentVersion;
+  },
+  canParseCurrentInput() {
+    return this.hasParsableInput() && !this.isCurrentInputParsed();
   },
   setCurrentScriptSource({
     kind = 'custom',
