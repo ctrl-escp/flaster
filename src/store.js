@@ -525,6 +525,70 @@ const store = reactive({
   canParseCurrentInput() {
     return this.hasParsableInput() && !this.isCurrentInputParsed();
   },
+  hasKnownStructureResultsToClear() {
+    return !!(
+      this.latestKnownStructureMatches.length ||
+      Object.keys(this.knownStructureMatchesById).length ||
+      Object.keys(this.knownStructureExecutionErrors).length ||
+      this.knownStructureExecutionStatus.totalStructures ||
+      this.selectedKnownStructureMatch ||
+      this.knownStructureTransformPreview
+    );
+  },
+  canPreviewKnownStructureTransform(structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId) {
+    const structure = this.getKnownStructureById(structureId);
+
+    return !!(
+      structure &&
+      structure.browserRunnable &&
+      structure.transformEnabled &&
+      this.isCurrentInputParsed()
+    );
+  },
+  canApplyTemplate(templateType = this.activeTemplateType) {
+    const selectedNode = this.getSelectedNode();
+    const activeStructure = this.getKnownStructureById(this.inspectedKnownStructureId ?? this.activeKnownStructureId);
+
+    if (templateType === 'apply-known-transform') {
+      return this.canPreviewKnownStructureTransform(activeStructure?.id);
+    }
+
+    if (templateType === 'remove-dead-wrapper') {
+      return !!activeStructure?.transformEnabled && this.canPreviewKnownStructureTransform(activeStructure.id);
+    }
+
+    if (templateType === 'match-structure') {
+      return !!activeStructure;
+    }
+
+    if (templateType === 'custom-node-selection') {
+      return !!selectedNode;
+    }
+
+    if (templateType === 'advanced-js-step') {
+      return true;
+    }
+
+    if (templateType === 'inline-call-result') {
+      return false;
+    }
+
+    if (templateType === 'rename-identifiers') {
+      return !!this.templateDrafts['rename-identifiers']?.nextName?.trim();
+    }
+
+    if (templateType === 'replace-literals') {
+      const draft = this.templateDrafts['replace-literals'];
+
+      if (draft?.valueType === 'number') {
+        return draft.nextValue !== '' && !Number.isNaN(Number(draft.nextValue));
+      }
+
+      return draft?.nextValue !== undefined;
+    }
+
+    return true;
+  },
   setCurrentScriptSource({
     kind = 'custom',
     label = 'Custom script',
@@ -612,8 +676,34 @@ const store = reactive({
 
     return [...parent, ...children, ...siblings].slice(0, 24);
   },
+  hasResultModeContent(mode = 'matches') {
+    if (mode === 'matches') {
+      return this.latestKnownStructureMatches.length > 0;
+    }
+
+    if (mode === 'ast') {
+      return (this.areFiltersActive ? this.filteredNodes : this.arb?.ast ?? []).length > 0;
+    }
+
+    if (mode === 'related') {
+      return this.getRelatedNodes().length > 0;
+    }
+
+    return false;
+  },
+  getPreferredResultMode(preferredMode = 'matches') {
+    if (this.hasResultModeContent(preferredMode)) {
+      return preferredMode;
+    }
+
+    return ['matches', 'ast', 'related'].find((mode) => this.hasResultModeContent(mode)) ?? 'matches';
+  },
   setActiveWorkspaceTab(tabName = 'explorer') {
     this.activeWorkspaceTab = tabName;
+
+    if (tabName === 'results') {
+      this.activeResultMode = this.getPreferredResultMode(this.activeResultMode);
+    }
   },
   setActiveInspectorPanel(panelName = 'inspector') {
     this.activeInspectorPanel = panelName;
@@ -626,7 +716,7 @@ const store = reactive({
     this.activeInspectorPanel = 'advanced';
   },
   setActiveResultMode(mode = 'matches') {
-    this.activeResultMode = mode;
+    this.activeResultMode = this.getPreferredResultMode(mode);
   },
   setActiveTemplate(templateType = 'apply-known-transform') {
     this.activeTemplateType = this.templateCatalog.some((template) => template.type === templateType)

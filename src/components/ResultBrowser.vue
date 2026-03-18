@@ -42,6 +42,30 @@ const visibleItems = computed(() => {
   }));
 });
 
+const matchItems = computed(() => store.latestKnownStructureMatches.length);
+const astItems = computed(() => (store.areFiltersActive ? store.filteredNodes : store.arb?.ast ?? []).length);
+const relatedItems = computed(() => store.getRelatedNodes().length);
+
+function canOpenMode(modeId) {
+  if (store.activeResultMode === modeId) {
+    return false;
+  }
+
+  if (modeId === 'matches') {
+    return matchItems.value > 0;
+  }
+
+  if (modeId === 'ast') {
+    return astItems.value > 0;
+  }
+
+  if (modeId === 'related') {
+    return relatedItems.value > 0;
+  }
+
+  return false;
+}
+
 function selectItem(item) {
   if (item.kind === 'match') {
     store.setSelectedKnownStructureMatch(item.match.structureId, item.match.index);
@@ -75,7 +99,10 @@ function isActive(item) {
         class="mode-btn"
         :class="{active: store.activeResultMode === mode.id}"
         type="button"
-        :title="`Show ${mode.label.toLowerCase()} in the result list`"
+        :disabled="!canOpenMode(mode.id)"
+        :title="canOpenMode(mode.id)
+          ? `Show ${mode.label.toLowerCase()} in the result list`
+          : `${mode.label} are already shown or unavailable`"
         @click="store.setActiveResultMode(mode.id)"
       >
         {{ mode.label }}
@@ -87,7 +114,7 @@ function isActive(item) {
         class="mini-btn icon-btn"
         type="button"
         title="Jump to the previous known-structure match"
-        :disabled="!store.activeKnownStructureId"
+        :disabled="!store.getKnownStructureMatches().length"
         @click="store.selectKnownStructureMatchStep(-1)"
       >
         ‹
@@ -96,13 +123,13 @@ function isActive(item) {
         class="mini-btn icon-btn"
         type="button"
         title="Jump to the next known-structure match"
-        :disabled="!store.activeKnownStructureId"
+        :disabled="!store.getKnownStructureMatches().length"
         @click="store.selectKnownStructureMatchStep(1)"
       >
         ›
       </button>
-      <button class="mini-btn" type="button" title="Show nodes related to the current selection" @click="store.setActiveResultMode('related')">Related</button>
-      <button class="mini-btn" type="button" title="Show raw AST nodes in the result list" @click="store.setActiveResultMode('ast')">AST</button>
+      <button class="mini-btn" type="button" :disabled="!canOpenMode('related')" :title="canOpenMode('related') ? 'Show nodes related to the current selection' : 'Related nodes are already shown or unavailable'" @click="store.setActiveResultMode('related')">Related</button>
+      <button class="mini-btn" type="button" :disabled="!canOpenMode('ast')" :title="canOpenMode('ast') ? 'Show raw AST nodes in the result list' : 'AST nodes are already shown or unavailable'" @click="store.setActiveResultMode('ast')">AST</button>
     </div>
 
     <div class="result-list">
@@ -112,6 +139,7 @@ function isActive(item) {
         class="result-item"
         :class="{active: isActive(item)}"
         type="button"
+        :disabled="isActive(item)"
         :title="item.summary"
         @click="selectItem(item)"
       >
@@ -175,7 +203,23 @@ function isActive(item) {
 }
 
 .mode-btn.active {
-  background: rgba(126, 202, 255, 0.16);
+  background: rgba(126, 202, 255, 0.2);
+  border-color: rgba(126, 202, 255, 0.42);
+  color: #eef8ff;
+  box-shadow: inset 0 0 0 1px rgba(126, 202, 255, 0.12);
+}
+
+.mode-btn:disabled,
+.mini-btn:disabled,
+.result-item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mode-btn.active:disabled,
+.result-item.active:disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .mode-switches,
@@ -227,6 +271,7 @@ function isActive(item) {
 .result-item.active {
   border-color: rgba(126, 202, 255, 0.5);
   box-shadow: 0 0 0 1px rgba(126, 202, 255, 0.16);
+  background: rgba(126, 202, 255, 0.08);
 }
 
 .icon-btn {

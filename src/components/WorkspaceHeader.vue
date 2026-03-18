@@ -17,6 +17,7 @@ const dependencyVersions = computed(() => ([
     href: 'https://github.com/ctrl-escp/restringer',
   },
 ]));
+const canExport = computed(() => store.steps.length > 0);
 </script>
 
 <template>
@@ -30,7 +31,13 @@ const dependencyVersions = computed(() => ([
     <div class="header-actions">
       <file-loader />
       <parse-button />
-      <button class="header-btn primary" type="button" title="Open the generated Node.js export in a modal" @click="store.exportPanelOpen = true">
+      <button
+        class="header-btn primary"
+        type="button"
+        :disabled="!canExport"
+        :title="canExport ? 'Open the generated Node.js export in a modal' : 'Add at least one pipeline step before exporting'"
+        @click="store.exportPanelOpen = true"
+      >
         <icon-export class="header-icon" />
         Export
       </button>
@@ -143,6 +150,11 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+}
+
+.header-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .header-btn.primary {

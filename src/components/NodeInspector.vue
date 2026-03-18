@@ -47,17 +47,20 @@ function jumpToNode(node, source = 'related') {
     </div>
 
     <div v-if="selectedNode" class="inspector-switches">
-      <button
-        v-for="section in sections"
-        :key="section.id"
-        class="section-btn"
-        :class="{active: store.activeNodeInspectorSection === section.id}"
-        type="button"
-        :title="`Show the ${section.label.toLowerCase()} section for the selected node`"
-        @click="store.setActiveNodeInspectorSection(section.id)"
-      >
-        {{ section.label }}
-      </button>
+        <button
+          v-for="section in sections"
+          :key="section.id"
+          class="section-btn"
+          :class="{active: store.activeNodeInspectorSection === section.id}"
+          type="button"
+          :disabled="store.activeNodeInspectorSection === section.id"
+          :title="store.activeNodeInspectorSection === section.id
+            ? `${section.label} is already open`
+            : `Show the ${section.label.toLowerCase()} section for the selected node`"
+          @click="store.setActiveNodeInspectorSection(section.id)"
+        >
+          {{ section.label }}
+        </button>
     </div>
 
     <div v-if="selectedNode" class="inspector-content">
@@ -203,9 +206,21 @@ function jumpToNode(node, source = 'related') {
   cursor: pointer;
 }
 
+.section-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .section-btn.active {
-  background: rgba(126, 202, 255, 0.12);
-  border-color: rgba(126, 202, 255, 0.32);
+  background: rgba(126, 202, 255, 0.18);
+  border-color: rgba(126, 202, 255, 0.42);
+  color: #eef8ff;
+  box-shadow: inset 0 0 0 1px rgba(126, 202, 255, 0.12);
+}
+
+.section-btn.active:disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .inspector-content {

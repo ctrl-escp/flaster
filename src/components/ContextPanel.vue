@@ -31,7 +31,10 @@ const tabs = [
           class="tab-btn"
           :class="{active: store.activeInspectorPanel === tab.id}"
           type="button"
-          :title="`Open the ${tab.label.toLowerCase()} panel`"
+          :disabled="store.activeInspectorPanel === tab.id"
+          :title="store.activeInspectorPanel === tab.id
+            ? `${tab.label} is already open`
+            : `Open the ${tab.label.toLowerCase()} panel`"
           @click="store.setActiveInspectorPanel(tab.id)"
         >
           {{ tab.label }}
@@ -72,9 +75,21 @@ const tabs = [
   cursor: pointer;
 }
 
+.tab-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .tab-btn.active {
-  background: rgba(126, 202, 255, 0.12);
-  border-color: rgba(126, 202, 255, 0.32);
+  background: rgba(126, 202, 255, 0.18);
+  border-color: rgba(126, 202, 255, 0.42);
+  color: #eef8ff;
+  box-shadow: inset 0 0 0 1px rgba(126, 202, 255, 0.12);
+}
+
+.tab-btn.active:disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .panel-content {

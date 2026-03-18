@@ -7,6 +7,7 @@ const activeTemplate = computed(() =>
 
 const selectedNode = computed(() => store.getSelectedNode());
 const activeStructure = computed(() => store.getKnownStructureById(store.inspectedKnownStructureId ?? store.activeKnownStructureId));
+const canApplyTemplate = computed(() => store.canApplyTemplate());
 const visibleTemplates = computed(() => store.templateCatalog.filter((template) => {
   if (template.type === 'apply-known-transform' || template.type === 'remove-dead-wrapper') {
     return !!activeStructure.value;
@@ -47,9 +48,12 @@ function updateDraft(key, event) {
       <button
         class="primary-btn"
         type="button"
+        :disabled="!canApplyTemplate"
         :title="store.activeTemplateType === 'advanced-js-step'
           ? 'Switch to the advanced panel and open the raw editors'
-          : 'Apply the selected template to the current script'"
+          : canApplyTemplate
+            ? 'Apply the selected template to the current script'
+            : 'The selected template is not actionable yet'"
         @click="store.applyTemplate()"
       >
         {{ store.activeTemplateType === 'advanced-js-step' ? 'Open advanced' : 'Apply template' }}
@@ -71,6 +75,7 @@ function updateDraft(key, event) {
         class="template-card"
         :class="{active: template.type === store.activeTemplateType}"
         type="button"
+        :disabled="template.type === store.activeTemplateType"
         :title="template.description"
         @click="store.setActiveTemplate(template.type)"
       >
@@ -183,12 +188,26 @@ function updateDraft(key, event) {
   cursor: pointer;
 }
 
+.template-card:disabled,
+.primary-btn:disabled,
+.secondary-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .template-card span {
   color: var(--text-muted);
 }
 
 .template-card.active {
-  border-color: rgba(255, 191, 102, 0.5);
+  border-color: rgba(255, 191, 102, 0.55);
+  background: rgba(255, 191, 102, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 191, 102, 0.12);
+}
+
+.template-card.active:disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .form-grid {

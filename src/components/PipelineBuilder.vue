@@ -28,8 +28,24 @@ const selectedStep = computed(() => store.getPipelineStep());
         </div>
         <p>{{ step.previewSummary || step.transformName || 'Custom transformation step' }}</p>
         <div class="step-actions">
-          <button class="mini-btn" type="button" title="Move this step earlier in the pipeline" @click.stop="store.movePipelineStep(index, -1)">Up</button>
-          <button class="mini-btn" type="button" title="Move this step later in the pipeline" @click.stop="store.movePipelineStep(index, 1)">Down</button>
+          <button
+            class="mini-btn"
+            type="button"
+            :disabled="index === 0"
+            :title="index === 0 ? 'This step is already first in the pipeline' : 'Move this step earlier in the pipeline'"
+            @click.stop="store.movePipelineStep(index, -1)"
+          >
+            Up
+          </button>
+          <button
+            class="mini-btn"
+            type="button"
+            :disabled="index === store.steps.length - 1"
+            :title="index === store.steps.length - 1 ? 'This step is already last in the pipeline' : 'Move this step later in the pipeline'"
+            @click.stop="store.movePipelineStep(index, 1)"
+          >
+            Down
+          </button>
           <button class="mini-btn" type="button" title="Enable or disable this step without deleting it" @click.stop="store.togglePipelineStep(index)">
             {{ step.enabled === false ? 'Enable' : 'Disable' }}
           </button>
@@ -104,6 +120,11 @@ const selectedStep = computed(() => store.getPipelineStep());
   border-radius: 9px;
   padding: 0.42rem 0.65rem;
   cursor: pointer;
+}
+
+.mini-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 pre {

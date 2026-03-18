@@ -26,6 +26,7 @@ const hasResults = computed(() => {
         class="pane-switch"
         :class="{active: store.activeWorkspaceTab === 'explorer'}"
         type="button"
+        :disabled="store.activeWorkspaceTab === 'explorer'"
         title="Browse known structures and choose which ones to search for"
         @click="store.setActiveWorkspaceTab('explorer')"
       >
@@ -35,9 +36,11 @@ const hasResults = computed(() => {
         class="pane-switch"
         :class="{active: store.activeWorkspaceTab === 'results', ready: hasResults}"
         type="button"
-        :disabled="!hasResults"
+        :disabled="!hasResults || store.activeWorkspaceTab === 'results'"
         :title="hasResults
-          ? 'Browse the current matches, AST nodes, and related nodes'
+          ? store.activeWorkspaceTab === 'results'
+            ? 'The results workspace is already open'
+            : 'Browse the current matches, AST nodes, and related nodes'
           : 'Results become available after parsing or after structure matching finds something to inspect'"
         @click="hasResults && store.setActiveWorkspaceTab('results')"
       >
@@ -84,8 +87,10 @@ const hasResults = computed(() => {
 }
 
 .pane-switch.active {
-  background: rgba(255, 191, 102, 0.12);
-  border-color: rgba(255, 191, 102, 0.32);
+  background: rgba(255, 191, 102, 0.2);
+  border-color: rgba(255, 191, 102, 0.45);
+  color: #fff3df;
+  box-shadow: inset 0 0 0 1px rgba(255, 191, 102, 0.14);
 }
 
 .pane-switch.ready:not(.active) {
@@ -96,6 +101,11 @@ const hasResults = computed(() => {
 .pane-switch:disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.pane-switch.active:disabled {
+  opacity: 1;
+  cursor: default;
 }
 
 .panel-content {

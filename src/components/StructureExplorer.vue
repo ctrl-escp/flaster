@@ -44,6 +44,8 @@ const visibleStructures = computed(() => {
 const selectedCount = computed(() => store.selectedKnownStructureIds.length);
 const activeStructure = computed(() => store.getKnownStructureById(store.activeKnownStructureId));
 const activePreview = computed(() => store.getKnownStructureTransformPreview(activeStructure.value?.id));
+const canFindMatches = computed(() => store.hasPendingKnownStructureScan());
+const canClearResults = computed(() => store.hasKnownStructureResultsToClear());
 
 function toggleSelection(structureId) {
   const nextIds = store.selectedKnownStructureIds.includes(structureId)
@@ -80,6 +82,28 @@ function useSavedView(view) {
   }
 
   store.runKnownStructureMatching(store.selectedKnownStructureIds);
+}
+
+function canFindStructure(structure) {
+  if (!structure?.browserRunnable || !store.isCurrentInputParsed()) {
+    return false;
+  }
+
+  return store.activeKnownStructureId !== structure.id ||
+    store.activeWorkspaceTab !== 'explorer' ||
+    store.hasPendingKnownStructureScan([structure.id]);
+}
+
+function canInspectStructure(structure) {
+  if (!structure?.browserRunnable || !store.isCurrentInputParsed()) {
+    return false;
+  }
+
+  return store.getKnownStructureMatches(structure.id).length > 0 ||
+    store.hasPendingKnownStructureScan([structure.id]) ||
+    store.inspectedKnownStructureId !== structure.id ||
+    store.activeWorkspaceTab !== 'results' ||
+    store.activeInspectorPanel !== 'inspector';
 }
 </script>
 
@@ -142,7 +166,10 @@ function useSavedView(view) {
       <button
         class="secondary-btn primary-action"
         type="button"
-        title="Run matching for the currently selected structures"
+        :disabled="!canFindMatches"
+        :title="canFindMatches
+          ? 'Run matching for the currently selected structures'
+          : 'Selected structures are already up to date for the current parsed script'"
         @click="store.runKnownStructureMatching()"
       >
         Find matches
@@ -150,7 +177,8 @@ function useSavedView(view) {
       <button
         class="secondary-btn"
         type="button"
-        title="Clear the currently shown structure-match results"
+        :disabled="!canClearResults"
+        :title="canClearResults ? 'Clear the currently shown structure-match results' : 'There are no structure results to clear'"
         @click="store.clearKnownStructureResults()"
       >
         Clear
@@ -198,9 +226,37 @@ function useSavedView(view) {
         </div>
 
         <div class="card-actions">
-          <button class="mini-btn" type="button" title="Run matching for this structure and focus it in the workspace" @click="activateStructure(structure.id)">Find</button>
-          <button class="mini-btn" type="button" title="Show matches for this structure in the result browser and inspector" @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id)">Inspect matches</button>
-          <button class="mini-btn" type="button" :disabled="!structure.transformEnabled" title="Preview the built-in transform for this structure without adding it to the pipeline" @click="store.previewKnownStructureTransform(structure.id)">
+          <button
+            class="mini-btn"
+            type="button"
+            :disabled="!canFindStructure(structure)"
+            :title="canFindStructure(structure)
+              ? 'Run matching for this structure and focus it in the workspace'
+              : 'This structure is already up to date or cannot run on the current script'"
+            @click="activateStructure(structure.id)"
+          >
+            Find
+          </button>
+          <button
+            class="mini-btn"
+            type="button"
+            :disabled="!canInspectStructure(structure)"
+            :title="canInspectStructure(structure)
+              ? 'Show matches for this structure in the result browser and inspector'
+              : 'There are no matches to inspect for this structure right now'"
+            @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('inspector')"
+          >
+            Inspect matches
+          </button>
+          <button
+            class="mini-btn"
+            type="button"
+            :disabled="!store.canPreviewKnownStructureTransform(structure.id)"
+            :title="store.canPreviewKnownStructureTransform(structure.id)
+              ? 'Preview the built-in transform for this structure without adding it to the pipeline'
+              : 'Parse the current script and choose a transform-enabled structure before previewing'"
+            @click="store.previewKnownStructureTransform(structure.id)"
+          >
             Preview transform
           </button>
           <button class="mini-btn emphasis" type="button" title="Seed the template panel with this structure so you can add its transform to the pipeline" @click="store.setActiveTemplate('apply-known-transform'); store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('inspector')">
@@ -330,6 +386,12 @@ h2 {
   border-radius: 9px;
   padding: 0.42rem 0.65rem;
   cursor: pointer;
+}
+
+.secondary-btn:disabled,
+.mini-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .primary-action {

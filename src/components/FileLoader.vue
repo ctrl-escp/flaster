@@ -1,5 +1,5 @@
 <script setup>
-import {ref} from 'vue';
+import {computed, ref} from 'vue';
 import store from '../store';
 import IconFolder from './icons/IconFolder.vue';
 
@@ -7,6 +7,15 @@ const inputCodeEditorId = store.editorIds.inputCodeEditor;
 const fileInput = ref(null);
 const isOpen = ref(false);
 const showSamples = ref(false);
+const canClearEditor = computed(() => !!(
+  store.getCurrentScriptContent().length ||
+  store.isCurrentInputParsed() ||
+  store.steps.length ||
+  store.filters.length ||
+  store.states.length ||
+  store.hasKnownStructureResultsToClear() ||
+  store.selectedNodeId !== null
+));
 
 function toggleMenu() {
   isOpen.value = !isOpen.value;
@@ -104,7 +113,13 @@ function loadSample(sampleId) {
         <button class="menu-btn" type="button" title="Choose from bundled sample scripts" @click="chooseSamples">
           Load sample
         </button>
-        <button class="menu-btn" type="button" title="Clear the current script and reset parsed state" @click="clearEditor">
+        <button
+          class="menu-btn"
+          type="button"
+          :disabled="!canClearEditor"
+          :title="canClearEditor ? 'Clear the current script and reset parsed state' : 'There is nothing to clear right now'"
+          @click="clearEditor"
+        >
           Clear
         </button>
       </div>
@@ -185,6 +200,13 @@ function loadSample(sampleId) {
   padding: 0.6rem 0.75rem;
   text-align: left;
   cursor: pointer;
+}
+
+.menu-btn:disabled,
+.sample-btn:disabled,
+.back-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .sample-btn {
