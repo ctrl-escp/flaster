@@ -47,6 +47,7 @@ function parseContent() {
     new Promise(() => {
       store.filteredNodes = [];
       store.arb = new window.flast.Arborist(code);
+      store.markKnownStructureInputChanged();
       if (!store.arb?.ast?.length) {
         store.logMessage(messages.astParseFail, 'error');
       } else {

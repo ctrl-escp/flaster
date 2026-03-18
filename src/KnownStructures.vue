@@ -54,6 +54,25 @@ const filteredStructures = computed(() => {
   });
 });
 
+const visibleStructureIdsForScan = computed(() => filteredStructures.value.map((structure) => structure.id));
+const canScanSelected = computed(() => store.hasPendingKnownStructureScan());
+const canScanVisible = computed(() => store.canRunKnownStructureMatching(visibleStructureIdsForScan.value));
+const scanSelectedTitle = computed(() => {
+  if (!store.arb?.ast?.length) {
+    return 'Parse a script before scanning structures';
+  }
+
+  if (!store.canRunKnownStructureMatching()) {
+    return 'Select at least one runnable structure to scan';
+  }
+
+  if (canScanSelected.value) {
+    return 'Scan the selected structures against the current parsed script';
+  }
+
+  return 'Selected structure matches are already up to date';
+});
+
 const selectedStructureCount = computed(() => store.selectedKnownStructureIds.length);
 const activeStructure = computed(() => store.getKnownStructureById(store.activeKnownStructureId));
 const activeMatches = computed(() => store.getKnownStructureMatches());
@@ -392,9 +411,21 @@ function createDeterministicRandom(match, seed) {
         </select>
       </div>
       <div class="toolbar-group">
-        <button class="btn btn-run" @click="runStructures()">Run selected</button>
-        <button class="btn" @click="runStructures(filteredStructures.map((structure) => structure.id))">
-          Run visible
+        <button
+          class="btn btn-run"
+          :disabled="!canScanSelected"
+          :title="scanSelectedTitle"
+          @click="runStructures()"
+        >
+          Scan selected
+        </button>
+        <button
+          class="btn"
+          :disabled="!canScanVisible"
+          title="Scan the currently visible structures against the current parsed script"
+          @click="runStructures(visibleStructureIdsForScan)"
+        >
+          Scan visible
         </button>
         <button class="btn" @click="store.clearKnownStructureResults()">
           Clear all
@@ -448,7 +479,7 @@ function createDeterministicRandom(match, seed) {
               </span>
             </div>
             <div class="structure-actions" @click.stop>
-              <button class="btn btn-inline btn-run" :disabled="!structure.browserRunnable" @click="runStructures([structure.id])">Run</button>
+              <button class="btn btn-inline btn-run" :disabled="!structure.browserRunnable" @click="runStructures([structure.id])">Scan</button>
               <button class="btn btn-inline" @click="showStructure(structure.id)">Show</button>
               <button class="btn btn-inline" @click="store.clearKnownStructureMatches(structure.id)">Clear</button>
               <button class="btn btn-inline" @click="copyRuleSeed(structure.id)">Copy seed</button>
@@ -484,7 +515,7 @@ function createDeterministicRandom(match, seed) {
               Next structure
             </button>
             <button class="btn btn-inline" @click="store.rerunKnownStructureMatching()" :disabled="!store.lastKnownStructureRunIds.length">
-              Re-run last
+              Scan last run
             </button>
             <label class="toggle-inline">
               <input
@@ -718,6 +749,11 @@ function createDeterministicRandom(match, seed) {
 
 .btn-run {
   background-color: greenyellow;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .detail-card,

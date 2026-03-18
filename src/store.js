@@ -249,6 +249,14 @@ function cloneValue(value) {
   }
 }
 
+function areStringArraysEqual(left = [], right = []) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((value, index) => value === right[index]);
+}
+
 function getNodeId(node) {
   return Number.isInteger(node?.nodeId) ? node.nodeId : null;
 }
@@ -385,6 +393,7 @@ const store = reactive({
     }
 
     this.arb = createArborist(script);
+    this.markKnownStructureInputChanged();
     store.page = 0;
     this.filteredNodes = this.arb.ast;
     this.filters.length = 0;
@@ -419,6 +428,10 @@ const store = reactive({
   selectedPipelineStepIndex: -1,
   advancedToolsOpen: false,
   exportPanelOpen: false,
+  knownStructureInputVersion: 0,
+  lastKnownStructureRunInputVersion: -1,
+  knownStructureSelectionVersion: 0,
+  lastKnownStructureRunSelectionVersion: -1,
   availableSampleScripts: sampleScripts,
   activeSampleScriptId: sampleScripts[0]?.id ?? null,
   templateCatalog,
@@ -675,6 +688,8 @@ const store = reactive({
     this.setInspectedKnownStructure(null);
     this.setSelectedNode(null);
     this.clearKnownStructureHighlights();
+    this.lastKnownStructureRunInputVersion = -1;
+    this.lastKnownStructureRunSelectionVersion = -1;
   },
   clearKnownStructureMatches(structureId = this.activeKnownStructureId) {
     if (!structureId || !this.knownStructureMatchesById[structureId]) {
@@ -735,9 +750,16 @@ const store = reactive({
   },
   setSelectedKnownStructureIds(structureIds = []) {
     const availableStructureIds = new Set(this.availableKnownStructures.map((structure) => structure.id));
-    this.selectedKnownStructureIds = [...new Set(structureIds)].filter((structureId) =>
+    const nextSelectedStructureIds = [...new Set(structureIds)].filter((structureId) =>
       availableStructureIds.has(structureId),
     );
+    const selectionChanged = !areStringArraysEqual(nextSelectedStructureIds, this.selectedKnownStructureIds);
+
+    this.selectedKnownStructureIds = nextSelectedStructureIds;
+
+    if (selectionChanged) {
+      this.knownStructureSelectionVersion += 1;
+    }
 
     if (!this.selectedKnownStructureIds.includes(this.activeKnownStructureId)) {
       this.activeKnownStructureId = getInitialActiveStructureId(
@@ -871,6 +893,32 @@ const store = reactive({
   setKnownStructureAutoScroll(enabled) {
     this.scrollKnownStructureSelectionIntoView = !!enabled;
     this.refreshKnownStructureHighlights();
+  },
+  markKnownStructureInputChanged() {
+    this.knownStructureInputVersion += 1;
+  },
+  canRunKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
+    const requestedIds = Array.isArray(structureIds) ? structureIds : [];
+
+    if (!this.arb?.ast?.length || this.knownStructureExecutionStatus.state === 'running') {
+      return false;
+    }
+
+    return requestedIds.some((structureId) => this.isKnownStructureBrowserRunnable(structureId));
+  },
+  hasPendingKnownStructureScan(structureIds = this.selectedKnownStructureIds) {
+    const requestedIds = Array.isArray(structureIds) ? structureIds : [];
+
+    if (!this.canRunKnownStructureMatching(requestedIds)) {
+      return false;
+    }
+
+    if (!areStringArraysEqual(requestedIds, this.lastKnownStructureRunIds)) {
+      return true;
+    }
+
+    return this.knownStructureInputVersion !== this.lastKnownStructureRunInputVersion ||
+      this.knownStructureSelectionVersion !== this.lastKnownStructureRunSelectionVersion;
   },
   getKnownStructureOverlaps(match = this.getSelectedKnownStructureMatch()) {
     if (!match?.range) {
@@ -1428,6 +1476,8 @@ if (n.type === 'Literal') {
       lastRunAt: session.ranAt,
     };
     this.lastKnownStructureRunIds = [...session.structureIds];
+    this.lastKnownStructureRunInputVersion = this.knownStructureInputVersion;
+    this.lastKnownStructureRunSelectionVersion = this.knownStructureSelectionVersion;
 
     if (!this.activeKnownStructureId || !session.structureIds.includes(this.activeKnownStructureId)) {
       this.activeKnownStructureId = getInitialActiveStructureId(

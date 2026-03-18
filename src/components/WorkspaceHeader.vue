@@ -3,8 +3,6 @@ import {computed} from 'vue';
 import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
-import IconRefresh from './icons/IconRefresh.vue';
-import IconReset from './icons/IconReset.vue';
 import IconExport from './icons/IconExport.vue';
 
 const dependencyVersions = computed(() => ([
@@ -27,14 +25,6 @@ const dependencyVersions = computed(() => ([
     <div class="header-actions">
       <file-loader />
       <parse-button />
-      <button class="header-btn" type="button" title="Clear parsed state and structure matches for the current script" @click="store.resetParsedState()">
-        <icon-reset class="header-icon" />
-        <span>Reset</span>
-      </button>
-      <button class="header-btn" type="button" title="Run known-structure matching again on the current script" @click="store.runKnownStructureMatching()">
-        <icon-refresh class="header-icon" />
-        <span>Refresh</span>
-      </button>
       <button class="header-btn primary" type="button" title="Open the generated Node.js export in a modal" @click="store.exportPanelOpen = true">
         <icon-export class="header-icon" />
         Export
@@ -113,7 +103,7 @@ h1 {
   flex-wrap: nowrap;
   flex: 1;
   min-width: 0;
-  overflow-x: auto;
+  overflow: visible;
 }
 
 .header-btn {
@@ -145,7 +135,6 @@ h1 {
   .header-actions {
     justify-content: flex-start;
     flex-wrap: wrap;
-    overflow-x: visible;
   }
 
   .workspace-header {

@@ -28,6 +28,28 @@ function chooseSamples() {
   showSamples.value = true;
 }
 
+function clearEditor() {
+  const inputEditor = store.getEditor(inputCodeEditorId);
+
+  if (inputEditor) {
+    store.setContent(inputEditor, '');
+  }
+
+  store.activeSampleScriptId = null;
+  store.resetParsedState();
+  store.filteredNodes = [];
+  store.filters.length = 0;
+  store.steps = [];
+  store.states = [];
+  store.transformationCode = '';
+  store.selectedPipelineStepIndex = -1;
+  store.activeResultMode = 'matches';
+  store.selectedNodeId = null;
+  store.selectedNodeSource = null;
+  store.logMessage('Editor cleared', 'success');
+  closeMenu();
+}
+
 function fileChanged(event) {
   const files = event.target?.files || [];
   const file = files[0];
@@ -56,11 +78,11 @@ function loadSample(sampleId) {
     <button
       class="toolbar-btn"
       type="button"
-      title="Load a local file or choose a built-in sample script"
+      title="Open script actions for loading, sampling, or clearing the current script"
       @click="toggleMenu"
     >
       <icon-folder class="toolbar-icon" />
-      <span>Load</span>
+      <span>Script</span>
     </button>
 
     <div v-if="isOpen" class="load-menu">
@@ -70,6 +92,9 @@ function loadSample(sampleId) {
         </button>
         <button class="menu-btn" type="button" title="Choose from bundled sample scripts" @click="chooseSamples">
           Load sample
+        </button>
+        <button class="menu-btn" type="button" title="Clear the current script and reset parsed state" @click="clearEditor">
+          Clear
         </button>
       </div>
 
