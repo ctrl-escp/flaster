@@ -1,5 +1,5 @@
 <script setup>
-import {computed, reactive} from 'vue';
+import {computed, reactive, ref, watch} from 'vue';
 import store from './store';
 import IconSearch from './components/icons/IconSearch.vue';
 import IconTrash from './components/icons/IconTrash.vue';
@@ -12,6 +12,8 @@ import IconArrowLeft from './components/icons/IconArrowLeft.vue';
 import IconArrowRight from './components/icons/IconArrowRight.vue';
 import IconRefresh from './components/icons/IconRefresh.vue';
 import IconListChecks from './components/icons/IconListChecks.vue';
+
+const PAGE_SIZE = 100;
 
 /**
  * @typedef {ReturnType<typeof store.getKnownStructureMatches>[number]} KnownStructureMatch
@@ -32,6 +34,9 @@ const exploration = reactive({
   sampleSize: 12,
   randomSeed: 0,
 });
+
+const structurePage = ref(0);
+const resultPage = ref(0);
 
 const categoryOptions = computed(() => [...new Set(
   store.availableKnownStructures.map((structure) => structure.category),
@@ -63,6 +68,21 @@ const filteredStructures = computed(() => {
 
     return structure.searchText.includes(search);
   });
+});
+
+const pagedStructures = computed(() => {
+  const start = structurePage.value * PAGE_SIZE;
+  return filteredStructures.value.slice(start, start + PAGE_SIZE);
+});
+const structureTotalPages = computed(() => Math.max(1, Math.ceil(filteredStructures.value.length / PAGE_SIZE)));
+const structurePageRange = computed(() => {
+  if (!filteredStructures.value.length) {
+    return '0 - 0';
+  }
+
+  const start = structurePage.value * PAGE_SIZE + 1;
+  const end = Math.min(filteredStructures.value.length, start + PAGE_SIZE - 1);
+  return `${start} - ${end}`;
 });
 
 const visibleStructureIdsForScan = computed(() => filteredStructures.value.map((structure) => structure.id));
@@ -126,6 +146,21 @@ const sampledResults = computed(() => applySampling(
 ));
 
 const groupedResults = computed(() => groupMatches(sampledResults.value, exploration.groupBy));
+const pagedResults = computed(() => {
+  const start = resultPage.value * PAGE_SIZE;
+  return sampledResults.value.slice(start, start + PAGE_SIZE);
+});
+const pagedGroupedResults = computed(() => groupMatches(pagedResults.value, exploration.groupBy));
+const resultTotalPages = computed(() => Math.max(1, Math.ceil(sampledResults.value.length / PAGE_SIZE)));
+const resultPageRange = computed(() => {
+  if (!sampledResults.value.length) {
+    return '0 - 0';
+  }
+
+  const start = resultPage.value * PAGE_SIZE + 1;
+  const end = Math.min(sampledResults.value.length, start + PAGE_SIZE - 1);
+  return `${start} - ${end}`;
+});
 const activeMatchPosition = computed(() => {
   if (!selectedMatch.value) {
     return {current: 0, total: activeMatches.value.length};
@@ -380,6 +415,50 @@ function createDeterministicRandom(match, seed) {
 
   return Math.abs(hash);
 }
+
+function nextStructurePage() {
+  structurePage.value = structurePage.value >= structureTotalPages.value - 1 ? 0 : structurePage.value + 1;
+}
+
+function prevStructurePage() {
+  structurePage.value = structurePage.value <= 0 ? structureTotalPages.value - 1 : structurePage.value - 1;
+}
+
+function nextResultPage() {
+  resultPage.value = resultPage.value >= resultTotalPages.value - 1 ? 0 : resultPage.value + 1;
+}
+
+function prevResultPage() {
+  resultPage.value = resultPage.value <= 0 ? resultTotalPages.value - 1 : resultPage.value - 1;
+}
+
+watch(
+  [
+    () => filters.search,
+    () => filters.category,
+    () => filters.availability,
+    () => filters.transformAvailability,
+    () => store.availableKnownStructures.length,
+  ],
+  () => {
+    structurePage.value = 0;
+  },
+);
+
+watch(
+  [
+    () => exploration.resultScope,
+    () => exploration.structureFilter,
+    () => exploration.groupBy,
+    () => exploration.samplingMode,
+    () => exploration.sampleSize,
+    () => exploration.randomSeed,
+    () => store.latestKnownStructureMatches.length,
+  ],
+  () => {
+    resultPage.value = 0;
+  },
+);
 </script>
 
 <template>
@@ -441,10 +520,17 @@ function createDeterministicRandom(match, seed) {
     </div>
     <div class="known-structures-layout">
       <fieldset class="structures-list-panel">
-        <legend>{{ filteredStructures.length }} Built-in Structures</legend>
+        <legend>
+          {{ filteredStructures.length }} Built-in Structures
+          <span v-if="filteredStructures.length > PAGE_SIZE"> ({{ structurePageRange }})</span>
+        </legend>
+        <div class="results-toolbar">
+          <button v-if="filteredStructures.length > PAGE_SIZE" class="btn btn-inline icon-btn icon-btn-sm" title="Previous structures page" aria-label="Previous structures page" @click="prevStructurePage"><icon-arrow-left /></button>
+          <button v-if="filteredStructures.length > PAGE_SIZE" class="btn btn-inline icon-btn icon-btn-sm" title="Next structures page" aria-label="Next structures page" @click="nextStructurePage"><icon-arrow-right /></button>
+        </div>
         <div class="structures-list">
           <article
-            v-for="structure of filteredStructures"
+            v-for="structure of pagedStructures"
             :key="structure.id"
             class="structure-card"
             :class="{active: structure.id === store.activeKnownStructureId}"
@@ -566,6 +652,9 @@ function createDeterministicRandom(match, seed) {
               <icon-refresh />
             </button>
             <span class="toolbar-meta">{{ sampledResults.length }} visible matches</span>
+            <span v-if="sampledResults.length > PAGE_SIZE" class="toolbar-meta">{{ resultPageRange }}</span>
+            <button v-if="sampledResults.length > PAGE_SIZE" class="btn btn-inline icon-btn icon-btn-sm" title="Previous results page" aria-label="Previous results page" @click="prevResultPage"><icon-arrow-left /></button>
+            <button v-if="sampledResults.length > PAGE_SIZE" class="btn btn-inline icon-btn icon-btn-sm" title="Next results page" aria-label="Next results page" @click="nextResultPage"><icon-arrow-right /></button>
           </div>
           <div v-if="structureLegend.length" class="results-legend">
             <button
@@ -579,8 +668,8 @@ function createDeterministicRandom(match, seed) {
               <span>{{ entry.count }}</span>
             </button>
           </div>
-          <div v-if="groupedResults.some((group) => group.matches.length)" class="results-list grouped-results-list">
-            <section v-for="group of groupedResults" :key="group.key" class="result-group">
+          <div v-if="pagedGroupedResults.some((group) => group.matches.length)" class="results-list grouped-results-list">
+            <section v-for="group of pagedGroupedResults" :key="group.key" class="result-group">
               <div class="result-group-header">
                 <strong>{{ group.title }}</strong>
               </div>

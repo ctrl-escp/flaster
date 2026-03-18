@@ -1,8 +1,13 @@
 <script setup>
-import {computed} from 'vue';
+import {computed, ref, watch} from 'vue';
 import store from '../store';
 import IconArrowLeft from './icons/IconArrowLeft.vue';
 import IconArrowRight from './icons/IconArrowRight.vue';
+import IconArrowUp from './icons/IconArrowUp.vue';
+import IconArrowDown from './icons/IconArrowDown.vue';
+
+const PAGE_SIZE = 100;
+const currentPage = ref(0);
 
 const modes = [
   {id: 'matches', label: 'Matches'},
@@ -42,6 +47,23 @@ const visibleItems = computed(() => {
     node: match.node,
     kind: 'match',
   }));
+});
+
+const totalItems = computed(() => visibleItems.value.length);
+const totalPages = computed(() => Math.max(1, Math.ceil(totalItems.value / PAGE_SIZE)));
+const isPaged = computed(() => totalItems.value > PAGE_SIZE);
+const pagedItems = computed(() => {
+  const start = currentPage.value * PAGE_SIZE;
+  return visibleItems.value.slice(start, start + PAGE_SIZE);
+});
+const pageRange = computed(() => {
+  if (!totalItems.value) {
+    return '0 - 0';
+  }
+
+  const start = currentPage.value * PAGE_SIZE + 1;
+  const end = Math.min(totalItems.value, start + PAGE_SIZE - 1);
+  return `${start} - ${end}`;
 });
 
 const matchItems = computed(() => store.latestKnownStructureMatches.length);
@@ -85,13 +107,61 @@ function isActive(item) {
 
   return store.selectedNodeId === item.node?.nodeId;
 }
+
+function nextPage() {
+  currentPage.value = currentPage.value >= totalPages.value - 1 ? 0 : currentPage.value + 1;
+}
+
+function prevPage() {
+  currentPage.value = currentPage.value <= 0 ? totalPages.value - 1 : currentPage.value - 1;
+}
+
+watch(
+  [
+    () => store.activeResultMode,
+    () => store.latestKnownStructureMatches.length,
+    () => (store.areFiltersActive ? store.filteredNodes.length : store.arb?.ast?.length ?? 0),
+    () => store.getRelatedNodes().length,
+  ],
+  () => {
+    currentPage.value = 0;
+  },
+);
+
+watch(totalPages, (nextTotalPages) => {
+  if (currentPage.value > nextTotalPages - 1) {
+    currentPage.value = Math.max(0, nextTotalPages - 1);
+  }
+});
 </script>
 
 <template>
   <section class="workspace-panel">
     <div class="panel-header">
       <h2>Matches, nodes, and context</h2>
-      <div class="panel-meta">{{ visibleItems.length }} visible</div>
+      <div class="panel-meta">
+        <button
+          v-if="isPaged"
+          class="mini-btn icon-btn"
+          type="button"
+          title="Previous page"
+          aria-label="Previous page"
+          @click="prevPage"
+        >
+          <icon-arrow-left />
+        </button>
+        <button
+          v-if="isPaged"
+          class="mini-btn icon-btn"
+          type="button"
+          title="Next page"
+          aria-label="Next page"
+          @click="nextPage"
+        >
+          <icon-arrow-right />
+        </button>
+        <span v-if="isPaged">{{ pageRange }} / </span>{{ totalItems }} visible
+      </div>
     </div>
 
     <div class="mode-switches">
@@ -113,22 +183,22 @@ function isActive(item) {
       <button
         class="mini-btn icon-btn"
         type="button"
-        title="Jump to the previous known-structure match"
-        aria-label="Previous match"
+        title="Jump to the previous item"
+        aria-label="Previous item"
         :disabled="!store.getKnownStructureMatches().length"
         @click="store.selectKnownStructureMatchStep(-1)"
       >
-        <icon-arrow-left />
+        <icon-arrow-up />
       </button>
       <button
         class="mini-btn icon-btn"
         type="button"
-        title="Jump to the next known-structure match"
-        aria-label="Next match"
+        title="Jump to the next item"
+        aria-label="Next item"
         :disabled="!store.getKnownStructureMatches().length"
         @click="store.selectKnownStructureMatchStep(1)"
       >
-        <icon-arrow-right />
+        <icon-arrow-down />
       </button>
       <button class="mini-btn" type="button" :disabled="!canOpenMode('related')" title="Show nodes related to the current selection" @click="store.setActiveResultMode('related')">Related</button>
       <button class="mini-btn" type="button" :disabled="!canOpenMode('ast')" title="Show raw AST nodes in the result list" @click="store.setActiveResultMode('ast')">AST</button>
@@ -136,7 +206,7 @@ function isActive(item) {
 
     <div class="result-list">
       <button
-        v-for="item in visibleItems"
+        v-for="item in pagedItems"
         :key="item.key"
         class="result-item"
         :class="{active: isActive(item)}"
@@ -184,6 +254,9 @@ function isActive(item) {
 }
 
 .panel-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: var(--text-muted);
   min-height: 1.25rem;
   white-space: nowrap;

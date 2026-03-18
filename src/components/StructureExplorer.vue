@@ -1,11 +1,15 @@
 <script setup>
-import {computed, reactive} from 'vue';
+import {computed, reactive, ref, watch} from 'vue';
 import store from '../store';
 import IconSearch from './icons/IconSearch.vue';
 import IconTrash from './icons/IconTrash.vue';
 import IconListChecks from './icons/IconListChecks.vue';
 import IconPreview from './icons/IconPreview.vue';
 import IconPlus from './icons/IconPlus.vue';
+import IconArrowLeft from './icons/IconArrowLeft.vue';
+import IconArrowRight from './icons/IconArrowRight.vue';
+
+const PAGE_SIZE = 100;
 
 const filters = reactive({
   search: '',
@@ -13,6 +17,9 @@ const filters = reactive({
   category: '',
   resultScope: 'selected',
 });
+
+const expandedStructureId = ref(null);
+const currentPage = ref(0);
 
 const categories = computed(() => [...new Set(
   store.availableKnownStructures.map((structure) => structure.category),
@@ -44,6 +51,23 @@ const visibleStructures = computed(() => {
 
     return structure.searchText.includes(search);
   });
+});
+
+const totalStructures = computed(() => visibleStructures.value.length);
+const totalPages = computed(() => Math.max(1, Math.ceil(totalStructures.value / PAGE_SIZE)));
+const isPaged = computed(() => totalStructures.value > PAGE_SIZE);
+const pagedStructures = computed(() => {
+  const start = currentPage.value * PAGE_SIZE;
+  return visibleStructures.value.slice(start, start + PAGE_SIZE);
+});
+const pageRange = computed(() => {
+  if (!totalStructures.value) {
+    return '0 - 0';
+  }
+
+  const start = currentPage.value * PAGE_SIZE + 1;
+  const end = Math.min(totalStructures.value, start + PAGE_SIZE - 1);
+  return `${start} - ${end}`;
 });
 
 const selectedCount = computed(() => store.selectedKnownStructureIds.length);
@@ -118,6 +142,39 @@ function canPreviewStructure(structure) {
 function canAddStructureToPipeline(structure) {
   return hasStructureMatches(structure) && store.canPreviewKnownStructureTransform(structure.id);
 }
+
+function toggleExpandedStructure(structureId) {
+  expandedStructureId.value = expandedStructureId.value === structureId ? null : structureId;
+}
+
+function nextPage() {
+  currentPage.value = currentPage.value >= totalPages.value - 1 ? 0 : currentPage.value + 1;
+}
+
+function prevPage() {
+  currentPage.value = currentPage.value <= 0 ? totalPages.value - 1 : currentPage.value - 1;
+}
+
+watch(
+  [
+    () => filters.search,
+    () => filters.readiness,
+    () => filters.category,
+    () => store.availableKnownStructures.length,
+  ],
+  () => {
+    currentPage.value = 0;
+    if (expandedStructureId.value && !pagedStructures.value.some((structure) => structure.id === expandedStructureId.value)) {
+      expandedStructureId.value = null;
+    }
+  },
+);
+
+watch(totalPages, (nextTotalPages) => {
+  if (currentPage.value > nextTotalPages - 1) {
+    currentPage.value = Math.max(0, nextTotalPages - 1);
+  }
+});
 </script>
 
 <template>
@@ -127,6 +184,7 @@ function canAddStructureToPipeline(structure) {
       <div class="panel-meta">
         <span>{{ selectedCount }} selected</span>
         <span>{{ store.knownStructureExecutionStatus.totalMatches }} matches</span>
+        <span v-if="isPaged">{{ pageRange }} / {{ totalStructures }}</span>
       </div>
     </div>
 
@@ -177,6 +235,26 @@ function canAddStructureToPipeline(structure) {
 
     <div class="explorer-actions">
       <button
+        v-if="isPaged"
+        class="secondary-btn icon-btn"
+        type="button"
+        title="Previous page"
+        aria-label="Previous page"
+        @click="prevPage"
+      >
+        <icon-arrow-left />
+      </button>
+      <button
+        v-if="isPaged"
+        class="secondary-btn icon-btn"
+        type="button"
+        title="Next page"
+        aria-label="Next page"
+        @click="nextPage"
+      >
+        <icon-arrow-right />
+      </button>
+      <button
         class="secondary-btn primary-action icon-btn"
         type="button"
         :disabled="!canFindMatches"
@@ -200,78 +278,109 @@ function canAddStructureToPipeline(structure) {
 
     <div class="structure-list">
       <article
-        v-for="structure in visibleStructures"
+        v-for="structure in pagedStructures"
         :key="structure.id"
         class="structure-card"
-        :class="{active: structure.id === store.activeKnownStructureId}"
+        :class="{
+          active: structure.id === store.activeKnownStructureId,
+          expanded: expandedStructureId === structure.id,
+        }"
       >
-        <div class="structure-card-top">
-          <label class="structure-toggle">
-            <input
-              :checked="store.selectedKnownStructureIds.includes(structure.id)"
-              :disabled="!structure.browserRunnable"
-              type="checkbox"
-              :title="structure.browserRunnable ? 'Include this structure when searching the selected set' : 'This structure cannot run in the browser yet'"
-              @change="toggleSelection(structure.id)"
+        <button
+          class="structure-summary"
+          type="button"
+          :aria-expanded="expandedStructureId === structure.id"
+          @click="toggleExpandedStructure(structure.id)"
+        >
+          <span class="structure-summary-main">
+            <label
+              class="structure-summary-checkbox"
+              @click.stop
             >
-            <span>Select</span>
-          </label>
-          <span class="structure-category">{{ structure.category }}</span>
-        </div>
-
-        <div class="title-row">
-          <strong>{{ structure.title }}</strong>
-          <span class="status-pill" :class="structure.browserRunnable ? 'good' : 'muted'">
-            {{ structure.transformEnabled ? 'transform-ready' : structure.browserRunnable ? 'matcher-only' : 'blocked' }}
+              <input
+                :checked="store.selectedKnownStructureIds.includes(structure.id)"
+                :disabled="!structure.browserRunnable"
+                type="checkbox"
+                :title="structure.browserRunnable ? 'Include this structure when searching the selected set' : 'This structure cannot run in the browser yet'"
+                @change="toggleSelection(structure.id)"
+              >
+            </label>
+            <strong>{{ structure.title }}</strong>
           </span>
-        </div>
+          <span class="structure-summary-side">
+            <span class="structure-summary-count">
+              {{ store.knownStructureMatchCounts[structure.id] ?? 0 }} matches
+            </span>
+            <span class="structure-summary-indicator" aria-hidden="true"></span>
+          </span>
+        </button>
 
-        <p class="structure-description">{{ structure.description }}</p>
-        <p class="structure-note">{{ structure.support.note }}</p>
+        <div v-if="expandedStructureId === structure.id" class="structure-details">
+          <div class="structure-card-top">
+            <span class="structure-category">{{ structure.category }}</span>
+            <span class="status-pill" :class="structure.browserRunnable ? 'good' : 'muted'">
+              {{ structure.transformEnabled ? 'transform-ready' : structure.browserRunnable ? 'matcher-only' : 'blocked' }}
+            </span>
+          </div>
 
-        <div class="tag-row">
-          <span v-for="tag in structure.tags" :key="tag" class="tag">#{{ tag }}</span>
-        </div>
+          <p class="structure-description">{{ structure.description }}</p>
+          <p class="structure-note">{{ structure.support.note }}</p>
 
-        <div class="card-stats">
-          <span>{{ store.knownStructureMatchCounts[structure.id] ?? 0 }} matches</span>
-          <span>{{ structure.executionMode }}</span>
-        </div>
+          <div class="tag-row">
+            <span v-for="tag in structure.tags" :key="tag" class="tag">#{{ tag }}</span>
+          </div>
 
-        <div class="card-actions">
-          <button
-            class="mini-btn icon-btn icon-btn-sm"
-            type="button"
-            :disabled="!canFindStructure(structure)"
-            title="Run matching for this structure and focus it in the workspace"
-            aria-label="Find matches for this structure"
-            @click="activateStructure(structure.id)"
-          >
-            <icon-search />
-          </button>
-          <button
-            class="mini-btn icon-btn icon-btn-sm"
-            type="button"
-            :disabled="!canInspectStructure(structure)"
-            title="Show matches for this structure in the result browser and inspector"
-            aria-label="Show structure matches"
-            @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('inspector')"
-          >
-            <icon-list-checks />
-          </button>
-          <button
-            class="mini-btn icon-btn icon-btn-sm preview-icon-btn"
-            type="button"
-            :disabled="!canPreviewStructure(structure)"
-            title="Preview the built-in transform for this structure without adding it to the pipeline"
-            aria-label="Preview structure transform"
-            @click="store.previewKnownStructureTransform(structure.id)"
-          >
-            <icon-preview />
-          </button>
-          <button class="mini-btn emphasis icon-btn icon-btn-sm" type="button" :disabled="!canAddStructureToPipeline(structure)" title="Seed the template panel with this structure so you can add its transform to the pipeline" aria-label="Add transform to pipeline" @click="store.setActiveTemplate('apply-known-transform'); store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('inspector')">
-            <icon-plus />
-          </button>
+          <div class="card-stats">
+            <span>{{ store.knownStructureMatchCounts[structure.id] ?? 0 }} matches</span>
+            <span>{{ structure.executionMode }}</span>
+          </div>
+
+          <div class="card-actions">
+            <button
+              class="structure-action"
+              type="button"
+              :disabled="!canFindStructure(structure)"
+              title="Run matching for this structure and focus it in the workspace"
+              aria-label="Find matches for this structure"
+              @click="activateStructure(structure.id)"
+            >
+              <icon-search />
+              <span>Find</span>
+            </button>
+            <button
+              class="structure-action"
+              type="button"
+              :disabled="!canInspectStructure(structure)"
+              title="Show matches for this structure in the result browser and inspector"
+              aria-label="Show structure matches"
+              @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('inspector')"
+            >
+              <icon-list-checks />
+              <span>Inspect</span>
+            </button>
+            <button
+              class="structure-action"
+              type="button"
+              :disabled="!canPreviewStructure(structure)"
+              title="Preview the built-in transform for this structure without adding it to the pipeline"
+              aria-label="Preview structure transform"
+              @click="store.previewKnownStructureTransform(structure.id)"
+            >
+              <icon-preview />
+              <span>Preview</span>
+            </button>
+            <button
+              class="structure-action structure-action-emphasis"
+              type="button"
+              :disabled="!canAddStructureToPipeline(structure)"
+              title="Seed the template panel with this structure so you can add its transform to the pipeline"
+              aria-label="Add transform to pipeline"
+              @click="store.setActiveTemplate('apply-known-transform'); store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('inspector')"
+            >
+              <icon-plus />
+              <span>Add</span>
+            </button>
+          </div>
         </div>
       </article>
     </div>
@@ -376,8 +485,7 @@ h2 {
 }
 
 .saved-views,
-.explorer-actions,
-.card-actions {
+.explorer-actions {
   flex-wrap: wrap;
 }
 
@@ -446,15 +554,151 @@ h2 {
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   background: var(--panel-card);
-  padding: 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
 }
 
 .structure-card.active {
   border-color: rgba(255, 191, 102, 0.55);
   box-shadow: 0 0 0 1px rgba(255, 191, 102, 0.18);
+}
+
+.structure-summary {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 0.9rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.structure-summary-main,
+.structure-summary-side {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.structure-summary-main strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.structure-summary-side {
+  flex-shrink: 0;
+}
+
+.structure-summary:hover,
+.structure-summary:focus-visible {
+  background: rgba(255, 255, 255, 0.03);
+  outline: none;
+}
+
+.structure-summary-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.structure-summary-count {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.structure-summary-indicator {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+  flex-shrink: 0;
+  margin-right: 0.15rem;
+}
+
+.structure-card.expanded .structure-summary-indicator {
+  transform: rotate(225deg);
+}
+
+.structure-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0 0.9rem 0.85rem;
+}
+
+.card-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.15rem;
+}
+
+.structure-action {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  min-height: 2.2rem;
+  cursor: pointer;
+}
+
+.structure-action span {
+  display: inline;
+  line-height: 1;
+}
+
+.structure-action svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
+.structure-action:hover:not(:disabled),
+.structure-action:focus-visible:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.24);
+  outline: none;
+}
+
+.structure-action-emphasis {
+  background: rgba(255, 191, 102, 0.14);
+  border-color: rgba(255, 191, 102, 0.34);
+}
+
+.structure-action-emphasis:hover:not(:disabled),
+.structure-action-emphasis:focus-visible:not(:disabled) {
+  background: rgba(255, 191, 102, 0.24);
+  border-color: rgba(255, 191, 102, 0.48);
+}
+
+.structure-action:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  color: rgba(233, 240, 248, 0.62);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 520px) {
+  .card-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 .structure-toggle {
