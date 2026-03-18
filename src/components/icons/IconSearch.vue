@@ -1,7 +1,15 @@
 <template>
   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <path
-      d="M4 7h16M9.5 4h5l.75 2.25h-6.5L9.5 4ZM7 7l.8 11a1.5 1.5 0 0 0 1.5 1.4h5.4a1.5 1.5 0 0 0 1.5-1.4L17 7M10 11v5M14 11v5"
+      d="M10.5 5a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="1.8"
+    />
+    <path
+      d="m14.5 14.5 4.25 4.25"
       fill="none"
       stroke="currentColor"
       stroke-linecap="round"

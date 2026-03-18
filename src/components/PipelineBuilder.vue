@@ -1,6 +1,10 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
+import IconArrowUp from './icons/IconArrowUp.vue';
+import IconArrowDown from './icons/IconArrowDown.vue';
+import IconEye from './icons/IconEye.vue';
+import IconClose from './icons/IconClose.vue';
 
 const selectedStep = computed(() => store.getPipelineStep());
 </script>
@@ -29,27 +33,31 @@ const selectedStep = computed(() => store.getPipelineStep());
         <p>{{ step.previewSummary || step.transformName || 'Custom transformation step' }}</p>
         <div class="step-actions">
           <button
-            class="mini-btn"
+            class="mini-btn icon-btn icon-btn-sm"
             type="button"
             :disabled="index === 0"
-            :title="index === 0 ? 'This step is already first in the pipeline' : 'Move this step earlier in the pipeline'"
+            title="Move this step earlier in the pipeline"
+            aria-label="Move step earlier"
             @click.stop="store.movePipelineStep(index, -1)"
           >
-            Up
+            <icon-arrow-up />
           </button>
           <button
-            class="mini-btn"
+            class="mini-btn icon-btn icon-btn-sm"
             type="button"
             :disabled="index === store.steps.length - 1"
-            :title="index === store.steps.length - 1 ? 'This step is already last in the pipeline' : 'Move this step later in the pipeline'"
+            title="Move this step later in the pipeline"
+            aria-label="Move step later"
             @click.stop="store.movePipelineStep(index, 1)"
           >
-            Down
+            <icon-arrow-down />
           </button>
-          <button class="mini-btn" type="button" title="Enable or disable this step without deleting it" @click.stop="store.togglePipelineStep(index)">
-            {{ step.enabled === false ? 'Enable' : 'Disable' }}
+          <button class="mini-btn icon-btn icon-btn-sm" type="button" :title="step.enabled === false ? 'Enable this step' : 'Disable this step'" :aria-label="step.enabled === false ? 'Enable step' : 'Disable step'" @click.stop="store.togglePipelineStep(index)">
+            <icon-eye />
           </button>
-          <button class="mini-btn" type="button" title="Remove this step from the pipeline" @click.stop="store.removePipelineStep(index)">Remove</button>
+          <button class="mini-btn icon-btn icon-btn-sm" type="button" title="Remove this step from the pipeline" aria-label="Remove step" @click.stop="store.removePipelineStep(index)">
+            <icon-close />
+          </button>
         </div>
       </article>
     </div>
@@ -118,8 +126,18 @@ const selectedStep = computed(() => store.getPipelineStep());
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   border-radius: 9px;
-  padding: 0.42rem 0.65rem;
   cursor: pointer;
+}
+
+.mini-btn:not(.icon-btn) {
+  padding: 0.42rem 0.65rem;
+}
+
+.mini-btn:hover:not(:disabled),
+.mini-btn:focus-visible:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.2);
+  outline: none;
 }
 
 .mini-btn:disabled {

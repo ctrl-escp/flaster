@@ -1,6 +1,17 @@
 <script setup>
 import {computed, reactive} from 'vue';
 import store from './store';
+import IconSearch from './components/icons/IconSearch.vue';
+import IconTrash from './components/icons/IconTrash.vue';
+import IconEye from './components/icons/IconEye.vue';
+import IconCopy from './components/icons/IconCopy.vue';
+import IconPreview from './components/icons/IconPreview.vue';
+import IconCheck from './components/icons/IconCheck.vue';
+import IconReset from './components/icons/IconReset.vue';
+import IconArrowLeft from './components/icons/IconArrowLeft.vue';
+import IconArrowRight from './components/icons/IconArrowRight.vue';
+import IconRefresh from './components/icons/IconRefresh.vue';
+import IconListChecks from './components/icons/IconListChecks.vue';
 
 /**
  * @typedef {ReturnType<typeof store.getKnownStructureMatches>[number]} KnownStructureMatch
@@ -57,21 +68,7 @@ const filteredStructures = computed(() => {
 const visibleStructureIdsForScan = computed(() => filteredStructures.value.map((structure) => structure.id));
 const canScanSelected = computed(() => store.hasPendingKnownStructureScan());
 const canScanVisible = computed(() => store.canRunKnownStructureMatching(visibleStructureIdsForScan.value));
-const scanSelectedTitle = computed(() => {
-  if (!store.arb?.ast?.length) {
-    return 'Parse a script before scanning structures';
-  }
-
-  if (!store.canRunKnownStructureMatching()) {
-    return 'Select at least one runnable structure to scan';
-  }
-
-  if (canScanSelected.value) {
-    return 'Scan the selected structures against the current parsed script';
-  }
-
-  return 'Selected structure matches are already up to date';
-});
+const scanSelectedTitle = 'Scan the selected structures against the current parsed script';
 
 const selectedStructureCount = computed(() => store.selectedKnownStructureIds.length);
 const activeStructure = computed(() => store.getKnownStructureById(store.activeKnownStructureId));
@@ -245,6 +242,10 @@ function applyTransform(structureId) {
   store.applyKnownStructureTransform(structureId);
 }
 
+function hasStructureMatches(structureId) {
+  return store.getKnownStructureMatches(structureId).length > 0;
+}
+
 /**
  * Selects a normalized structure match in the store.
  *
@@ -412,23 +413,25 @@ function createDeterministicRandom(match, seed) {
       </div>
       <div class="toolbar-group">
         <button
-          class="btn btn-run"
+          class="btn btn-run icon-btn"
           :disabled="!canScanSelected"
           :title="scanSelectedTitle"
+          aria-label="Scan selected structures"
           @click="runStructures()"
         >
-          Scan selected
+          <icon-search />
         </button>
         <button
-          class="btn"
+          class="btn icon-btn"
           :disabled="!canScanVisible"
           title="Scan the currently visible structures against the current parsed script"
+          aria-label="Scan visible structures"
           @click="runStructures(visibleStructureIdsForScan)"
         >
-          Scan visible
+          <icon-eye />
         </button>
-        <button class="btn" @click="store.clearKnownStructureResults()">
-          Clear all
+        <button class="btn icon-btn" title="Clear all known structure results" aria-label="Clear all structure results" @click="store.clearKnownStructureResults()">
+          <icon-trash />
         </button>
         <span class="toolbar-meta">{{ selectedStructureCount }} selected</span>
         <span class="toolbar-meta" v-if="store.knownStructureExecutionStatus.blockedStructures">
@@ -479,18 +482,21 @@ function createDeterministicRandom(match, seed) {
               </span>
             </div>
             <div class="structure-actions" @click.stop>
-              <button class="btn btn-inline btn-run" :disabled="!structure.browserRunnable" @click="runStructures([structure.id])">Scan</button>
-              <button class="btn btn-inline" @click="showStructure(structure.id)">Show</button>
-              <button class="btn btn-inline" @click="store.clearKnownStructureMatches(structure.id)">Clear</button>
-              <button class="btn btn-inline" @click="copyRuleSeed(structure.id)">Copy seed</button>
+              <button class="btn btn-inline btn-run icon-btn icon-btn-sm" :disabled="!structure.browserRunnable" title="Scan this structure" aria-label="Scan structure" @click="runStructures([structure.id])"><icon-search /></button>
+              <button class="btn btn-inline icon-btn icon-btn-sm" :disabled="!hasStructureMatches(structure.id)" title="Show matches for this structure" aria-label="Show structure matches" @click="showStructure(structure.id)"><icon-list-checks /></button>
+              <button class="btn btn-inline icon-btn icon-btn-sm" title="Clear this structure's matches" aria-label="Clear structure matches" @click="store.clearKnownStructureMatches(structure.id)"><icon-trash /></button>
+              <button class="btn btn-inline icon-btn icon-btn-sm" title="Copy this structure's rule seed" aria-label="Copy rule seed" @click="copyRuleSeed(structure.id)"><icon-copy /></button>
               <button
                 v-if="structure.transformEnabled"
-                class="btn btn-inline"
+                class="btn btn-inline icon-btn icon-btn-sm preview-icon-btn"
+                :disabled="!hasStructureMatches(structure.id)"
+                title="Preview this structure's transform"
+                aria-label="Preview transform"
                 @click="previewTransform(structure.id)"
               >
-                Preview
+                <icon-preview />
               </button>
-              <button class="btn btn-inline" @click="store.setInspectedKnownStructure(structure.id)">Inspect</button>
+              <button class="btn btn-inline icon-btn icon-btn-sm" title="Inspect this structure" aria-label="Inspect structure" @click="store.setInspectedKnownStructure(structure.id)"><icon-eye /></button>
             </div>
           </article>
         </div>
@@ -502,21 +508,11 @@ function createDeterministicRandom(match, seed) {
             <span v-if="activeMatches.length"> {{ activeMatchPosition.current }} / {{ activeMatchPosition.total }}</span>
           </legend>
           <div class="results-toolbar">
-            <button class="btn btn-inline" @click="store.selectKnownStructureMatchStep(-1)" :disabled="!activeMatches.length">
-              Prev match
-            </button>
-            <button class="btn btn-inline" @click="store.selectKnownStructureMatchStep(1)" :disabled="!activeMatches.length">
-              Next match
-            </button>
-            <button class="btn btn-inline" @click="store.selectKnownStructureStep(-1)" :disabled="!availableStructureFilterOptions.length">
-              Prev structure
-            </button>
-            <button class="btn btn-inline" @click="store.selectKnownStructureStep(1)" :disabled="!availableStructureFilterOptions.length">
-              Next structure
-            </button>
-            <button class="btn btn-inline" @click="store.rerunKnownStructureMatching()" :disabled="!store.lastKnownStructureRunIds.length">
-              Scan last run
-            </button>
+            <button class="btn btn-inline icon-btn icon-btn-sm" title="Previous match" aria-label="Previous match" @click="store.selectKnownStructureMatchStep(-1)" :disabled="!activeMatches.length"><icon-arrow-left /></button>
+            <button class="btn btn-inline icon-btn icon-btn-sm" title="Next match" aria-label="Next match" @click="store.selectKnownStructureMatchStep(1)" :disabled="!activeMatches.length"><icon-arrow-right /></button>
+            <button class="btn btn-inline icon-btn icon-btn-sm" title="Previous structure" aria-label="Previous structure" @click="store.selectKnownStructureStep(-1)" :disabled="!availableStructureFilterOptions.length"><icon-arrow-left /></button>
+            <button class="btn btn-inline icon-btn icon-btn-sm" title="Next structure" aria-label="Next structure" @click="store.selectKnownStructureStep(1)" :disabled="!availableStructureFilterOptions.length"><icon-arrow-right /></button>
+            <button class="btn btn-inline icon-btn icon-btn-sm" title="Scan the last run set again" aria-label="Scan last run again" @click="store.rerunKnownStructureMatching()" :disabled="!store.lastKnownStructureRunIds.length"><icon-refresh /></button>
             <label class="toggle-inline">
               <input
                 :checked="store.scrollKnownStructureSelectionIntoView"
@@ -562,10 +558,12 @@ function createDeterministicRandom(match, seed) {
             >
             <button
               v-if="exploration.samplingMode === 'random'"
-              class="btn btn-inline"
+              class="btn btn-inline icon-btn icon-btn-sm"
+              title="Reroll the random sample"
+              aria-label="Reroll sample"
               @click="rerollSample()"
             >
-              Reroll sample
+              <icon-refresh />
             </button>
             <span class="toolbar-meta">{{ sampledResults.length }} visible matches</span>
           </div>
@@ -667,7 +665,7 @@ function createDeterministicRandom(match, seed) {
                   <strong>Intent</strong> {{ inspectedStructure.description }}
                 </div>
                 <pre class="rule-seed">{{ activeRuleSeed }}</pre>
-                <button class="btn btn-inline" @click="copyRuleSeed(inspectedStructure.id)">Copy seed</button>
+                <button class="btn btn-inline icon-btn icon-btn-sm" title="Copy this structure's rule seed" aria-label="Copy rule seed" @click="copyRuleSeed(inspectedStructure.id)"><icon-copy /></button>
               </div>
               <div class="detail-card">
                 <div class="detail-heading">Safe transform</div>
@@ -700,25 +698,31 @@ function createDeterministicRandom(match, seed) {
                 </div>
                 <div class="structure-actions">
                   <button
-                    class="btn btn-inline"
-                    :disabled="!inspectedStructure.transformEnabled"
+                    class="btn btn-inline icon-btn icon-btn-sm preview-icon-btn"
+                    :disabled="!inspectedStructure.transformEnabled || !hasStructureMatches(inspectedStructure.id)"
+                    title="Preview this structure's transform"
+                    aria-label="Preview transform"
                     @click="previewTransform(inspectedStructure.id)"
                   >
-                    Preview transform
+                    <icon-preview />
                   </button>
                   <button
-                    class="btn btn-inline btn-run"
+                    class="btn btn-inline btn-run icon-btn icon-btn-sm"
                     :disabled="!inspectedStructure.transformEnabled || !activeTransformPreview || !!activeTransformPreview.error || !activeTransformPreview.hasChanges"
+                    title="Apply the previewed transform"
+                    aria-label="Apply transform"
                     @click="applyTransform(inspectedStructure.id)"
                   >
-                    Apply transform
+                    <icon-check />
                   </button>
                   <button
-                    class="btn btn-inline"
+                    class="btn btn-inline icon-btn icon-btn-sm"
                     :disabled="!activeTransformPreview"
+                    title="Clear the current transform preview"
+                    aria-label="Clear preview"
                     @click="store.clearKnownStructureTransformPreview(inspectedStructure.id)"
                   >
-                    Clear preview
+                    <icon-reset />
                   </button>
                 </div>
               </div>

@@ -32,14 +32,14 @@ const canExport = computed(() => store.steps.length > 0);
       <file-loader />
       <parse-button />
       <button
-        class="header-btn primary"
+        class="header-btn primary icon-btn"
         type="button"
         :disabled="!canExport"
         :title="canExport ? 'Open the generated Node.js export in a modal' : 'Add at least one pipeline step before exporting'"
+        aria-label="Open export panel"
         @click="store.exportPanelOpen = true"
       >
         <icon-export class="header-icon" />
-        Export
       </button>
       <div class="version-chips" aria-label="Tool dependency versions">
         <a
@@ -140,16 +140,13 @@ h1 {
 }
 
 .header-btn {
-  min-height: 2.5rem;
   border-radius: 10px;
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
-  padding: 0.55rem 0.8rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
 }
 
 .header-btn:disabled {

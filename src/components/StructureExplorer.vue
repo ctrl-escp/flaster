@@ -1,6 +1,11 @@
 <script setup>
 import {computed, reactive} from 'vue';
 import store from '../store';
+import IconSearch from './icons/IconSearch.vue';
+import IconTrash from './icons/IconTrash.vue';
+import IconListChecks from './icons/IconListChecks.vue';
+import IconPreview from './icons/IconPreview.vue';
+import IconPlus from './icons/IconPlus.vue';
 
 const filters = reactive({
   search: '',
@@ -95,15 +100,23 @@ function canFindStructure(structure) {
 }
 
 function canInspectStructure(structure) {
-  if (!structure?.browserRunnable || !store.isCurrentInputParsed()) {
-    return false;
-  }
+  return !!(
+    structure?.browserRunnable &&
+    store.isCurrentInputParsed() &&
+    store.getKnownStructureMatches(structure.id).length > 0
+  );
+}
 
-  return store.getKnownStructureMatches(structure.id).length > 0 ||
-    store.hasPendingKnownStructureScan([structure.id]) ||
-    store.inspectedKnownStructureId !== structure.id ||
-    store.activeWorkspaceTab !== 'results' ||
-    store.activeInspectorPanel !== 'inspector';
+function hasStructureMatches(structure) {
+  return store.getKnownStructureMatches(structure?.id).length > 0;
+}
+
+function canPreviewStructure(structure) {
+  return hasStructureMatches(structure) && store.canPreviewKnownStructureTransform(structure.id);
+}
+
+function canAddStructureToPipeline(structure) {
+  return hasStructureMatches(structure) && store.canPreviewKnownStructureTransform(structure.id);
 }
 </script>
 
@@ -164,24 +177,24 @@ function canInspectStructure(structure) {
 
     <div class="explorer-actions">
       <button
-        class="secondary-btn primary-action"
+        class="secondary-btn primary-action icon-btn"
         type="button"
         :disabled="!canFindMatches"
-        :title="canFindMatches
-          ? 'Run matching for the currently selected structures'
-          : 'Selected structures are already up to date for the current parsed script'"
+        title="Run matching for the currently selected structures"
+        aria-label="Find structure matches"
         @click="store.runKnownStructureMatching()"
       >
-        Find matches
+        <icon-search />
       </button>
       <button
-        class="secondary-btn"
+        class="secondary-btn icon-btn"
         type="button"
         :disabled="!canClearResults"
         :title="canClearResults ? 'Clear the currently shown structure-match results' : 'There are no structure results to clear'"
+        aria-label="Clear structure results"
         @click="store.clearKnownStructureResults()"
       >
-        Clear
+        <icon-trash />
       </button>
     </div>
 
@@ -227,40 +240,37 @@ function canInspectStructure(structure) {
 
         <div class="card-actions">
           <button
-            class="mini-btn"
+            class="mini-btn icon-btn icon-btn-sm"
             type="button"
             :disabled="!canFindStructure(structure)"
-            :title="canFindStructure(structure)
-              ? 'Run matching for this structure and focus it in the workspace'
-              : 'This structure is already up to date or cannot run on the current script'"
+            title="Run matching for this structure and focus it in the workspace"
+            aria-label="Find matches for this structure"
             @click="activateStructure(structure.id)"
           >
-            Find
+            <icon-search />
           </button>
           <button
-            class="mini-btn"
+            class="mini-btn icon-btn icon-btn-sm"
             type="button"
             :disabled="!canInspectStructure(structure)"
-            :title="canInspectStructure(structure)
-              ? 'Show matches for this structure in the result browser and inspector'
-              : 'There are no matches to inspect for this structure right now'"
+            title="Show matches for this structure in the result browser and inspector"
+            aria-label="Show structure matches"
             @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('inspector')"
           >
-            Inspect matches
+            <icon-list-checks />
           </button>
           <button
-            class="mini-btn"
+            class="mini-btn icon-btn icon-btn-sm preview-icon-btn"
             type="button"
-            :disabled="!store.canPreviewKnownStructureTransform(structure.id)"
-            :title="store.canPreviewKnownStructureTransform(structure.id)
-              ? 'Preview the built-in transform for this structure without adding it to the pipeline'
-              : 'Parse the current script and choose a transform-enabled structure before previewing'"
+            :disabled="!canPreviewStructure(structure)"
+            title="Preview the built-in transform for this structure without adding it to the pipeline"
+            aria-label="Preview structure transform"
             @click="store.previewKnownStructureTransform(structure.id)"
           >
-            Preview transform
+            <icon-preview />
           </button>
-          <button class="mini-btn emphasis" type="button" title="Seed the template panel with this structure so you can add its transform to the pipeline" @click="store.setActiveTemplate('apply-known-transform'); store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('inspector')">
-            Add to pipeline
+          <button class="mini-btn emphasis icon-btn icon-btn-sm" type="button" :disabled="!canAddStructureToPipeline(structure)" title="Seed the template panel with this structure so you can add its transform to the pipeline" aria-label="Add transform to pipeline" @click="store.setActiveTemplate('apply-known-transform'); store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('inspector')">
+            <icon-plus />
           </button>
         </div>
       </article>
@@ -384,8 +394,12 @@ h2 {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   border-radius: 9px;
-  padding: 0.42rem 0.65rem;
   cursor: pointer;
+}
+
+.secondary-btn:not(.icon-btn),
+.mini-btn:not(.icon-btn) {
+  padding: 0.42rem 0.65rem;
 }
 
 .secondary-btn:disabled,
@@ -399,9 +413,23 @@ h2 {
   border-color: rgba(255, 191, 102, 0.34);
 }
 
+.primary-action:hover:not(:disabled),
+.primary-action:focus-visible:not(:disabled) {
+  background: rgba(255, 191, 102, 0.22);
+  border-color: rgba(255, 191, 102, 0.5);
+  box-shadow: 0 0 0 1px rgba(255, 191, 102, 0.12);
+}
+
 .mini-btn.emphasis {
   background: rgba(255, 191, 102, 0.14);
   border-color: rgba(255, 191, 102, 0.38);
+}
+
+.mini-btn.emphasis:hover:not(:disabled),
+.mini-btn.emphasis:focus-visible:not(:disabled) {
+  background: rgba(255, 191, 102, 0.24);
+  border-color: rgba(255, 191, 102, 0.55);
+  box-shadow: 0 0 0 1px rgba(255, 191, 102, 0.12);
 }
 
 .structure-list {

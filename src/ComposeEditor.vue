@@ -2,6 +2,9 @@
 import store from './store';
 import {onActivated} from 'vue';
 import CodeEditor from './components/CodeEditor.vue';
+import IconExport from './components/icons/IconExport.vue';
+import IconCopy from './components/icons/IconCopy.vue';
+import IconRefresh from './components/icons/IconRefresh.vue';
 import {
   composeTransformationScript,
   getGeneratedScriptFilename,
@@ -42,9 +45,15 @@ onActivated(() => recompose());
   <div class="composer-controller">
     <div class="btn-group">
       <span class="composer-btn-group">
-        <button class="btn btn-download" @click="downloadFlaster()">Download</button>
-        <button class="btn btn-copy" @click="copy()">Copy</button>
-        <button class="btn btn-recompose" @click="recompose()">Re-compose</button>
+        <button class="btn btn-download icon-btn" title="Download the generated script" aria-label="Download script" @click="downloadFlaster()">
+          <icon-export />
+        </button>
+        <button class="btn btn-copy icon-btn" title="Copy the generated script" aria-label="Copy script" @click="copy()">
+          <icon-copy />
+        </button>
+        <button class="btn btn-recompose icon-btn" title="Re-compose the generated script from the current pipeline" aria-label="Re-compose script" @click="recompose()">
+          <icon-refresh />
+        </button>
       </span>
     </div>
     <fieldset class="composer-editor-wrapper">

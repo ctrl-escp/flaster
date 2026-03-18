@@ -1,6 +1,8 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
+import IconCheck from './icons/IconCheck.vue';
+import IconTransform from './icons/IconTransform.vue';
 
 const activeTemplate = computed(() =>
   store.templateCatalog.find((template) => template.type === store.activeTemplateType) ?? null);
@@ -46,7 +48,7 @@ function updateDraft(key, event) {
 
     <div class="template-actions primary-actions">
       <button
-        class="primary-btn"
+        class="primary-btn icon-btn"
         type="button"
         :disabled="!canApplyTemplate"
         :title="store.activeTemplateType === 'advanced-js-step'
@@ -54,17 +56,20 @@ function updateDraft(key, event) {
           : canApplyTemplate
             ? 'Apply the selected template to the current script'
             : 'The selected template is not actionable yet'"
+        :aria-label="store.activeTemplateType === 'advanced-js-step' ? 'Open advanced editors' : 'Apply template'"
         @click="store.applyTemplate()"
       >
-        {{ store.activeTemplateType === 'advanced-js-step' ? 'Open advanced' : 'Apply template' }}
+        <icon-transform v-if="store.activeTemplateType === 'advanced-js-step'" />
+        <icon-check v-else />
       </button>
       <button
-        class="secondary-btn"
+        class="secondary-btn icon-btn"
         type="button"
         title="Switch to the advanced panel and show raw filter/transform editors"
+        aria-label="Open advanced editors"
         @click="store.openAdvancedTools()"
       >
-        Advanced
+        <icon-transform />
       </button>
     </div>
 
@@ -234,9 +239,13 @@ label {
 .primary-btn,
 .secondary-btn {
   border-radius: 10px;
-  padding: 0.5rem 0.8rem;
   border: 1px solid var(--panel-border);
   cursor: pointer;
+}
+
+.primary-btn:not(.icon-btn),
+.secondary-btn:not(.icon-btn) {
+  padding: 0.5rem 0.8rem;
 }
 
 .primary-btn {

@@ -103,29 +103,26 @@ onMounted(() => {
 
 <template>
   <button
-    class="toolbar-btn parse-btn"
+    class="toolbar-btn parse-btn icon-btn"
     :class="{disabled: !canParse}"
     type="button"
     :disabled="!canParse"
     :title="parseTitle"
+    aria-label="Parse script"
     @click="parseContent"
   >
     <icon-parse ref="parsedStatusEl" class="toolbar-icon unparsed" />
-    <span>Parse</span>
   </button>
 </template>
 
 <style scoped>
 .toolbar-btn {
-  min-height: 2.5rem;
   border-radius: 10px;
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
-  padding: 0.55rem 0.8rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
   cursor: pointer;
 }
 

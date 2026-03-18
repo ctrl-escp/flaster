@@ -5,6 +5,9 @@ import CodeEditor from './components/CodeEditor.vue';
 import IconTrash from './components/icons/IconTrash.vue';
 import IconCheckboxActive from './components/icons/IconCheckboxActive.vue';
 import IconCheckboxInactive from './components/icons/IconCheckboxInactive.vue';
+import IconPlus from './components/icons/IconPlus.vue';
+import IconEye from './components/icons/IconEye.vue';
+import IconStructure from './components/icons/IconStructure.vue';
 
 const initialValue = `// write content for the filter function \`(n) => {<your code>}\`, like:
 n.type === 'Literal' &&
@@ -69,15 +72,15 @@ function addNewFilter() {
   <div class="filter-controller" v-if="store.arb?.ast?.length">
     <div class="btn-group">
       <span class="filters-btn-group">
-        <button class="btn btn-apply" @click="addNewFilter">Add</button>
-        <button class="btn btn-clear" @click="setFilterEditorContent('')">Clear</button>
+        <button class="btn btn-apply icon-btn" title="Add the current filter editor code as a filter" aria-label="Add filter" @click="addNewFilter"><icon-plus /></button>
+        <button class="btn btn-clear icon-btn" title="Clear the filter editor" aria-label="Clear filter editor" @click="setFilterEditorContent('')"><icon-trash /></button>
       </span>
       <span class="filters-btn-group">
-        <button class="btn btn-clear-all-filters" @click="clearAllFilters" :disabled="!numOfAvailableFilters">Clear all</button>
-        <button class="btn btn-clear-all-filters" @click="store.areFiltersActive = !store.areFiltersActive"
-                :disabled="!numOfAvailableFilters">{{ store.areFiltersActive ? messages.disableFilters : messages.enableFilters }}
+        <button class="btn btn-clear-all-filters icon-btn" title="Clear all applied filters" aria-label="Clear all filters" @click="clearAllFilters" :disabled="!numOfAvailableFilters"><icon-trash /></button>
+        <button class="btn btn-clear-all-filters icon-btn" @click="store.areFiltersActive = !store.areFiltersActive"
+                :disabled="!numOfAvailableFilters" :title="store.areFiltersActive ? messages.disableFilters : messages.enableFilters" :aria-label="store.areFiltersActive ? messages.disableFilters : messages.enableFilters"><icon-eye />
         </button>
-        <button class="btn btn-clear-all-filters" :disabled="!numOfEnabledFilters || numOfEnabledFilters < 2" @click="combineEnabledFilters">Combine active</button>
+        <button class="btn btn-clear-all-filters icon-btn" :disabled="!numOfEnabledFilters || numOfEnabledFilters < 2" title="Combine all active filters into one filter" aria-label="Combine active filters" @click="combineEnabledFilters"><icon-structure /></button>
       </span>
     </div>
     <div class="filter-display">

@@ -1,6 +1,8 @@
 <script setup>
 import store from '../store';
 import {computed, onMounted, reactive} from 'vue';
+import IconArrowLeft from './icons/IconArrowLeft.vue';
+import IconArrowRight from './icons/IconArrowRight.vue';
 
 const state = reactive({
   highlightedNodeId: -1,
@@ -54,8 +56,8 @@ onMounted(() => {
   <fieldset class="ast-list-wrapper">
     <legend v-if="store.arb?.ast?.length">
       <span class="paged" v-if="isPaged">
-        <button class="prev-page" title="Previous page" @click="prevPage">&lt;</button>
-        <button class="next-page" title="Next page" @click="nextPage">&gt;</button>
+        <button class="prev-page btn icon-btn icon-btn-sm" title="Previous page" aria-label="Previous page" @click="prevPage"><icon-arrow-left /></button>
+        <button class="next-page btn icon-btn icon-btn-sm" title="Next page" aria-label="Next page" @click="nextPage"><icon-arrow-right /></button>
       </span>
       <span>{{pageRange}} / {{ (store.areFiltersActive ? store.filteredNodes : store.arb?.ast)?.length}}{{isFiltered ? ' filtered' : ''}} out of {{store.arb.ast.length}} nodes</span>
     </legend>
@@ -85,7 +87,7 @@ onMounted(() => {
 .prev-page, .next-page {
   background-color: transparent;
   color: white;
-  font-size: large;
+  border: none;
 }
 
 /*noinspection CssUnusedSymbol*/

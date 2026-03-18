@@ -1,6 +1,9 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
+import IconClose from './icons/IconClose.vue';
+import IconExport from './icons/IconExport.vue';
+import IconCopy from './icons/IconCopy.vue';
 import {
   composeTransformationScript,
   getGeneratedScriptFilename,
@@ -35,13 +38,19 @@ function downloadScript() {
         <h2>Generated Node.js output</h2>
         <div class="header-actions">
           <span class="panel-meta">{{ store.steps.filter((step) => step.enabled !== false).length }} active steps</span>
-          <button class="close-btn" type="button" title="Close the export window" @click="store.exportPanelOpen = false">Close</button>
+          <button class="close-btn icon-btn" type="button" title="Close the export window" aria-label="Close export window" @click="store.exportPanelOpen = false">
+            <icon-close />
+          </button>
         </div>
       </div>
 
       <div class="export-actions">
-        <button class="primary-btn" type="button" title="Download the generated Node.js script" @click="downloadScript">Download</button>
-        <button class="secondary-btn" type="button" title="Copy the generated Node.js script to the clipboard" @click="copyScript">Copy</button>
+        <button class="primary-btn icon-btn" type="button" title="Download the generated Node.js script" aria-label="Download export" @click="downloadScript">
+          <icon-export />
+        </button>
+        <button class="secondary-btn icon-btn" type="button" title="Copy the generated Node.js script to the clipboard" aria-label="Copy export" @click="copyScript">
+          <icon-copy />
+        </button>
       </div>
 
       <p class="order-note">Generated steps are emitted in pipeline order. Adjacent custom steps stay in the same `applyIteratively([...])` sequence in that order.</p>
@@ -96,9 +105,14 @@ function downloadScript() {
 .secondary-btn,
 .close-btn {
   border-radius: 10px;
-  padding: 0.5rem 0.8rem;
   border: 1px solid var(--panel-border);
   cursor: pointer;
+}
+
+.primary-btn:not(.icon-btn),
+.secondary-btn:not(.icon-btn),
+.close-btn:not(.icon-btn) {
+  padding: 0.5rem 0.8rem;
 }
 
 .primary-btn {

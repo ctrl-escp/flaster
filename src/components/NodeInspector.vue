@@ -1,6 +1,10 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
+import IconParse from './icons/IconParse.vue';
+import IconStructure from './icons/IconStructure.vue';
+import IconFilter from './icons/IconFilter.vue';
+import IconEye from './icons/IconEye.vue';
 
 const selectedNode = computed(() => store.getSelectedNode());
 const overlaps = computed(() => store.getKnownStructureOverlaps());
@@ -10,10 +14,10 @@ const scopeChain = computed(() => store.getNodeScopeChain(selectedNode.value));
 const attributes = computed(() => store.getSelectedNodeAttributes());
 
 const sections = [
-  {id: 'overview', label: 'Overview'},
-  {id: 'scope', label: 'Scope'},
-  {id: 'attributes', label: 'Attributes'},
-  {id: 'structures', label: 'Structures'},
+  {id: 'overview', label: 'Overview', icon: IconParse},
+  {id: 'scope', label: 'Scope', icon: IconStructure},
+  {id: 'attributes', label: 'Attributes', icon: IconFilter},
+  {id: 'structures', label: 'Structures', icon: IconEye},
 ];
 
 const overviewRows = computed(() => {
@@ -50,16 +54,15 @@ function jumpToNode(node, source = 'related') {
         <button
           v-for="section in sections"
           :key="section.id"
-          class="section-btn"
+          class="section-btn icon-btn"
           :class="{active: store.activeNodeInspectorSection === section.id}"
           type="button"
           :disabled="store.activeNodeInspectorSection === section.id"
-          :title="store.activeNodeInspectorSection === section.id
-            ? `${section.label} is already open`
-            : `Show the ${section.label.toLowerCase()} section for the selected node`"
+          :title="`Show the ${section.label.toLowerCase()} section for the selected node`"
+          :aria-label="`Open ${section.label} section`"
           @click="store.setActiveNodeInspectorSection(section.id)"
         >
-          {{ section.label }}
+          <component :is="section.icon" />
         </button>
     </div>
 
@@ -202,8 +205,10 @@ function jumpToNode(node, source = 'related') {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.04);
   border-radius: 9px;
-  padding: 0.42rem 0.65rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .section-btn:disabled {

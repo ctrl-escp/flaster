@@ -4,6 +4,10 @@ import NodeInspector from './NodeInspector.vue';
 import TemplateWorkbench from './TemplateWorkbench.vue';
 import PipelineBuilder from './PipelineBuilder.vue';
 import AdvancedWorkspace from './AdvancedWorkspace.vue';
+import IconInspect from './icons/IconInspect.vue';
+import IconCompose from './icons/IconCompose.vue';
+import IconPipeline from './icons/IconPipeline.vue';
+import IconAdvanced from './icons/IconAdvanced.vue';
 
 const panels = {
   inspector: NodeInspector,
@@ -13,10 +17,10 @@ const panels = {
 };
 
 const tabs = [
-  {id: 'inspector', label: 'Inspector'},
-  {id: 'templates', label: 'Templates'},
-  {id: 'pipeline', label: 'Pipeline'},
-  {id: 'advanced', label: 'Advanced'},
+  {id: 'inspector', label: 'Inspector', icon: IconInspect},
+  {id: 'templates', label: 'Templates', icon: IconCompose},
+  {id: 'pipeline', label: 'Pipeline', icon: IconPipeline},
+  {id: 'advanced', label: 'Advanced', icon: IconAdvanced},
 ];
 </script>
 
@@ -28,16 +32,15 @@ const tabs = [
         <button
           v-for="tab in tabs"
           :key="tab.id"
-          class="tab-btn"
+          class="tab-btn icon-btn"
           :class="{active: store.activeInspectorPanel === tab.id}"
           type="button"
           :disabled="store.activeInspectorPanel === tab.id"
-          :title="store.activeInspectorPanel === tab.id
-            ? `${tab.label} is already open`
-            : `Open the ${tab.label.toLowerCase()} panel`"
+          :title="`Open the ${tab.label.toLowerCase()} panel`"
+          :aria-label="`Open ${tab.label} panel`"
           @click="store.setActiveInspectorPanel(tab.id)"
         >
-          {{ tab.label }}
+          <component :is="tab.icon" />
         </button>
       </div>
     </div>
@@ -71,8 +74,10 @@ const tabs = [
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   border-radius: 9px;
-  padding: 0.45rem 0.7rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .tab-btn:disabled {
@@ -85,6 +90,13 @@ const tabs = [
   border-color: rgba(126, 202, 255, 0.42);
   color: #eef8ff;
   box-shadow: inset 0 0 0 1px rgba(126, 202, 255, 0.12);
+}
+
+.tab-btn:hover:not(:disabled):not(.active),
+.tab-btn:focus-visible:not(:disabled):not(.active) {
+  background: rgba(126, 202, 255, 0.1);
+  border-color: rgba(126, 202, 255, 0.24);
+  outline: none;
 }
 
 .tab-btn.active:disabled {

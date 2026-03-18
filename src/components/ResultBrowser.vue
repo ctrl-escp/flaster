@@ -1,6 +1,8 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
+import IconArrowLeft from './icons/IconArrowLeft.vue';
+import IconArrowRight from './icons/IconArrowRight.vue';
 
 const modes = [
   {id: 'matches', label: 'Matches'},
@@ -100,9 +102,7 @@ function isActive(item) {
         :class="{active: store.activeResultMode === mode.id}"
         type="button"
         :disabled="!canOpenMode(mode.id)"
-        :title="canOpenMode(mode.id)
-          ? `Show ${mode.label.toLowerCase()} in the result list`
-          : `${mode.label} are already shown or unavailable`"
+        :title="`Show ${mode.label.toLowerCase()} in the result list`"
         @click="store.setActiveResultMode(mode.id)"
       >
         {{ mode.label }}
@@ -114,22 +114,24 @@ function isActive(item) {
         class="mini-btn icon-btn"
         type="button"
         title="Jump to the previous known-structure match"
+        aria-label="Previous match"
         :disabled="!store.getKnownStructureMatches().length"
         @click="store.selectKnownStructureMatchStep(-1)"
       >
-        ‹
+        <icon-arrow-left />
       </button>
       <button
         class="mini-btn icon-btn"
         type="button"
         title="Jump to the next known-structure match"
+        aria-label="Next match"
         :disabled="!store.getKnownStructureMatches().length"
         @click="store.selectKnownStructureMatchStep(1)"
       >
-        ›
+        <icon-arrow-right />
       </button>
-      <button class="mini-btn" type="button" :disabled="!canOpenMode('related')" :title="canOpenMode('related') ? 'Show nodes related to the current selection' : 'Related nodes are already shown or unavailable'" @click="store.setActiveResultMode('related')">Related</button>
-      <button class="mini-btn" type="button" :disabled="!canOpenMode('ast')" :title="canOpenMode('ast') ? 'Show raw AST nodes in the result list' : 'AST nodes are already shown or unavailable'" @click="store.setActiveResultMode('ast')">AST</button>
+      <button class="mini-btn" type="button" :disabled="!canOpenMode('related')" title="Show nodes related to the current selection" @click="store.setActiveResultMode('related')">Related</button>
+      <button class="mini-btn" type="button" :disabled="!canOpenMode('ast')" title="Show raw AST nodes in the result list" @click="store.setActiveResultMode('ast')">AST</button>
     </div>
 
     <div class="result-list">
@@ -198,8 +200,12 @@ function isActive(item) {
 .mini-btn {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 9px;
-  padding: 0.42rem 0.65rem;
   cursor: pointer;
+}
+
+.mode-btn:not(.icon-btn),
+.mini-btn:not(.icon-btn) {
+  padding: 0.42rem 0.65rem;
 }
 
 .mode-btn.active {
@@ -207,6 +213,15 @@ function isActive(item) {
   border-color: rgba(126, 202, 255, 0.42);
   color: #eef8ff;
   box-shadow: inset 0 0 0 1px rgba(126, 202, 255, 0.12);
+}
+
+.mode-btn:hover:not(:disabled):not(.active),
+.mode-btn:focus-visible:not(:disabled):not(.active),
+.mini-btn:hover:not(:disabled),
+.mini-btn:focus-visible:not(:disabled) {
+  background: rgba(126, 202, 255, 0.1);
+  border-color: rgba(126, 202, 255, 0.24);
+  outline: none;
 }
 
 .mode-btn:disabled,

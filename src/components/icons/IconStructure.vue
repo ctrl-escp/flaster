@@ -1,16 +1,17 @@
 <template>
-  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="14" cy="14" r="8" fill="currentColor"/>
-    <circle cx="50" cy="14" r="8" fill="currentColor"/>
-    <circle cx="14" cy="50" r="8" fill="currentColor"/>
-    <circle cx="50" cy="50" r="8" fill="currentColor"/>
-    <circle cx="32" cy="32" r="9" fill="currentColor"/>
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <circle cx="6" cy="6" r="1.75" fill="currentColor" />
+    <circle cx="18" cy="6" r="1.75" fill="currentColor" />
+    <circle cx="6" cy="18" r="1.75" fill="currentColor" />
+    <circle cx="18" cy="18" r="1.75" fill="currentColor" />
+    <circle cx="12" cy="12" r="2.25" fill="currentColor" />
     <path
-      d="M20 18l8 8M44 18l-8 8M20 46l8-8M44 46l-8-8M22 14h20M14 22v20M50 22v20M22 50h20"
+      d="M7.5 7.5 10 10M16.5 7.5 14 10M7.5 16.5 10 14M16.5 16.5 14 14M7.75 6H16.25M6 7.75V16.25M18 7.75V16.25M7.75 18H16.25"
       fill="none"
       stroke="currentColor"
       stroke-linecap="round"
-      stroke-width="5"
+      stroke-linejoin="round"
+      stroke-width="1.6"
     />
   </svg>
 </template>

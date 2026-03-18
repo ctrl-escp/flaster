@@ -3,6 +3,8 @@ import {computed} from 'vue';
 import store from '../store';
 import StructureExplorer from './StructureExplorer.vue';
 import ResultBrowser from './ResultBrowser.vue';
+import IconBrowse from './icons/IconBrowse.vue';
+import IconListChecks from './icons/IconListChecks.vue';
 
 const hasResults = computed(() => {
   const astCount = store.areFiltersActive
@@ -23,28 +25,26 @@ const hasResults = computed(() => {
 
     <div class="pane-switches">
       <button
-        class="pane-switch"
+        class="pane-switch icon-btn"
         :class="{active: store.activeWorkspaceTab === 'explorer'}"
         type="button"
         :disabled="store.activeWorkspaceTab === 'explorer'"
         title="Browse known structures and choose which ones to search for"
+        aria-label="Open structures panel"
         @click="store.setActiveWorkspaceTab('explorer')"
       >
-        Structures
+        <icon-browse />
       </button>
       <button
-        class="pane-switch"
+        class="pane-switch icon-btn"
         :class="{active: store.activeWorkspaceTab === 'results', ready: hasResults}"
         type="button"
         :disabled="!hasResults || store.activeWorkspaceTab === 'results'"
-        :title="hasResults
-          ? store.activeWorkspaceTab === 'results'
-            ? 'The results workspace is already open'
-            : 'Browse the current matches, AST nodes, and related nodes'
-          : 'Results become available after parsing or after structure matching finds something to inspect'"
+        title="Browse the current matches, AST nodes, and related nodes"
+        aria-label="Open results panel"
         @click="hasResults && store.setActiveWorkspaceTab('results')"
       >
-        Results
+        <icon-list-checks />
       </button>
     </div>
 
@@ -82,8 +82,10 @@ const hasResults = computed(() => {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   border-radius: 9px;
-  padding: 0.45rem 0.7rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pane-switch.active {
@@ -91,6 +93,13 @@ const hasResults = computed(() => {
   border-color: rgba(255, 191, 102, 0.45);
   color: #fff3df;
   box-shadow: inset 0 0 0 1px rgba(255, 191, 102, 0.14);
+}
+
+.pane-switch:hover:not(:disabled):not(.active),
+.pane-switch:focus-visible:not(:disabled):not(.active) {
+  background: rgba(126, 202, 255, 0.12);
+  border-color: rgba(126, 202, 255, 0.28);
+  outline: none;
 }
 
 .pane-switch.ready:not(.active) {

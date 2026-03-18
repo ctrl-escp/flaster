@@ -1,6 +1,9 @@
 <script setup>
 import store from './store';
 import CodeEditor from './components/CodeEditor.vue';
+import IconCheck from './components/icons/IconCheck.vue';
+import IconReset from './components/icons/IconReset.vue';
+import IconTrash from './components/icons/IconTrash.vue';
 
 const initialValue = `// write the logic to apply to the node \`(n) => {<your code>}\`.
 // to delete a node use arb.markNode(n);
@@ -37,9 +40,9 @@ function revertTransformation() {
   <div class="transformer-controller" v-if="store.arb?.ast?.length">
     <div class="btn-group">
       <span class="transform-edit-btn-group">
-        <button class="btn btn-apply" @click="applyTransformation()">Apply</button>
-        <button class="btn btn-revert" @click="revertTransformation" :disabled="!store.states.length">Revert</button>
-        <button class="btn btn-clear" @click="setTransformEditorContent('')">Clear</button>
+        <button class="btn btn-apply icon-btn" title="Apply the current transform editor code" aria-label="Apply transform" @click="applyTransformation()"><icon-check /></button>
+        <button class="btn btn-revert icon-btn" title="Revert the last transformation state" aria-label="Revert transformation" @click="revertTransformation" :disabled="!store.states.length"><icon-reset /></button>
+        <button class="btn btn-clear icon-btn" title="Clear the transform editor" aria-label="Clear transform editor" @click="setTransformEditorContent('')"><icon-trash /></button>
       </span>
     </div>
     <div class="transformer-display">

@@ -2,6 +2,8 @@
 import {computed, ref} from 'vue';
 import store from '../store';
 import IconFolder from './icons/IconFolder.vue';
+import IconTrash from './icons/IconTrash.vue';
+import IconArrowLeft from './icons/IconArrowLeft.vue';
 
 const inputCodeEditorId = store.editorIds.inputCodeEditor;
 const fileInput = ref(null);
@@ -96,13 +98,13 @@ function loadSample(sampleId) {
 <template>
   <div class="file-loader">
     <button
-      class="toolbar-btn"
+      class="toolbar-btn icon-btn"
       type="button"
       title="Open script actions for loading, sampling, or clearing the current script"
+      aria-label="Open script actions"
       @click="toggleMenu"
     >
       <icon-folder class="toolbar-icon" />
-      <span>Script</span>
     </button>
 
     <div v-if="isOpen" class="load-menu">
@@ -114,19 +116,21 @@ function loadSample(sampleId) {
           Load sample
         </button>
         <button
-          class="menu-btn"
+          class="menu-btn icon-action-btn"
           type="button"
           :disabled="!canClearEditor"
           :title="canClearEditor ? 'Clear the current script and reset parsed state' : 'There is nothing to clear right now'"
           @click="clearEditor"
         >
-          Clear
+          <icon-trash class="menu-icon" />
+          <span>Clear</span>
         </button>
       </div>
 
       <div v-else class="menu-stack">
         <button class="back-btn" type="button" title="Go back to load options" @click="showSamples = false">
-          ‹ Back
+          <icon-arrow-left class="menu-icon" />
+          <span>Back</span>
         </button>
         <button
           v-for="sample in store.availableSampleScripts"
@@ -152,15 +156,12 @@ function loadSample(sampleId) {
 }
 
 .toolbar-btn {
-  min-height: 2.5rem;
   border-radius: 10px;
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-primary);
-  padding: 0.55rem 0.8rem;
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
   cursor: pointer;
 }
 
@@ -202,6 +203,13 @@ function loadSample(sampleId) {
   cursor: pointer;
 }
 
+.icon-action-btn,
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .menu-btn:disabled,
 .sample-btn:disabled,
 .back-btn:disabled {
@@ -218,6 +226,12 @@ function loadSample(sampleId) {
 .sample-btn span,
 .back-btn {
   color: var(--text-muted);
+}
+
+.menu-icon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
 }
 
 .input-file {

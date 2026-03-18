@@ -2,6 +2,8 @@
 import store from '../store';
 import FilterEditor from '../FilterEditor.vue';
 import TransformEditor from '../TransformEditor.vue';
+import IconEye from './icons/IconEye.vue';
+import IconClose from './icons/IconClose.vue';
 </script>
 
 <template>
@@ -9,12 +11,14 @@ import TransformEditor from '../TransformEditor.vue';
     <div class="panel-header">
       <h2>Raw filters and transforms</h2>
       <button
-        class="toggle-btn"
+        class="toggle-btn icon-btn"
         type="button"
         :title="store.advancedToolsOpen ? 'Hide the raw filter and transform editors' : 'Show the raw filter and transform editors'"
+        :aria-label="store.advancedToolsOpen ? 'Hide advanced editors' : 'Show advanced editors'"
         @click="store.advancedToolsOpen = !store.advancedToolsOpen"
       >
-        {{ store.advancedToolsOpen ? 'Hide' : 'Show' }}
+        <icon-close v-if="store.advancedToolsOpen" />
+        <icon-eye v-else />
       </button>
     </div>
 
@@ -48,8 +52,10 @@ import TransformEditor from '../TransformEditor.vue';
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   border-radius: 10px;
-  padding: 0.45rem 0.7rem;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .empty-copy {
