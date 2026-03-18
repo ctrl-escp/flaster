@@ -5,7 +5,6 @@ import IconSearch from './icons/IconSearch.vue';
 import IconTrash from './icons/IconTrash.vue';
 import IconListChecks from './icons/IconListChecks.vue';
 import IconPreview from './icons/IconPreview.vue';
-import IconPlus from './icons/IconPlus.vue';
 import IconArrowLeft from './icons/IconArrowLeft.vue';
 import IconArrowRight from './icons/IconArrowRight.vue';
 import IconCopy from './icons/IconCopy.vue';
@@ -81,6 +80,11 @@ function activateStructure(structureId) {
   store.setActiveWorkspaceTab('explorer');
 }
 
+function findStructure(structureId) {
+  activateStructure(structureId);
+  store.runActiveKnownStructureMatching();
+}
+
 function canFindStructure(structure) {
   if (!structure?.browserRunnable || !store.isCurrentInputParsed()) {
     return false;
@@ -107,12 +111,39 @@ function hasStructureMatches(structure) {
   return getStructureMatchCount(structure) > 0;
 }
 
-function canPreviewStructure(structure) {
+function stepStructureMatch(structureId, direction = 1) {
+  const matches = store.getKnownStructureMatches(structureId);
+
+  if (!matches.length) {
+    return;
+  }
+
+  store.setActiveKnownStructure(structureId);
+
+  const currentSelection = store.selectedKnownStructureMatch?.structureId === structureId
+    ? store.selectedKnownStructureMatch
+    : null;
+  const rememberedIndex = store.knownStructureSelectionById[structureId];
+  const currentIndex = currentSelection
+    ? matches.findIndex((match) => match.index === currentSelection.index)
+    : matches.findIndex((match) => match.index === rememberedIndex);
+  const nextIndex = currentIndex === -1
+    ? direction > 0 ? 0 : matches.length - 1
+    : (currentIndex + direction + matches.length) % matches.length;
+
+  store.setSelectedKnownStructureMatch(structureId, matches[nextIndex].index);
+}
+
+function canTransformStructure(structure) {
   return hasStructureMatches(structure) && store.canPreviewKnownStructureTransform(structure.id);
 }
 
-function canAddStructureToPipeline(structure) {
-  return hasStructureMatches(structure) && store.canPreviewKnownStructureTransform(structure.id);
+function openStructureTransform(structureId) {
+  store.previewKnownStructureTransform(structureId);
+  store.setActiveTemplate('apply-known-transform');
+  store.setInspectedKnownStructure(structureId);
+  activateStructure(structureId);
+  store.setActiveWorkspaceTab('inspector');
 }
 
 function toggleExpandedStructure(structureId) {
@@ -310,13 +341,32 @@ onBeforeUnmount(() => {
           <p class="structure-description">{{ structure.description }}</p>
           <p class="structure-note">{{ structure.support.note }}</p>
 
-          <div class="tag-row">
-            <span v-for="tag in structure.tags" :key="tag" class="tag">#{{ tag }}</span>
-          </div>
-
           <div class="card-stats">
             <span :class="{highlighted: hasStructureMatches(structure)}">{{ getStructureMatchCount(structure) }} matches</span>
             <span>{{ structure.executionMode }}</span>
+          </div>
+
+          <div v-if="hasStructureMatches(structure)" class="card-match-nav">
+            <button
+              class="structure-action structure-action-compact"
+              type="button"
+              title="Jump to the previous match for this structure"
+              aria-label="Previous structure match"
+              @click="stepStructureMatch(structure.id, -1)"
+            >
+              <icon-arrow-left />
+              <span>Prev</span>
+            </button>
+            <button
+              class="structure-action structure-action-compact"
+              type="button"
+              title="Jump to the next match for this structure"
+              aria-label="Next structure match"
+              @click="stepStructureMatch(structure.id, 1)"
+            >
+              <span>Next</span>
+              <icon-arrow-right />
+            </button>
           </div>
 
           <div class="card-actions">
@@ -324,12 +374,12 @@ onBeforeUnmount(() => {
               class="structure-action"
               type="button"
               :disabled="!canFindStructure(structure)"
-              title="Run matching for this structure and focus it in the workspace"
-              aria-label="Find matches for this structure"
-              @click="activateStructure(structure.id)"
+              title="Run matching for just this structure"
+              aria-label="Match this structure"
+              @click="findStructure(structure.id)"
             >
               <icon-search />
-              <span>Find</span>
+              <span>Match</span>
             </button>
             <button
               class="structure-action"
@@ -355,24 +405,13 @@ onBeforeUnmount(() => {
             <button
               class="structure-action"
               type="button"
-              :disabled="!canPreviewStructure(structure)"
-              title="Preview the built-in transform for this structure without adding it to the pipeline"
-              aria-label="Preview structure transform"
-              @click="store.previewKnownStructureTransform(structure.id)"
+              :disabled="!canTransformStructure(structure)"
+              title="Preview this built-in transform and open it in the template panel"
+              aria-label="Open structure transform"
+              @click="openStructureTransform(structure.id)"
             >
               <icon-preview />
-              <span>Preview</span>
-            </button>
-            <button
-              class="structure-action structure-action-emphasis"
-              type="button"
-              :disabled="!canAddStructureToPipeline(structure)"
-              title="Seed the template panel with this structure so you can add its transform to the pipeline"
-              aria-label="Add transform to pipeline"
-              @click="store.setActiveTemplate('apply-known-transform'); store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('inspector')"
-            >
-              <icon-plus />
-              <span>Add</span>
+              <span>Transform</span>
             </button>
           </div>
         </div>
@@ -400,9 +439,6 @@ onBeforeUnmount(() => {
         <div class="example-modal-header">
           <div class="example-modal-copy">
             <h3>{{ exampleStructure.title }} Example</h3>
-            <p class="example-modal-note">
-              Select any part of the snippet to copy just that text, or use the copy button for the full example.
-            </p>
           </div>
           <div class="example-modal-actions">
             <button
@@ -446,6 +482,7 @@ onBeforeUnmount(() => {
 .structure-card-top,
 .title-row,
 .card-stats,
+.card-match-nav,
 .card-actions,
 .explorer-actions {
   display: flex;
@@ -456,6 +493,10 @@ onBeforeUnmount(() => {
 .panel-header,
 .card-stats {
   justify-content: space-between;
+}
+
+.card-match-nav {
+  justify-content: flex-end;
 }
 
 h2 {

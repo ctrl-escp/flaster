@@ -38,7 +38,7 @@ const visibleItems = computed(() => {
     }));
   }
 
-  return store.latestKnownStructureMatches.map((match) => ({
+  return store.getKnownStructureMatches().map((match) => ({
     key: `match:${match.structureId}:${match.index}`,
     label: match.structureTitle,
     summary: match.summary,
@@ -66,7 +66,7 @@ const pageRange = computed(() => {
   return `${start} - ${end}`;
 });
 
-const matchItems = computed(() => store.latestKnownStructureMatches.length);
+const matchItems = computed(() => store.getKnownStructureMatches().length);
 const astItems = computed(() => (store.areFiltersActive ? store.filteredNodes : store.arb?.ast ?? []).length);
 const relatedItems = computed(() => store.getRelatedNodes().length);
 
@@ -119,7 +119,8 @@ function prevPage() {
 watch(
   [
     () => store.activeResultMode,
-    () => store.latestKnownStructureMatches.length,
+    () => store.activeKnownStructureId,
+    () => store.getKnownStructureMatches().length,
     () => (store.areFiltersActive ? store.filteredNodes.length : store.arb?.ast?.length ?? 0),
     () => store.getRelatedNodes().length,
   ],

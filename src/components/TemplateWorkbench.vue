@@ -45,50 +45,7 @@ function updateDraft(key, event) {
       <h2>Stage reproducible steps</h2>
       <div class="panel-meta">{{ activeTemplate?.title || 'Choose a template' }}</div>
     </div>
-
-    <div class="template-actions primary-actions">
-      <button
-        class="primary-btn icon-btn"
-        type="button"
-        :disabled="!canApplyTemplate"
-        :title="store.activeTemplateType === 'advanced-js-step'
-          ? 'Switch to the advanced panel and open the raw editors'
-          : canApplyTemplate
-            ? 'Apply the selected template to the current script'
-            : 'The selected template is not actionable yet'"
-        :aria-label="store.activeTemplateType === 'advanced-js-step' ? 'Open advanced editors' : 'Apply template'"
-        @click="store.applyTemplate()"
-      >
-        <icon-transform v-if="store.activeTemplateType === 'advanced-js-step'" />
-        <icon-check v-else />
-      </button>
-      <button
-        class="secondary-btn icon-btn"
-        type="button"
-        title="Switch to the advanced panel and show raw filter/transform editors"
-        aria-label="Open advanced editors"
-        @click="store.openAdvancedTools()"
-      >
-        <icon-transform />
-      </button>
-    </div>
-
-    <div class="template-grid">
-      <button
-        v-for="template in visibleTemplates"
-        :key="template.type"
-        class="template-card"
-        :class="{active: template.type === store.activeTemplateType}"
-        type="button"
-        :disabled="template.type === store.activeTemplateType"
-        :title="template.description"
-        @click="store.setActiveTemplate(template.type)"
-      >
-        <strong>{{ template.title }}</strong>
-        <span>{{ template.description }}</span>
-      </button>
-    </div>
-
+    
     <div class="template-editor">
       <p class="context-copy">
         Active structure: <strong>{{ activeStructure?.title || 'None' }}</strong>
@@ -145,7 +102,49 @@ function updateDraft(key, event) {
       <div v-else class="template-help">
         {{ activeTemplate?.description }}
       </div>
+    </div>
 
+    <div class="template-actions primary-actions">
+      <button
+        class="primary-btn icon-btn"
+        type="button"
+        :disabled="!canApplyTemplate"
+        :title="store.activeTemplateType === 'advanced-js-step'
+          ? 'Switch to the advanced panel and open the raw editors'
+          : canApplyTemplate
+            ? 'Apply the selected template to the current script'
+            : 'The selected template is not actionable yet'"
+        :aria-label="store.activeTemplateType === 'advanced-js-step' ? 'Open advanced editors' : 'Apply template'"
+        @click="store.applyTemplate()"
+      >
+        <icon-transform v-if="store.activeTemplateType === 'advanced-js-step'" />
+        <icon-check v-else />
+      </button>
+      <button
+        class="secondary-btn icon-btn"
+        type="button"
+        title="Switch to the advanced panel and show raw filter/transform editors"
+        aria-label="Open advanced editors"
+        @click="store.openAdvancedTools()"
+      >
+        <icon-transform />
+      </button>
+    </div>
+
+    <div class="template-grid">
+      <button
+        v-for="template in visibleTemplates"
+        :key="template.type"
+        class="template-card"
+        :class="{active: template.type === store.activeTemplateType}"
+        type="button"
+        :disabled="template.type === store.activeTemplateType"
+        :title="template.description"
+        @click="store.setActiveTemplate(template.type)"
+      >
+        <strong>{{ template.title }}</strong>
+        <span>{{ template.description }}</span>
+      </button>
     </div>
   </section>
 </template>

@@ -1,10 +1,14 @@
 <script setup>
-import {computed} from 'vue';
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
 import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
+import IconBandaid from './icons/IconBandaid.vue';
 import IconExport from './icons/IconExport.vue';
 import IconGithub from './icons/IconGithub.vue';
+
+const BANDAID_ROTATIONS = [90, 180, 270];
+const BANDAID_ANIMATION_MS = 30000;
 
 const dependencyVersions = computed(() => ([
   {
@@ -19,11 +23,41 @@ const dependencyVersions = computed(() => ([
   },
 ]));
 const canExport = computed(() => store.steps.length > 0);
+const bandaidAnimationStyle = ref(createBandaidAnimationStyle());
+
+let bandaidAnimationTimer = null;
+
+function createBandaidAnimationStyle() {
+  const targetRotation = BANDAID_ROTATIONS[Math.floor(Math.random() * BANDAID_ROTATIONS.length)];
+
+  return {
+    '--bandaid-target-rotation': `${targetRotation}deg`,
+    '--bandaid-bounce-1': `${targetRotation * -0.1555556}deg`,
+    '--bandaid-bounce-2': `${targetRotation * 0.0888889}deg`,
+    '--bandaid-bounce-3': `${targetRotation * -0.0444444}deg`,
+    '--bandaid-bounce-4': `${targetRotation * 0.0222222}deg`,
+  };
+}
+
+function refreshBandaidAnimation() {
+  bandaidAnimationStyle.value = createBandaidAnimationStyle();
+}
+
+onMounted(() => {
+  bandaidAnimationTimer = window.setInterval(refreshBandaidAnimation, BANDAID_ANIMATION_MS);
+});
+
+onBeforeUnmount(() => {
+  if (bandaidAnimationTimer) {
+    window.clearInterval(bandaidAnimationTimer);
+  }
+});
 </script>
 
 <template>
   <section class="workspace-header">
     <div class="header-brand">
+      <icon-bandaid class="brand-icon" :style="bandaidAnimationStyle" />
       <h1>flASTer Workspace</h1>
     </div>
     <div class="header-script-name" :title="store.currentScriptLabel">
@@ -84,6 +118,53 @@ const canExport = computed(() => store.steps.length > 0);
 .header-brand {
   flex: 0 0 auto;
   min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.brand-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  flex: 0 0 auto;
+  transform-origin: 50% 50%;
+  animation: bandaid-wave 30s infinite;
+}
+
+@keyframes bandaid-wave {
+  0%,
+  6.6667% {
+    transform: rotate(0deg);
+  }
+
+  13.3333% {
+    transform: rotate(var(--bandaid-target-rotation));
+  }
+
+  16.6667% {
+    transform: rotate(var(--bandaid-target-rotation));
+  }
+
+  20% {
+    transform: rotate(var(--bandaid-bounce-1));
+  }
+
+  23.3333% {
+    transform: rotate(var(--bandaid-bounce-2));
+  }
+
+  26.6667% {
+    transform: rotate(var(--bandaid-bounce-3));
+  }
+
+  30% {
+    transform: rotate(var(--bandaid-bounce-4));
+  }
+
+  33.3333%,
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 h1 {
