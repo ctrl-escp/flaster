@@ -1,5 +1,5 @@
 <script setup>
-import {computed, reactive, ref, watch} from 'vue';
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
 import store from './store';
 import IconSearch from './components/icons/IconSearch.vue';
 import IconTrash from './components/icons/IconTrash.vue';
@@ -12,6 +12,7 @@ import IconArrowLeft from './components/icons/IconArrowLeft.vue';
 import IconArrowRight from './components/icons/IconArrowRight.vue';
 import IconRefresh from './components/icons/IconRefresh.vue';
 import IconListChecks from './components/icons/IconListChecks.vue';
+import IconClose from './components/icons/IconClose.vue';
 
 const PAGE_SIZE = 100;
 
@@ -37,6 +38,7 @@ const exploration = reactive({
 
 const structurePage = ref(0);
 const resultPage = ref(0);
+const exampleModalStructureId = ref('');
 
 const categoryOptions = computed(() => [...new Set(
   store.availableKnownStructures.map((structure) => structure.category),
@@ -95,6 +97,7 @@ const activeStructure = computed(() => store.getKnownStructureById(store.activeK
 const activeMatches = computed(() => store.getKnownStructureMatches());
 const selectedMatch = computed(() => store.getSelectedKnownStructureMatch());
 const inspectedStructure = computed(() => store.getKnownStructureById(store.inspectedKnownStructureId));
+const exampleModalStructure = computed(() => store.getKnownStructureById(exampleModalStructureId.value));
 const availableStructureFilterOptions = computed(() => store.getNavigableKnownStructureIds()
   .map((structureId) => store.getKnownStructureById(structureId))
   .filter(Boolean));
@@ -281,6 +284,27 @@ function hasStructureMatches(structureId) {
   return store.getKnownStructureMatches(structureId).length > 0;
 }
 
+function openStructureExample(structureId) {
+  exampleModalStructureId.value = structureId;
+}
+
+function closeStructureExample() {
+  exampleModalStructureId.value = '';
+}
+
+async function copyStructureExample() {
+  if (!exampleModalStructure.value?.codeExample) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(exampleModalStructure.value.codeExample);
+    store.logMessage(`Copied example for ${exampleModalStructure.value.title}`, 'success');
+  } catch (error) {
+    store.logMessage(`Unable to copy example: ${error.message}`, 'error');
+  }
+}
+
 /**
  * Selects a normalized structure match in the store.
  *
@@ -432,6 +456,12 @@ function prevResultPage() {
   resultPage.value = resultPage.value <= 0 ? resultTotalPages.value - 1 : resultPage.value - 1;
 }
 
+function handleWindowKeydown(event) {
+  if (event.key === 'Escape' && exampleModalStructure.value) {
+    closeStructureExample();
+  }
+}
+
 watch(
   [
     () => filters.search,
@@ -459,6 +489,14 @@ watch(
     resultPage.value = 0;
   },
 );
+
+onMounted(() => {
+  window.addEventListener('keydown', handleWindowKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleWindowKeydown);
+});
 </script>
 
 <template>
@@ -571,6 +609,7 @@ watch(
               <button class="btn btn-inline btn-run icon-btn icon-btn-sm" :disabled="!structure.browserRunnable" title="Scan this structure" aria-label="Scan structure" @click="runStructures([structure.id])"><icon-search /></button>
               <button class="btn btn-inline icon-btn icon-btn-sm" :disabled="!hasStructureMatches(structure.id)" title="Show matches for this structure" aria-label="Show structure matches" @click="showStructure(structure.id)"><icon-list-checks /></button>
               <button class="btn btn-inline icon-btn icon-btn-sm" title="Clear this structure's matches" aria-label="Clear structure matches" @click="store.clearKnownStructureMatches(structure.id)"><icon-trash /></button>
+              <button class="btn btn-inline structure-example-btn" title="Open example code for this structure" aria-label="Open example code" @click="openStructureExample(structure.id)">Example</button>
               <button class="btn btn-inline icon-btn icon-btn-sm" title="Copy this structure's rule seed" aria-label="Copy rule seed" @click="copyRuleSeed(structure.id)"><icon-copy /></button>
               <button
                 v-if="structure.transformEnabled"
@@ -832,6 +871,49 @@ watch(
       </div>
     </div>
   </div>
+  <div
+    v-if="exampleModalStructure"
+    class="structure-example-backdrop"
+    @click.self="closeStructureExample()"
+  >
+    <section
+      class="structure-example-modal"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="`${exampleModalStructure.title} example code`"
+    >
+      <div class="structure-example-header">
+        <div class="structure-example-copy-intro">
+          <h2>{{ exampleModalStructure.title }} Example</h2>
+          <p class="structure-example-note">
+            Select any part of the snippet to copy just that text, or use the copy button for the full example.
+          </p>
+        </div>
+        <div class="structure-example-header-actions">
+          <button
+            class="btn btn-inline icon-btn"
+            type="button"
+            title="Copy the full example"
+            aria-label="Copy full example"
+            @click="copyStructureExample()"
+          >
+            <icon-copy />
+          </button>
+          <button
+            class="btn btn-inline icon-btn"
+            type="button"
+            title="Close example"
+            aria-label="Close example"
+            @click="closeStructureExample()"
+          >
+            <icon-close />
+          </button>
+        </div>
+      </div>
+      <p class="structure-example-description">{{ exampleModalStructure.description }}</p>
+      <pre class="structure-example-code"><code>{{ exampleModalStructure.codeExample }}</code></pre>
+    </section>
+  </div>
 </template>
 
 <style scoped>
@@ -842,6 +924,12 @@ watch(
 
 .btn-run {
   background-color: greenyellow;
+}
+
+.structure-example-btn {
+  background-color: rgba(100, 181, 246, 0.12);
+  color: #c7e1ff;
+  padding-inline: 0.65rem;
 }
 
 .btn:disabled {
@@ -1056,6 +1144,75 @@ watch(
   border-radius: 999px;
   font-size: 0.78rem;
   padding: 0.05rem 0.45rem;
+}
+
+.structure-example-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(4, 9, 16, 0.72);
+}
+
+.structure-example-code {
+  margin: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 1rem;
+  white-space: pre-wrap;
+  user-select: text;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+}
+
+.structure-example-copy-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.structure-example-description,
+.structure-example-note {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.structure-example-description {
+  font-size: 0.95rem;
+}
+
+.structure-example-header,
+.structure-example-header-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.structure-example-header {
+  align-items: flex-start;
+}
+
+.structure-example-header-actions {
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.structure-example-modal {
+  width: min(760px, 100%);
+  max-height: min(80vh, 900px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #0b111b;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
 .structure-category {

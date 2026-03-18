@@ -4,6 +4,7 @@ import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
 import IconExport from './icons/IconExport.vue';
+import IconGithub from './icons/IconGithub.vue';
 
 const dependencyVersions = computed(() => ([
   {
@@ -48,10 +49,20 @@ const canExport = computed(() => store.steps.length > 0);
           class="version-chip"
           :href="dependency.href"
           target="_blank"
-          rel="noreferrer"
           :title="`Open ${dependency.label} repository`"
         >
           {{ dependency.label }} v{{ dependency.version }}
+        </a>
+      </div>
+      <div class="github-link-wrap" title="View project on GitHub">
+        <a
+          class="github-link"
+          href="https://github.com/ctrl-escp/flaster"
+          title="flASTer on GitHub"
+          target="_blank"
+          aria-label="View project on GitHub"
+        >
+          <icon-github class="header-icon github-icon" />
         </a>
       </div>
     </div>
@@ -164,6 +175,32 @@ h1 {
 .header-icon {
   width: 1rem;
   height: 1rem;
+}
+
+.github-link-wrap {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 140ms ease, transform 140ms ease;
+}
+
+.github-link:hover,
+.github-link:focus-visible {
+  color: var(--text-primary);
+  outline: none;
+}
+
+.github-icon {
+  width: 2.5rem;
+  height: 2.5rem;
 }
 
 @media (max-width: 980px) {

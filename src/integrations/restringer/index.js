@@ -231,6 +231,7 @@ export const knownStructures = Object.freeze(
       title: definition.title,
       category: definition.category,
       description: definition.description,
+      codeExample: definition.codeExample ?? '',
       tags: freezeArray(definition.tags),
       searchTerms: freezeArray(definition.searchTerms),
       searchText: createSearchText(definition),

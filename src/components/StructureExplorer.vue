@@ -1,5 +1,5 @@
 <script setup>
-import {computed, reactive, ref, watch} from 'vue';
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
 import store from '../store';
 import IconSearch from './icons/IconSearch.vue';
 import IconTrash from './icons/IconTrash.vue';
@@ -8,6 +8,8 @@ import IconPreview from './icons/IconPreview.vue';
 import IconPlus from './icons/IconPlus.vue';
 import IconArrowLeft from './icons/IconArrowLeft.vue';
 import IconArrowRight from './icons/IconArrowRight.vue';
+import IconCopy from './icons/IconCopy.vue';
+import IconClose from './icons/IconClose.vue';
 
 const PAGE_SIZE = 100;
 
@@ -18,6 +20,7 @@ const filters = reactive({
 
 const expandedStructureId = ref(null);
 const currentPage = ref(0);
+const exampleStructureId = ref('');
 
 const categories = computed(() => [...new Set(
   store.availableKnownStructures.map((structure) => structure.category),
@@ -61,6 +64,7 @@ const pageRange = computed(() => {
 const selectedCount = computed(() => store.selectedKnownStructureIds.length);
 const activeStructure = computed(() => store.getKnownStructureById(store.activeKnownStructureId));
 const activePreview = computed(() => store.getKnownStructureTransformPreview(activeStructure.value?.id));
+const exampleStructure = computed(() => store.getKnownStructureById(exampleStructureId.value));
 const canFindMatches = computed(() => store.hasPendingKnownStructureScan());
 const canClearResults = computed(() => store.hasKnownStructureResultsToClear());
 
@@ -115,6 +119,27 @@ function toggleExpandedStructure(structureId) {
   expandedStructureId.value = expandedStructureId.value === structureId ? null : structureId;
 }
 
+function openExample(structureId) {
+  exampleStructureId.value = structureId;
+}
+
+function closeExample() {
+  exampleStructureId.value = '';
+}
+
+async function copyExample() {
+  if (!exampleStructure.value?.codeExample) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(exampleStructure.value.codeExample);
+    store.logMessage(`Copied example for ${exampleStructure.value.title}`, 'success');
+  } catch (error) {
+    store.logMessage(`Unable to copy example: ${error.message}`, 'error');
+  }
+}
+
 function nextPage() {
   currentPage.value = currentPage.value >= totalPages.value - 1 ? 0 : currentPage.value + 1;
 }
@@ -141,6 +166,20 @@ watch(totalPages, (nextTotalPages) => {
   if (currentPage.value > nextTotalPages - 1) {
     currentPage.value = Math.max(0, nextTotalPages - 1);
   }
+});
+
+function handleWindowKeydown(event) {
+  if (event.key === 'Escape' && exampleStructure.value) {
+    closeExample();
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleWindowKeydown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleWindowKeydown);
 });
 </script>
 
@@ -306,6 +345,16 @@ watch(totalPages, (nextTotalPages) => {
             <button
               class="structure-action"
               type="button"
+              title="Open a code example for this structure"
+              aria-label="Open structure example"
+              @click="openExample(structure.id)"
+            >
+              <icon-copy />
+              <span>Example</span>
+            </button>
+            <button
+              class="structure-action"
+              type="button"
               :disabled="!canPreviewStructure(structure)"
               title="Preview the built-in transform for this structure without adding it to the pipeline"
               aria-label="Preview structure transform"
@@ -336,6 +385,49 @@ watch(totalPages, (nextTotalPages) => {
         {{ activePreview.structureTitle }} targets {{ activePreview.targetedMatchCount }} matches and
         would apply {{ activePreview.pendingChanges }} changes.
       </span>
+    </div>
+    <div
+      v-if="exampleStructure"
+      class="example-modal-backdrop"
+      @click.self="closeExample()"
+    >
+      <section
+        class="example-modal"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="`${exampleStructure.title} example code`"
+      >
+        <div class="example-modal-header">
+          <div class="example-modal-copy">
+            <h3>{{ exampleStructure.title }} Example</h3>
+            <p class="example-modal-note">
+              Select any part of the snippet to copy just that text, or use the copy button for the full example.
+            </p>
+          </div>
+          <div class="example-modal-actions">
+            <button
+              class="secondary-btn icon-btn"
+              type="button"
+              title="Copy the full example"
+              aria-label="Copy full example"
+              @click="copyExample()"
+            >
+              <icon-copy />
+            </button>
+            <button
+              class="secondary-btn icon-btn"
+              type="button"
+              title="Close example"
+              aria-label="Close example"
+              @click="closeExample()"
+            >
+              <icon-close />
+            </button>
+          </div>
+        </div>
+        <p class="example-modal-description">{{ exampleStructure.description }}</p>
+        <pre class="example-modal-code"><code>{{ exampleStructure.codeExample }}</code></pre>
+      </section>
     </div>
   </section>
 </template>
@@ -511,6 +603,63 @@ h2 {
   min-height: 0;
   overflow: auto;
   padding-right: 0.2rem;
+}
+
+.example-modal,
+.example-modal-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.example-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(4, 9, 16, 0.72);
+}
+
+.example-modal {
+  width: min(720px, 100%);
+  max-height: min(80vh, 900px);
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: #0b111b;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.example-modal-actions,
+.example-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.example-modal-actions {
+  flex-shrink: 0;
+}
+
+.example-modal-code {
+  margin: 0;
+  overflow: auto;
+  padding: 1rem;
+  white-space: pre-wrap;
+  user-select: text;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+}
+
+.example-modal-description,
+.example-modal-note {
+  margin: 0;
+  color: var(--text-muted);
 }
 
 .structure-card {

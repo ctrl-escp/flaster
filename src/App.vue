@@ -139,7 +139,7 @@ onBeforeUnmount(() => {
   grid-template-areas:
     'header header header header right'
     'left left-handle center right-handle right';
-  gap: 1rem;
+  gap: .5rem;
   align-items: stretch;
   flex: 1;
   min-height: 0;
