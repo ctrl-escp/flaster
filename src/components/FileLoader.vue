@@ -46,6 +46,11 @@ function clearEditor() {
   store.activeResultMode = 'matches';
   store.selectedNodeId = null;
   store.selectedNodeSource = null;
+  store.setCurrentScriptSource({
+    kind: 'custom',
+    label: 'Custom script',
+    baselineContent: '',
+  });
   store.logMessage('Editor cleared', 'success');
   closeMenu();
 }
@@ -57,6 +62,12 @@ function fileChanged(event) {
   if (file) {
     file.text().then((content) => {
       store.setContent(store.getEditor(inputCodeEditorId), content);
+      store.activeSampleScriptId = null;
+      store.setCurrentScriptSource({
+        kind: 'upload',
+        label: file.name,
+        baselineContent: content,
+      });
       store.resetParsedState();
       closeMenu();
     });

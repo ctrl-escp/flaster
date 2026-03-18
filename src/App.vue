@@ -100,13 +100,6 @@ onBeforeUnmount(() => {
 
       <section class="workspace-column center-column">
         <section class="workspace-panel code-panel">
-          <div class="panel-header">
-            <h2>Current working script</h2>
-            <div class="panel-meta">
-              <span>{{ store.selectedNodeSource || 'No selection' }}</span>
-              <span v-if="store.getSelectedNode()">Node {{ store.getSelectedNode()?.nodeId }}</span>
-            </div>
-          </div>
           <input-code-editor />
         </section>
       </section>
@@ -224,30 +217,7 @@ onBeforeUnmount(() => {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
   flex: 1;
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-h2 {
-  font-size: 1.05rem;
-  line-height: 1.2;
-}
-
-.panel-meta {
-  color: var(--text-muted);
-}
-
-.panel-meta {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.7rem;
 }
 
 @media (max-width: 1280px) {

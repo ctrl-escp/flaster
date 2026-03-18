@@ -21,7 +21,12 @@ const dependencyVersions = computed(() => ([
 
 <template>
   <section class="workspace-header">
-    <h1>flASTer Workspace</h1>
+    <div class="header-brand">
+      <h1>flASTer Workspace</h1>
+    </div>
+    <div class="header-script-name" :title="store.currentScriptLabel">
+      {{ store.getCurrentScriptDisplayName() }}
+    </div>
     <div class="header-actions">
       <file-loader />
       <parse-button />
@@ -48,19 +53,40 @@ const dependencyVersions = computed(() => ([
 
 <style scoped>
 .workspace-header {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 1rem;
   min-width: 0;
   width: 100%;
   flex: 1;
 }
 
+.header-brand {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
 h1 {
   font-size: 1.2rem;
   line-height: 1.1;
   white-space: nowrap;
+}
+
+.header-script-name {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(28rem, calc(100% - 34rem));
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .version-chips {
@@ -96,12 +122,12 @@ h1 {
 }
 
 .header-actions {
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 0.6rem;
   flex-wrap: nowrap;
-  flex: 1;
   min-width: 0;
   overflow: visible;
 }
@@ -140,6 +166,14 @@ h1 {
   .workspace-header {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .header-script-name {
+    position: static;
+    left: auto;
+    transform: none;
+    max-width: none;
+    text-align: left;
   }
 
   h1 {

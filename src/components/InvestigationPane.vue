@@ -4,8 +4,6 @@ import store from '../store';
 import StructureExplorer from './StructureExplorer.vue';
 import ResultBrowser from './ResultBrowser.vue';
 
-const activeStructure = computed(() => store.getKnownStructureById(store.activeKnownStructureId));
-const selectedNode = computed(() => store.getSelectedNode());
 const hasResults = computed(() => {
   const astCount = store.areFiltersActive
     ? store.filteredNodes.length
@@ -21,10 +19,6 @@ const hasResults = computed(() => {
   <section class="investigation-pane">
     <div class="pane-header">
       <h2>Structures and matches</h2>
-      <div class="header-status">
-        <span v-if="activeStructure">{{ activeStructure.title }}</span>
-        <span v-if="selectedNode">{{ selectedNode.type }}</span>
-      </div>
     </div>
 
     <div class="pane-switches">
@@ -69,18 +63,11 @@ const hasResults = computed(() => {
 }
 
 .pane-header,
-.pane-switches,
-.header-status {
+.pane-switches {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
-}
-
-.header-status {
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  color: var(--text-muted);
 }
 
 .pane-switches {

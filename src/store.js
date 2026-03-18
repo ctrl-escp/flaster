@@ -249,6 +249,12 @@ function cloneValue(value) {
   }
 }
 
+function normalizeScriptLabel(label, fallback = 'Custom script') {
+  return typeof label === 'string' && label.trim().length
+    ? label.trim()
+    : fallback;
+}
+
 function areStringArraysEqual(left = [], right = []) {
   if (left.length !== right.length) {
     return false;
@@ -412,6 +418,10 @@ const store = reactive({
   steps: [],
   filters: [],
   transformationCode: '',
+  currentScriptLabel: 'Custom script',
+  currentScriptKind: 'custom',
+  currentScriptBaseline: '',
+  isCurrentScriptModified: true,
   // eslint-disable-next-line no-unused-vars
   logMessage(text, level) {},
   nodesPageSize: 100,
@@ -472,6 +482,42 @@ const store = reactive({
   },
   getKnownStructureById(structureId) {
     return this.availableKnownStructures.find((structure) => structure.id === structureId) ?? null;
+  },
+  getCurrentScriptContent() {
+    const editorContent = this.getEditor(this.editorIds.inputCodeEditor)?.state?.doc?.toString();
+
+    if (typeof editorContent === 'string') {
+      return editorContent;
+    }
+
+    if (typeof this.arb?.script === 'string') {
+      return this.arb.script;
+    }
+
+    return '';
+  },
+  updateCurrentScriptDirtyState(content = this.getCurrentScriptContent()) {
+    this.isCurrentScriptModified = content !== this.currentScriptBaseline;
+  },
+  setCurrentScriptSource({
+    kind = 'custom',
+    label = 'Custom script',
+    baselineContent = this.getCurrentScriptContent(),
+  } = {}) {
+    this.currentScriptKind = kind;
+    this.currentScriptLabel = normalizeScriptLabel(label);
+    this.currentScriptBaseline = typeof baselineContent === 'string' ? baselineContent : '';
+    this.isCurrentScriptModified = false;
+  },
+  markCurrentScriptAsCustom(content = this.getCurrentScriptContent()) {
+    this.currentScriptKind = 'custom';
+    this.currentScriptLabel = 'Custom script';
+    this.updateCurrentScriptDirtyState(content);
+  },
+  getCurrentScriptDisplayName() {
+    return this.isCurrentScriptModified
+      ? `${this.currentScriptLabel}*`
+      : this.currentScriptLabel;
   },
   getSelectedNode() {
     if (!Number.isInteger(this.selectedNodeId)) {
@@ -612,6 +658,11 @@ const store = reactive({
       const source = await response.text();
       this.activeSampleScriptId = sample.id;
       this.setContent(inputEditor, source);
+      this.setCurrentScriptSource({
+        kind: 'sample',
+        label: sample.title,
+        baselineContent: source,
+      });
       this.parseContent();
       this.logMessage(`Loaded sample: ${sample.title}`, 'success');
       return true;

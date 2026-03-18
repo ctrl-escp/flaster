@@ -163,6 +163,19 @@ onMounted(() => {
         drawSelection(),
         dropCursor(),
         EditorState.allowMultipleSelections.of(true),
+        EditorView.updateListener.of((update) => {
+          if (!update.docChanged || props.editorId !== store.editorIds.inputCodeEditor) {
+            return;
+          }
+
+          const content = update.state.doc.toString();
+          if (store.currentScriptKind === 'custom') {
+            store.markCurrentScriptAsCustom(content);
+            return;
+          }
+
+          store.updateCurrentScriptDirtyState(content);
+        }),
         foldGutter(),
         highlightActiveLine(),
         highlightActiveLineGutter(),
@@ -192,6 +205,14 @@ onMounted(() => {
   editor.highlightRange = highlightRange;
   editor.highlightRanges = highlightRanges;
   store.editors.push(editor);
+
+  if (props.editorId === store.editorIds.inputCodeEditor && store.currentScriptKind === 'custom') {
+    store.setCurrentScriptSource({
+      kind: 'custom',
+      label: store.currentScriptLabel,
+      baselineContent: editor.state.doc.toString(),
+    });
+  }
 });
 </script>
 
