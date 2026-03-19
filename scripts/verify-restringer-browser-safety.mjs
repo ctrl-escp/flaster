@@ -402,11 +402,11 @@ if (!generatedScript.includes("from 'restringer/src/modules/safe/normalizeComput
   throw new Error('composeTransformationScript did not import the expected safe REstringer module');
 }
 
-if (!generatedScript.includes('applyKnownStructureTransformStep(script, {')) {
+if (!generatedScript.includes('applyKnownStructureTransformStep(script, normalizeComputed)')) {
   throw new Error('composeTransformationScript did not emit the built-in transform helper call');
 }
 
-if (!generatedScript.includes('Step 2: Built-in known structure transform')) {
+if (!generatedScript.includes('Step 2: Computed Members')) {
   throw new Error('composeTransformationScript did not emit readable built-in step comments');
 }
 

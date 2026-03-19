@@ -1,9 +1,10 @@
 <script setup>
-import {computed} from 'vue';
+import {computed, ref} from 'vue';
 import store from '../store';
 import IconClose from './icons/IconClose.vue';
 import IconExport from './icons/IconExport.vue';
 import IconCopy from './icons/IconCopy.vue';
+import ExportCodeEditor from './ExportCodeEditor.vue';
 import {
   composeTransformationScript,
   getGeneratedScriptFilename,
@@ -12,14 +13,16 @@ import {
 const generatedScript = computed(() => composeTransformationScript({
   steps: store.steps,
   combineFilters: store.combineFilters,
+  resolveStructureFilter: store.copyKnownStructureRuleSeed.bind(store),
 }));
+const editableScript = ref(generatedScript.value);
 
 function copyScript() {
-  navigator.clipboard.writeText(generatedScript.value);
+  navigator.clipboard.writeText(editableScript.value);
 }
 
 function downloadScript() {
-  const blob = new Blob([generatedScript.value], {type: 'text/javascript'});
+  const blob = new Blob([editableScript.value], {type: 'text/javascript'});
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -53,9 +56,11 @@ function downloadScript() {
         </button>
       </div>
 
-      <p class="order-note">Generated steps are emitted in pipeline order. Adjacent custom steps stay in the same `applyIteratively([...])` sequence in that order.</p>
+      <p class="order-note">Generated steps are emitted in pipeline order, and each custom transformation keeps its selected run mode.</p>
 
-      <textarea class="generated-script" :value="generatedScript" readonly spellcheck="false"></textarea>
+      <div class="generated-script">
+        <export-code-editor v-model="editableScript" />
+      </div>
     </section>
   </div>
 </template>
@@ -135,7 +140,6 @@ function downloadScript() {
   border: 1px solid var(--panel-border);
   background: #0b111b;
   color: #dce6f4;
-  padding: 1rem;
-  font-family: 'IBM Plex Mono', 'SFMono-Regular', monospace;
+  overflow: hidden;
 }
 </style>

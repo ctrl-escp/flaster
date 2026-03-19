@@ -5,6 +5,9 @@ import {getKnownStructure} from '../integrations/restringer/index.js';
  *   kind: 'custom',
  *   filters?: Array<{enabled?: boolean, src?: string}>,
  *   transformationCode?: string,
+ *   runMode?: 'once' | 'count' | 'until-stable',
+ *   maxIterations?: number,
+ *   params?: Record<string, unknown>,
  * }} StoredCustomStep
  */
 
@@ -30,7 +33,7 @@ import {getKnownStructure} from '../integrations/restringer/index.js';
 /**
  * @typedef {{
  *   importPath: string,
- *   specifiers: Set<string>,
+ *   defaultImport: string,
  * }} GeneratedImportEntry
  */
 
@@ -64,6 +67,9 @@ export function composeTransformationScript(options = {}) {
   const combineFilters = typeof options.combineFilters === 'function'
     ? options.combineFilters
     : createFallbackFilterCombiner;
+  const resolveStructureFilter = typeof options.resolveStructureFilter === 'function'
+    ? options.resolveStructureFilter
+    : () => '';
   const importPlan = createImportPlan(steps);
   const runtimeBlocks = [];
 
@@ -71,7 +77,7 @@ export function composeTransformationScript(options = {}) {
     runtimeBlocks.push(createKnownStructureRuntimeBlock());
   }
 
-  const stepBlocks = createStepBlocks(steps, combineFilters);
+  const stepBlocks = createStepBlocks(steps, combineFilters, resolveStructureFilter);
 
   const scriptSections = [
     GENERATED_HEADER,
@@ -112,19 +118,26 @@ function createImportPlan(steps) {
       const implementation = resolveKnownStructureImplementation(step);
       const importEntry = restringerImports.get(implementation.importPath) ?? {
         importPath: implementation.importPath,
-        specifiers: new Set(),
+        defaultImport: implementation.defaultImport,
       };
 
-      importEntry.specifiers.add(implementation.matcherName);
-      importEntry.specifiers.add(implementation.transformName);
       restringerImports.set(implementation.importPath, importEntry);
       continue;
     }
 
-    needsCustomRuntime = true;
-    flastSpecifiers.add('applyIteratively');
-    flastSpecifiers.add('logger');
-    flastSpecifiers.add('treeModifier');
+    if (isStructureSelectionStep(step)) {
+      flastSpecifiers.add('Arborist');
+      continue;
+    }
+
+    if (getCustomStepRunMode(step) === 'until-stable') {
+      needsCustomRuntime = true;
+      flastSpecifiers.add('applyIteratively');
+      flastSpecifiers.add('logger');
+      flastSpecifiers.add('treeModifier');
+    } else {
+      flastSpecifiers.add('Arborist');
+    }
   }
 
   return {
@@ -153,9 +166,7 @@ function createImportBlock(importPlan) {
   for (const importEntry of [...importPlan.restringerImports.values()].sort((left, right) =>
     left.importPath.localeCompare(right.importPath),
   )) {
-    lines.push(
-      `import {${sortStrings([...importEntry.specifiers]).join(', ')}} from '${importEntry.importPath}';`,
-    );
+    lines.push(`import ${importEntry.defaultImport} from '${importEntry.importPath}';`);
   }
 
   return lines.join('\n');
@@ -217,10 +228,11 @@ function createCustomStepBlock(step, stepNumber, combineFilters) {
     ? combineFilters(enabledFilters.map((filter) => filter.src))
     : 'true';
   const transformationCode = step?.kind === 'custom' ? step.transformationCode ?? '' : '';
+  const runMode = getCustomStepRunMode(step);
+  const maxIterations = getCustomStepMaxIterations(step);
 
-  return `/**
- * Step ${stepNumber}: Custom filter + transform
- */
+  if (runMode === 'until-stable') {
+    return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
 script = applyIteratively(script, [
   treeModifier(
     (n, arb) => {return ${filter};},
@@ -228,6 +240,45 @@ script = applyIteratively(script, [
   ),
 ]);
 logger.setLogLevelLog();`;
+  }
+
+  const arbVar = `arb${stepNumber}`;
+  const changesVar = `appliedChanges${stepNumber}`;
+  const nextChangesVar = `nextChanges${stepNumber}`;
+  const iterationsVar = `iterations${stepNumber}`;
+  const matchFuncVar = `customMatchFunc${stepNumber}`;
+  const transformFuncVar = `customTransform${stepNumber}`;
+
+  return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
+const ${matchFuncVar} = (n, arb) => ${filter};
+function ${transformFuncVar}(n, arb) {${transformationCode}}
+let ${arbVar} = new Arborist(script);
+let ${changesVar} = 0;
+let ${iterationsVar} = 0;
+
+while (${iterationsVar} < ${maxIterations}) {
+  for (const n of (${arbVar}.ast ?? []).filter((n) => ${matchFuncVar}(n, ${arbVar}))) {
+    ${transformFuncVar}(n, ${arbVar});
+  }
+
+  const ${nextChangesVar} = ${arbVar}.applyChanges();
+  if (${nextChangesVar} < 1) {
+    break;
+  }
+
+  ${changesVar} += ${nextChangesVar};
+  ${iterationsVar} += 1;
+}
+
+script = ${arbVar}.script;
+
+if (${changesVar} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} applied ${step?.label ?? 'Custom transform'} (\${${changesVar}} changes)\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
 }
 
 /**
@@ -238,72 +289,133 @@ logger.setLogLevelLog();`;
  *
  * @param {readonly StoredTransformationStep[]} steps
  * @param {(filters: string[]) => string} combineFilters
+ * @param {(structureId: string) => string} resolveStructureFilter
  * @returns {string[]}
  */
-function createStepBlocks(steps, combineFilters) {
+function createStepBlocks(steps, combineFilters, resolveStructureFilter) {
   const blocks = [];
-  let customBuffer = [];
-
-  const flushCustomBuffer = () => {
-    if (!customBuffer.length) {
-      return;
-    }
-
-    blocks.push(createCustomStepGroupBlock(customBuffer, combineFilters));
-    customBuffer = [];
-  };
 
   steps.forEach((step, index) => {
     if (step?.kind === 'known-structure-transform') {
-      flushCustomBuffer();
       blocks.push(createKnownStructureStepBlock(step, index + 1));
       return;
     }
 
-    customBuffer.push({step, stepNumber: index + 1});
-  });
+    if (isStructureSelectionStep(step)) {
+      blocks.push(createStructureSelectionStepBlock(step, index + 1, resolveStructureFilter));
+      return;
+    }
 
-  flushCustomBuffer();
+    blocks.push(createCustomStepBlock(step, index + 1, combineFilters));
+  });
   return blocks;
 }
 
+function isStructureSelectionStep(step) {
+  return step?.templateType === 'delete-structure-matches' ||
+    step?.templateType === 'isolate-structure-matches';
+}
+
+function getCustomStepRunMode(step) {
+  const runMode = step?.runMode ?? step?.params?.runMode ?? 'until-stable';
+  return ['once', 'count', 'until-stable'].includes(runMode) ? runMode : 'until-stable';
+}
+
+function getCustomStepMaxIterations(step) {
+  const runMode = getCustomStepRunMode(step);
+  const requestedValue = Number.parseInt(step?.maxIterations ?? step?.params?.maxIterations ?? 1, 10);
+
+  if (runMode === 'once') {
+    return 1;
+  }
+
+  if (runMode === 'count') {
+    return Math.max(1, Number.isFinite(requestedValue) ? requestedValue : 1);
+  }
+
+  return 1;
+}
+
+function createStructureSelectionStepBlock(step, stepNumber, resolveStructureFilter) {
+  const structureId = step?.params?.structureId ?? step?.selectionSource?.structureId ?? '';
+  const structureTitle = step?.label?.replace(/^(Delete|Isolate|Keep only)\s+/u, '').replace(/\s+matches$/u, '') ||
+    step?.structureTitle ||
+    step?.selectionSource?.structureId ||
+    'Selected structure';
+  const filterSrc = structureId ? stripLeadingComments(resolveStructureFilter(structureId)) : '';
+
+  if (!filterSrc) {
+    throw new Error(`Cannot export structure step without a structure rule: ${structureId || 'unknown'}`);
+  }
+
+  const arbVar = `arb${stepNumber}`;
+  const matchesVar = `matches${stepNumber}`;
+  const appliedChangesVar = `appliedChanges${stepNumber}`;
+  const matchFuncVar = `customMatchFunc${stepNumber}`;
+
+  if (step.templateType === 'delete-structure-matches') {
+    return `// Step ${stepNumber}: ${step?.label ?? `Delete ${structureTitle} matches`}
 /**
- * Creates a single applyIteratively block for adjacent custom steps.
+ * Marks every matched node for deletion in a single pass.
  *
- * @param {Array<{step: StoredTransformationStep, stepNumber: number}>} stepEntries
- * @param {(filters: string[]) => string} combineFilters
- * @returns {string}
+ * @param {Arborist} arb
+ * @param {Array<unknown>} [matches=[]]
+ * @returns {Arborist}
  */
-function createCustomStepGroupBlock(stepEntries, combineFilters) {
-  const modifiers = stepEntries.map(({step, stepNumber}) => {
-    const enabledFilters = step?.kind === 'custom'
-      ? step.filters?.filter((filter) => filter?.enabled && !!filter?.src) ?? []
-      : [];
-    const filter = enabledFilters.length
-      ? combineFilters(enabledFilters.map((filter) => filter.src))
-      : 'true';
-    const transformationCode = step?.kind === 'custom' ? step.transformationCode ?? '' : '';
+function deleteAllMatches(arb, matches = []) {
+  for (const match of matches) arb.markNode(match);
+  return arb;
+}
 
-    return `  /**
-   * Step ${stepNumber}: ${step?.label ?? 'Custom filter + transform'}
-   */
-  treeModifier(
-    (n, arb) => {return ${filter};},
-    (n, arb) => {${transformationCode}}
-  )`;
+const ${matchFuncVar} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
+let ${arbVar} = new Arborist(script);
+const ${matchesVar} = ${matchFuncVar}(${arbVar});
+${arbVar} = deleteAllMatches(${arbVar}, ${matchesVar});
+const ${appliedChangesVar} = ${arbVar}.applyChanges();
+script = ${arbVar}.script;
+
+if (${appliedChangesVar} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} deleted \${${matchesVar}.length} ${structureTitle} matches\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
+  }
+
+  return `// Step ${stepNumber}: ${step?.label ?? `Keep only ${structureTitle} matches`}
+/**
+ * Rewrites the program so only the matched nodes remain inside one block.
+ *
+ * @param {Arborist} arb
+ * @param {Array<unknown>} [matches=[]]
+ * @returns {Arborist}
+ */
+function keepOnlyMatches(arb, matches = []) {
+  arb.markNode(arb.ast[0], {
+    type: 'program',
+    body: {
+      type: 'BlockStatement',
+      body: matches
+    }
   });
+  return arb;
+}
 
-  const firstStepNumber = stepEntries[0]?.stepNumber ?? 1;
-  const lastStepNumber = stepEntries[stepEntries.length - 1]?.stepNumber ?? firstStepNumber;
+const ${matchFuncVar} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
+let ${arbVar} = new Arborist(script);
+const ${matchesVar} = ${matchFuncVar}(${arbVar});
+${arbVar} = keepOnlyMatches(${arbVar}, ${matchesVar});
+const ${appliedChangesVar} = ${arbVar}.applyChanges();
+script = ${arbVar}.script;
 
-  return `/**
- * Steps ${firstStepNumber}-${lastStepNumber}: Custom filter + transform pipeline
- * Order matters and is preserved from the flASTer pipeline builder.
- */
-script = applyIteratively(script, [
-${modifiers.join(',\n')}
-]);
-logger.setLogLevelLog();`;
+if (${appliedChangesVar} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} kept only \${${matchesVar}.length} ${structureTitle} matches\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
 }
 
 /**
@@ -316,34 +428,20 @@ logger.setLogLevelLog();`;
 function createKnownStructureStepBlock(step, stepNumber) {
   const implementation = resolveKnownStructureImplementation(step);
   const structureTitle = step.structureTitle ?? implementation.structureTitle;
+  const stepResultVar = `stepResult${stepNumber}`;
 
-  return `/**
- * Step ${stepNumber}: Built-in known structure transform
- * Origin: ${structureTitle} (${implementation.structureId})
- * REstringer: ${implementation.moduleName}.${implementation.transformName}
- */
-{
-  const stepResult = applyKnownStructureTransformStep(script, {
-    structureId: ${JSON.stringify(implementation.structureId)},
-    structureTitle: ${JSON.stringify(structureTitle)},
-    moduleName: ${JSON.stringify(implementation.moduleName)},
-    matcherName: ${JSON.stringify(implementation.matcherName)},
-    transformName: ${JSON.stringify(implementation.transformName)},
-    runMatch: ${implementation.matcherName},
-    runTransform: ${implementation.transformName},
-  });
+  return `// Step ${stepNumber}: ${structureTitle}
+// ${implementation.description}
+const ${stepResultVar} = applyKnownStructureTransformStep(script, ${implementation.defaultImport});
 
-  script = stepResult.script;
+script = ${stepResultVar}.script;
 
-  if (stepResult.appliedChanges > 0) {
-    console.debug(
-      \`[+] Step ${stepNumber} applied ${structureTitle} (\${stepResult.appliedChanges} changes across \${stepResult.matchCount} matches)\`,
-    );
-  } else {
-    console.debug(
-      \`[!] Step ${stepNumber} matched \${stepResult.matchCount} nodes but did not change the script\`,
-    );
-  }
+if (${stepResultVar}.appliedChanges > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} applied ${structureTitle} (\${${stepResultVar}.appliedChanges} changes)\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
 }`;
 }
 
@@ -354,20 +452,19 @@ function createKnownStructureStepBlock(step, stepNumber) {
  * @returns {{
  *   structureId: string,
  *   structureTitle: string,
+ *   description: string,
  *   moduleName: string,
- *   matcherName: string,
- *   transformName: string,
+ *   defaultImport: string,
  *   importPath: string,
  * }}
  */
 function resolveKnownStructureImplementation(step) {
   const structure = step?.structureId ? getKnownStructure(step.structureId) : null;
   const structureTitle = step?.structureTitle ?? structure?.title ?? step?.structureId ?? 'Unknown Structure';
+  const description = structure?.description ?? `Applies ${structureTitle}.`;
   const moduleName = step?.moduleName ?? structure?.implementation?.moduleName ?? null;
-  const matcherName = step?.matcherName ?? structure?.implementation?.matcherName ?? null;
-  const transformName = step?.transformName ?? structure?.implementation?.transformName ?? null;
 
-  if (!step?.structureId || !moduleName || !matcherName || !transformName) {
+  if (!step?.structureId || !moduleName) {
     throw new Error(
       `Cannot compose known structure step without implementation metadata: ${step?.structureId ?? 'unknown'}`,
     );
@@ -376,9 +473,9 @@ function resolveKnownStructureImplementation(step) {
   return {
     structureId: step.structureId,
     structureTitle,
+    description,
     moduleName,
-    matcherName,
-    transformName,
+    defaultImport: moduleName,
     importPath: `restringer/src/modules/safe/${moduleName}.js`,
   };
 }
@@ -389,42 +486,13 @@ function resolveKnownStructureImplementation(step) {
  * @returns {string}
  */
 function createKnownStructureRuntimeBlock() {
-  return `/**
- * @typedef {{
- *   structureId: string,
- *   structureTitle: string,
- *   moduleName: string,
- *   matcherName: string,
- *   transformName: string,
- *   runMatch: (arb: Arborist, candidateFilter: (node: unknown) => boolean) => unknown[],
- *   runTransform: (arb: Arborist, match: unknown) => unknown,
- * }} KnownStructureTransformRuntimeStep
- */
-
-/**
- * Applies one browser-safe REstringer transform step to the provided script.
- *
- * The matcher is rerun against a fresh Arborist instance so the generated
- * script reproduces the same "match first, then mutate" flow that flASTer uses
- * in the browser.
- *
- * @param {string} inputScript
- * @param {KnownStructureTransformRuntimeStep} step
- * @returns {{script: string, matchCount: number, appliedChanges: number}}
- */
-function applyKnownStructureTransformStep(inputScript, step) {
+  return `function applyKnownStructureTransformStep(inputScript, runStep) {
   const arb = new Arborist(inputScript);
-  const matches = step.runMatch(arb, () => true) ?? [];
-
-  for (const match of matches) {
-    step.runTransform(arb, match);
-  }
-
+  runStep(arb, () => true);
   const appliedChanges = arb.applyChanges();
 
   return {
     script: arb.script,
-    matchCount: matches.length,
     appliedChanges,
   };
 }`;
@@ -448,6 +516,24 @@ function createFallbackFilterCombiner(filters) {
   }
 
   return filterSrc;
+}
+
+/**
+ * Removes leading comment-only lines from a seeded filter snippet so exported
+ * code uses only the executable predicate text.
+ *
+ * @param {string} source
+ * @returns {string}
+ */
+function stripLeadingComments(source) {
+  return String(source || '')
+    .split('\n')
+    .filter((line) => {
+      const trimmed = line.trim();
+      return trimmed.length && !trimmed.startsWith('//');
+    })
+    .join('\n')
+    .trim();
 }
 
 /**
