@@ -4,8 +4,8 @@ import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
 import IconBandaid from './icons/IconBandaid.vue';
-import IconExport from './icons/IconExport.vue';
 import IconGithub from './icons/IconGithub.vue';
+import IconReset from './icons/IconReset.vue';
 
 const BANDAID_ROTATIONS = [90, 180, 270];
 const BANDAID_ANIMATION_MS = 30000;
@@ -22,7 +22,7 @@ const dependencyVersions = computed(() => ([
     href: 'https://github.com/ctrl-escp/restringer',
   },
 ]));
-const canExport = computed(() => store.steps.length > 0);
+const canUndo = computed(() => store.states.length > 0);
 const bandaidAnimationStyle = ref(createBandaidAnimationStyle());
 
 let bandaidAnimationTimer = null;
@@ -67,14 +67,15 @@ onBeforeUnmount(() => {
       <file-loader />
       <parse-button />
       <button
-        class="header-btn primary icon-btn"
+        class="header-btn header-btn-secondary header-btn-text"
         type="button"
-        :disabled="!canExport"
-        :title="canExport ? 'Open the generated Node.js export in a modal' : 'Add at least one pipeline step before exporting'"
-        aria-label="Open export panel"
-        @click="store.exportPanelOpen = true"
+        :disabled="!canUndo"
+        :title="canUndo ? 'Undo the last applied transformation. Click again to keep rolling back changes.' : 'There are no applied changes to undo'"
+        aria-label="Undo last transformation"
+        @click="store.revertState()"
       >
-        <icon-export class="header-icon" />
+        <icon-reset class="header-icon" />
+        <span>Undo</span>
       </button>
       <div class="version-chips" aria-label="Tool dependency versions">
         <a
@@ -239,6 +240,15 @@ h1 {
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+}
+
+.header-btn-secondary {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.header-btn-text {
+  gap: 0.45rem;
+  padding: 0.5rem 0.8rem;
 }
 
 .header-btn:disabled {

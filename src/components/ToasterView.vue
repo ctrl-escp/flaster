@@ -33,8 +33,15 @@ onMounted(() => {
 
 <style scoped>
 .toaster {
-  justify-content: center;
   position: fixed;
-  bottom: .5rem;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.65rem;
+  width: min(42rem, calc(100vw - 1.5rem));
+  z-index: 100;
+  pointer-events: none;
 }
 </style>

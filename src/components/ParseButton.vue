@@ -68,7 +68,6 @@ function parseContent() {
       if (!store.arb?.ast?.length) {
         store.logMessage(messages.astParseFail, 'error');
       } else {
-        store.logMessage(`Parsed ${code.length} chars into ${store.arb.ast.length} nodes`, 'success');
         store.rerunKnownStructureMatching();
       }
       store.filteredNodes = store.arb.ast;

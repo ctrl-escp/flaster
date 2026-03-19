@@ -1,7 +1,9 @@
 <script setup>
 import {computed, ref} from 'vue';
 import store from '../store';
+import IconBrowse from './icons/IconBrowse.vue';
 import IconFolder from './icons/IconFolder.vue';
+import IconListChecks from './icons/IconListChecks.vue';
 import IconTrash from './icons/IconTrash.vue';
 import IconArrowLeft from './icons/IconArrowLeft.vue';
 
@@ -31,7 +33,7 @@ function closeMenu() {
   showSamples.value = false;
 }
 
-function chooseUpload() {
+function chooseFile() {
   fileInput.value?.click();
 }
 
@@ -109,11 +111,14 @@ function loadSample(sampleId) {
 
     <div v-if="isOpen" class="load-menu">
       <div v-if="!showSamples" class="menu-stack">
-        <button class="menu-btn" type="button" title="Upload a local JavaScript file" @click="chooseUpload">
-          Upload file
+        
+        <button class="menu-btn icon-action-btn" type="button" title="Choose from bundled sample scripts" @click="chooseSamples">
+          <icon-list-checks class="menu-icon" />
+          <span>Load sample</span>
         </button>
-        <button class="menu-btn" type="button" title="Choose from bundled sample scripts" @click="chooseSamples">
-          Load sample
+        <button class="menu-btn icon-action-btn" type="button" title="Load a local JavaScript file" @click="chooseFile">
+          <icon-browse class="menu-icon" />
+          <span>Load file</span>
         </button>
         <button
           class="menu-btn icon-action-btn"
