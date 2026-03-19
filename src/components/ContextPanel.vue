@@ -1,46 +1,58 @@
 <script setup>
+import {computed} from 'vue';
 import store from '../store';
 import NodeInspector from './NodeInspector.vue';
 import TemplateWorkbench from './TemplateWorkbench.vue';
 import PipelineBuilder from './PipelineBuilder.vue';
-import AdvancedWorkspace from './AdvancedWorkspace.vue';
 import IconInspect from './icons/IconInspect.vue';
 import IconCompose from './icons/IconCompose.vue';
+import IconExport from './icons/IconExport.vue';
 import IconPipeline from './icons/IconPipeline.vue';
-import IconAdvanced from './icons/IconAdvanced.vue';
 
 const panels = {
   inspector: NodeInspector,
   templates: TemplateWorkbench,
   pipeline: PipelineBuilder,
-  advanced: AdvancedWorkspace,
 };
 
 const tabs = [
   {id: 'inspector', label: 'Inspector', icon: IconInspect},
   {id: 'templates', label: 'Templates', icon: IconCompose},
   {id: 'pipeline', label: 'Pipeline', icon: IconPipeline},
-  {id: 'advanced', label: 'Advanced', icon: IconAdvanced},
 ];
+
+const canExport = computed(() => store.steps.length > 0);
 </script>
 
 <template>
   <section class="context-pane">
     <div class="pane-header">
       <h2>Focused workspace</h2>
-      <div class="tab-row">
+      <div class="pane-actions">
+        <div class="tab-row">
+          <button
+            v-for="tab in tabs"
+            :key="tab.id"
+            class="tab-btn icon-btn"
+            :class="{active: store.activeInspectorPanel === tab.id}"
+            type="button"
+            :disabled="store.activeInspectorPanel === tab.id"
+            :title="`Open the ${tab.label.toLowerCase()} panel`"
+            :aria-label="`Open ${tab.label} panel`"
+            @click="store.setActiveInspectorPanel(tab.id)"
+          >
+            <component :is="tab.icon" />
+          </button>
+        </div>
         <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          class="tab-btn icon-btn"
-          :class="{active: store.activeInspectorPanel === tab.id}"
+          class="export-btn icon-btn"
           type="button"
-          :disabled="store.activeInspectorPanel === tab.id"
-          :title="`Open the ${tab.label.toLowerCase()} panel`"
-          :aria-label="`Open ${tab.label} panel`"
-          @click="store.setActiveInspectorPanel(tab.id)"
+          :disabled="!canExport"
+          :title="canExport ? 'Open the generated Node.js export in a modal' : 'Add at least one pipeline step before exporting'"
+          aria-label="Open export panel"
+          @click="store.exportPanelOpen = true"
         >
-          <component :is="tab.icon" />
+          <icon-export />
         </button>
       </div>
     </div>
@@ -61,12 +73,21 @@ const tabs = [
 }
 
 .pane-header,
+.pane-actions,
 .tab-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
   flex-wrap: wrap;
+}
+
+.pane-actions {
+  justify-content: flex-end;
+}
+
+.tab-row {
+  justify-content: flex-end;
 }
 
 .tab-btn {
@@ -102,6 +123,29 @@ const tabs = [
 .tab-btn.active:disabled {
   opacity: 1;
   cursor: default;
+}
+
+.export-btn {
+  border: 1px solid var(--panel-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  border-radius: 9px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.export-btn:hover:not(:disabled),
+.export-btn:focus-visible:not(:disabled) {
+  background: rgba(126, 202, 255, 0.1);
+  border-color: rgba(126, 202, 255, 0.24);
+  outline: none;
+}
+
+.export-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .panel-content {

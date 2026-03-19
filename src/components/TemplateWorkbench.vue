@@ -1,150 +1,444 @@
 <script setup>
-import {computed} from 'vue';
+import {computed, ref} from 'vue';
 import store from '../store';
 import IconCheck from './icons/IconCheck.vue';
-import IconTransform from './icons/IconTransform.vue';
+import IconClose from './icons/IconClose.vue';
+import IconCopy from './icons/IconCopy.vue';
+import TransformEditor from '../TransformEditor.vue';
 
+const knownTransformExamples = Object.freeze({
+  'proxy-calls': {
+    outcome: 'Removes the forwarding wrapper so the real callee is invoked directly.',
+    before: [
+      'function proxyCall(handler, a, b) {',
+      '  return handler(a, b);',
+      '}',
+      '',
+      'const sum = (left, right) => left + right;',
+      'const total = proxyCall(sum, 2, 3);',
+    ].join('\n'),
+    after: [
+      'const sum = (left, right) => left + right;',
+      'const total = sum(2, 3);',
+    ].join('\n'),
+  },
+  'proxy-variables': {
+    outcome: 'Drops the alias and rewrites reads to use the original identifier directly.',
+    before: [
+      'const originalValue = computeScore(input);',
+      'const aliasedValue = originalValue;',
+      '',
+      'console.log(aliasedValue);',
+    ].join('\n'),
+    after: [
+      'const originalValue = computeScore(input);',
+      '',
+      'console.log(originalValue);',
+    ].join('\n'),
+  },
+  'proxy-references': {
+    outcome: 'Inlines the referenced source so the proxy variable is no longer needed.',
+    before: [
+      'const state = {',
+      "  token: 'abc123',",
+      '};',
+      '',
+      'const tokenRef = state.token;',
+      'useToken(tokenRef);',
+    ].join('\n'),
+    after: [
+      'const state = {',
+      "  token: 'abc123',",
+      '};',
+      '',
+      'useToken(state.token);',
+    ].join('\n'),
+  },
+  'wrapped-value-shells': {
+    outcome: 'Replaces the shell call with the wrapped value it always returns.',
+    before: [
+      'function revealValue() {',
+      "  return 'decoded';",
+      '}',
+      '',
+      'const message = revealValue();',
+    ].join('\n'),
+    after: [
+      "const message = 'decoded';",
+    ].join('\n'),
+  },
+  'iife-wrappers': {
+    outcome: 'Unwraps the immediately invoked wrapper and leaves the direct value-producing code.',
+    before: [
+      'const config = (function () {',
+      '  const retries = 3;',
+      '  return {retries};',
+      '}());',
+    ].join('\n'),
+    after: [
+      'const retries = 3;',
+      'const config = {retries};',
+    ].join('\n'),
+  },
+  'template-literal-strings': {
+    outcome: 'Converts a static template literal into a normal string literal.',
+    before: [
+      'const label = `debug mode enabled`;',
+      'console.log(label);',
+    ].join('\n'),
+    after: [
+      "const label = 'debug mode enabled';",
+      'console.log(label);',
+    ].join('\n'),
+  },
+  'fixed-assigned-values': {
+    outcome: 'Propagates the fixed assigned value into places that read that identifier.',
+    before: [
+      'const statusCode = 200;',
+      'const responseCode = statusCode;',
+      '',
+      'if (responseCode === 200) {',
+      "  console.log('ok');",
+      '}',
+    ].join('\n'),
+    after: [
+      'const statusCode = 200;',
+      '',
+      'if (200 === 200) {',
+      "  console.log('ok');",
+      '}',
+    ].join('\n'),
+  },
+  'deterministic-if-statements': {
+    outcome: 'Keeps only the branch that will always execute and removes the dead branch.',
+    before: [
+      'if (true) {',
+      '  runVisibleBranch();',
+      '} else {',
+      '  runDeadBranch();',
+      '}',
+    ].join('\n'),
+    after: [
+      'runVisibleBranch();',
+    ].join('\n'),
+  },
+  'sequence-rearrangement': {
+    outcome: 'Expands the sequence into clearer ordered statements.',
+    before: [
+      'const result = (',
+      "  logStep('first'),",
+      "  logStep('second'),",
+      '  finalizeStep()',
+      ');',
+    ].join('\n'),
+    after: [
+      "logStep('first');",
+      "logStep('second');",
+      'const result = finalizeStep();',
+    ].join('\n'),
+  },
+  'switch-rearrangement': {
+    outcome: 'Reorders switch-driven flow into a more direct execution sequence.',
+    before: [
+      'switch (state) {',
+      "  case 'init':",
+      "    state = 'ready';",
+      '    break;',
+      "  case 'ready':",
+      '    render();',
+      '    break;',
+      '}',
+    ].join('\n'),
+    after: [
+      "state = 'ready';",
+      'render();',
+    ].join('\n'),
+  },
+  'computed-members': {
+    outcome: 'Normalizes computed member access into clearer dot/property syntax when that is safe.',
+    before: [
+      'const user = {name: "Ada"};',
+      "console.log(user['name']);",
+    ].join('\n'),
+    after: [
+      'const user = {name: "Ada"};',
+      'console.log(user.name);',
+    ].join('\n'),
+  },
+  'simplify-calls': {
+    outcome: 'Simplifies indirect call syntax into a clearer equivalent call expression.',
+    before: [
+      'const math = {',
+      '  add(left, right) {',
+      '    return left + right;',
+      '  },',
+      '};',
+      '',
+      "const value = math['add'](4, 5);",
+    ].join('\n'),
+    after: [
+      'const math = {',
+      '  add(left, right) {',
+      '    return left + right;',
+      '  },',
+      '};',
+      '',
+      'const value = math.add(4, 5);',
+    ].join('\n'),
+  },
+});
+
+const activeStructure = computed(() =>
+  store.getKnownStructureById(store.inspectedKnownStructureId ?? store.activeKnownStructureId));
 const activeTemplate = computed(() =>
   store.templateCatalog.find((template) => template.type === store.activeTemplateType) ?? null);
+const activeMatchCount = computed(() =>
+  activeStructure.value ? store.getKnownStructureMatches(activeStructure.value.id).length : 0);
+const hasBuiltInTransform = computed(() =>
+  store.canPreviewKnownStructureTransform(activeStructure.value?.id));
+const activeTransformExample = computed(() =>
+  activeStructure.value ? knownTransformExamples[activeStructure.value.id] ?? null : null);
+const exampleModalOpen = ref(false);
 
-const selectedNode = computed(() => store.getSelectedNode());
-const activeStructure = computed(() => store.getKnownStructureById(store.inspectedKnownStructureId ?? store.activeKnownStructureId));
-const canApplyTemplate = computed(() => store.canApplyTemplate());
-const visibleTemplates = computed(() => store.templateCatalog.filter((template) => {
-  if (template.type === 'apply-known-transform' || template.type === 'remove-dead-wrapper') {
-    return !!activeStructure.value;
+const transformOptions = computed(() => store.templateCatalog.map((template) => {
+  if (template.type === 'apply-known-transform') {
+    return {
+      ...template,
+      disabled: !hasBuiltInTransform.value,
+      detail: hasBuiltInTransform.value
+        ? 'Available for this built-in REstringer structure.'
+        : 'Unavailable because this structure has no default REstringer transform.',
+    };
   }
 
-  if (template.type === 'rename-identifiers') {
-    return selectedNode.value?.type === 'Identifier' || !!selectedNode.value;
+  if (template.type === 'advanced-js-step') {
+    return {
+      ...template,
+      disabled: !activeStructure.value || activeMatchCount.value < 1,
+      detail: activeStructure.value && activeMatchCount.value > 0
+        ? 'Write a custom transform function body for the current structure.'
+        : 'Choose a matched structure before writing a custom transform.',
+    };
   }
 
-  if (template.type === 'replace-literals') {
-    return selectedNode.value?.type === 'Literal' || !!selectedNode.value;
-  }
-
-  if (template.type === 'match-structure') {
-    return !!activeStructure.value;
-  }
-
-  if (template.type === 'custom-node-selection') {
-    return !!selectedNode.value;
-  }
-
-  return ['advanced-js-step', 'inline-call-result'].includes(template.type);
+  return {
+    ...template,
+    disabled: !activeStructure.value || activeMatchCount.value < 1,
+    detail: activeStructure.value && activeMatchCount.value > 0
+      ? `${activeMatchCount.value} matches ready`
+      : 'Choose a matched structure first.',
+  };
 }));
 
-function updateDraft(key, event) {
-  store.updateTemplateDraft(store.activeTemplateType, key, event.target.value);
+const canApplyTemplate = computed(() => store.canApplyTemplate());
+
+const activeTemplateDescription = computed(() => {
+  if (!activeTemplate.value) {
+    return 'Choose how to transform the selected structure.';
+  }
+
+  if (store.activeTemplateType !== 'apply-known-transform') {
+    return activeTemplate.value.description;
+  }
+
+  if (!activeStructure.value) {
+    return 'Select a structure with matches to use its default REstringer transformation.';
+  }
+
+  const example = activeTransformExample.value;
+  const transformName = activeStructure.value.implementation?.transformName ?? 'unknownTransform';
+
+  return [
+    `Transformation: ${transformName}`,
+    `What it does: ${activeStructure.value.description}`,
+    `End result: ${example?.outcome ?? 'Rewrites the matched structure into a simpler equivalent form.'}`,
+  ];
+});
+
+function selectTemplate(template) {
+  if (template.disabled) {
+    return;
+  }
+
+  store.setActiveTemplate(template.type);
+
+  if (template.type === 'apply-known-transform' && activeStructure.value) {
+    store.previewKnownStructureTransform(activeStructure.value.id);
+    return;
+  }
+
+  if (activeStructure.value) {
+    store.clearKnownStructureTransformPreview(activeStructure.value.id);
+  }
+}
+
+function openExampleModal() {
+  if (!activeTransformExample.value) {
+    return;
+  }
+
+  exampleModalOpen.value = true;
+}
+
+function closeExampleModal() {
+  exampleModalOpen.value = false;
+}
+
+async function copyTransformExample() {
+  if (!activeTransformExample.value || !activeStructure.value) {
+    return;
+  }
+
+  const exampleText = [
+    `${activeStructure.value.title} Example`,
+    '',
+    'Before:',
+    activeTransformExample.value.before,
+    '',
+    'After:',
+    activeTransformExample.value.after,
+  ].join('\n');
+
+  try {
+    await navigator.clipboard.writeText(exampleText);
+    store.logMessage(`Copied example for ${activeStructure.value.title}`, 'success');
+  } catch (error) {
+    store.logMessage(`Unable to copy example: ${error.message}`, 'error');
+  }
 }
 </script>
 
 <template>
   <section class="workspace-panel">
     <div class="panel-header">
-      <h2>Stage reproducible steps</h2>
-      <div class="panel-meta">{{ activeTemplate?.title || 'Choose a template' }}</div>
+      <h2>Transform</h2>
+      <div class="panel-meta">
+        {{ activeStructure?.title || 'Choose a structure' }}
+      </div>
     </div>
-    
+
     <div class="template-editor">
       <p class="context-copy">
-        Active structure: <strong>{{ activeStructure?.title || 'None' }}</strong>
-        <span>·</span>
-        Selected node: <strong>{{ selectedNode?.type || 'None' }}</strong>
+        <strong>{{ activeMatchCount }}</strong> matches selected
+        <span v-if="activeStructure">for {{ activeStructure.title }}</span>
       </p>
 
       <p class="ordering-note">
-        Steps run top-to-bottom. After each applied transformation, known-structure matching reruns on the updated script.
+        Pick one transformation path for the current structure.
       </p>
 
-      <div v-if="store.activeTemplateType === 'rename-identifiers'" class="form-grid">
-        <label>
-          <span>Replacement name</span>
-          <input
-            class="panel-input"
-            :value="store.templateDrafts['rename-identifiers'].nextName"
-            @input="updateDraft('nextName', $event)"
-          >
-        </label>
-        <label class="checkbox-row">
-          <input
-            :checked="store.templateDrafts['rename-identifiers'].useSelectedName"
-            type="checkbox"
-            @change="store.updateTemplateDraft('rename-identifiers', 'useSelectedName', $event.target.checked)"
-          >
-          <span>Only rename the currently selected identifier name</span>
-        </label>
+      <div class="template-grid">
+        <button
+          v-for="template in transformOptions"
+          :key="template.type"
+          class="template-card"
+          :class="{active: template.type === store.activeTemplateType}"
+          type="button"
+          :disabled="template.disabled"
+          :title="template.description"
+          @click="selectTemplate(template)"
+        >
+          <strong>{{ template.title }}</strong>
+          <span>{{ template.description }}</span>
+          <small class="template-detail">{{ template.detail }}</small>
+        </button>
       </div>
 
-      <div v-else-if="store.activeTemplateType === 'replace-literals'" class="form-grid">
-        <label>
-          <span>New literal value</span>
-          <input
-            class="panel-input"
-            :value="store.templateDrafts['replace-literals'].nextValue"
-            @input="updateDraft('nextValue', $event)"
+      <div v-if="activeTemplate" class="template-help">
+        <template v-if="store.activeTemplateType === 'apply-known-transform'">
+          <p
+            v-for="line in activeTemplateDescription"
+            :key="line"
+            class="template-help-line"
           >
-        </label>
-        <label>
-          <span>Value type</span>
-          <select
-            class="panel-input"
-            :value="store.templateDrafts['replace-literals'].valueType"
-            @change="updateDraft('valueType', $event)"
+            {{ line }}
+          </p>
+          <button
+            v-if="activeTransformExample"
+            class="secondary-btn template-example-btn"
+            type="button"
+            title="Open a before and after example for this transform"
+            aria-label="Open transform example"
+            @click="openExampleModal()"
           >
-            <option value="string">String</option>
-            <option value="number">Number</option>
-            <option value="boolean">Boolean</option>
-          </select>
-        </label>
-      </div>
-
-      <div v-else class="template-help">
-        {{ activeTemplate?.description }}
+            Example
+          </button>
+        </template>
+        <template v-else>
+          <p class="template-help-line">{{ activeTemplateDescription }}</p>
+        </template>
       </div>
     </div>
 
-    <div class="template-actions primary-actions">
+    <div
+      v-if="store.activeTemplateType !== 'advanced-js-step'"
+      class="template-actions primary-actions"
+    >
       <button
-        class="primary-btn icon-btn"
+        class="primary-btn apply-btn"
         type="button"
         :disabled="!canApplyTemplate"
-        :title="store.activeTemplateType === 'advanced-js-step'
-          ? 'Switch to the advanced panel and open the raw editors'
-          : canApplyTemplate
-            ? 'Apply the selected template to the current script'
-            : 'The selected template is not actionable yet'"
-        :aria-label="store.activeTemplateType === 'advanced-js-step' ? 'Open advanced editors' : 'Apply template'"
+        :title="canApplyTemplate
+          ? 'Apply the selected transformation'
+          : 'The selected transformation is not available yet'"
+        aria-label="Apply transformation"
         @click="store.applyTemplate()"
       >
-        <icon-transform v-if="store.activeTemplateType === 'advanced-js-step'" />
-        <icon-check v-else />
-      </button>
-      <button
-        class="secondary-btn icon-btn"
-        type="button"
-        title="Switch to the advanced panel and show raw filter/transform editors"
-        aria-label="Open advanced editors"
-        @click="store.openAdvancedTools()"
-      >
-        <icon-transform />
+        <icon-check />
+        <span>Apply</span>
       </button>
     </div>
 
-    <div class="template-grid">
-      <button
-        v-for="template in visibleTemplates"
-        :key="template.type"
-        class="template-card"
-        :class="{active: template.type === store.activeTemplateType}"
-        type="button"
-        :disabled="template.type === store.activeTemplateType"
-        :title="template.description"
-        @click="store.setActiveTemplate(template.type)"
+    <transform-editor v-if="store.activeTemplateType === 'advanced-js-step'" />
+
+    <div
+      v-if="exampleModalOpen && activeTransformExample && activeStructure"
+      class="example-modal-backdrop"
+      @click.self="closeExampleModal()"
+    >
+      <section
+        class="example-modal"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="`${activeStructure.title} transform example`"
       >
-        <strong>{{ template.title }}</strong>
-        <span>{{ template.description }}</span>
-      </button>
+        <div class="example-modal-header">
+          <div class="example-modal-copy">
+            <h3>{{ activeStructure.title }} Example</h3>
+          </div>
+          <div class="example-modal-actions">
+            <button
+              class="secondary-btn icon-btn"
+              type="button"
+              title="Copy the full example"
+              aria-label="Copy full example"
+              @click="copyTransformExample()"
+            >
+              <icon-copy />
+            </button>
+            <button
+              class="secondary-btn icon-btn"
+              type="button"
+              title="Close example"
+              aria-label="Close example"
+              @click="closeExampleModal()"
+            >
+              <icon-close />
+            </button>
+          </div>
+        </div>
+        <p class="example-modal-description">{{ activeStructure.description }}</p>
+        <div class="template-example-modal-grid">
+          <div>
+            <strong>Before</strong>
+            <pre class="example-modal-code"><code>{{ activeTransformExample.before }}</code></pre>
+          </div>
+          <div>
+            <strong>After</strong>
+            <pre class="example-modal-code"><code>{{ activeTransformExample.after }}</code></pre>
+          </div>
+        </div>
+      </section>
     </div>
   </section>
 </template>
@@ -158,8 +452,7 @@ function updateDraft(key, event) {
 }
 
 .panel-header,
-.template-actions,
-.checkbox-row {
+.template-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -169,8 +462,30 @@ function updateDraft(key, event) {
 .panel-meta,
 .context-copy,
 .template-help,
-.ordering-note {
+.ordering-note,
+.template-detail {
   color: var(--text-muted);
+}
+
+.template-help {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.template-help-line {
+  margin: 0;
+}
+
+.apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.58rem 0.95rem;
+}
+
+.template-example-btn {
+  align-self: flex-start;
 }
 
 .template-grid {
@@ -187,9 +502,15 @@ function updateDraft(key, event) {
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
   color: var(--text-primary);
   cursor: pointer;
+}
+
+.template-card.active {
+  border-color: rgba(255, 191, 102, 0.55);
+  background: rgba(255, 191, 102, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 191, 102, 0.12);
 }
 
 .template-card:disabled,
@@ -203,27 +524,67 @@ function updateDraft(key, event) {
   color: var(--text-muted);
 }
 
-.template-card.active {
-  border-color: rgba(255, 191, 102, 0.55);
-  background: rgba(255, 191, 102, 0.08);
-  box-shadow: inset 0 0 0 1px rgba(255, 191, 102, 0.12);
+.example-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(4, 9, 16, 0.72);
 }
 
-.template-card.active:disabled {
-  opacity: 1;
-  cursor: default;
+.example-modal,
+.example-modal-copy {
+  display: flex;
+  flex-direction: column;
 }
 
-.form-grid {
+.example-modal {
+  width: min(840px, 100%);
+  max-height: min(80vh, 900px);
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: #0b111b;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.example-modal-actions,
+.example-modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.example-modal-actions {
+  flex-shrink: 0;
+}
+
+.example-modal-description {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.template-example-modal-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.7rem;
 }
 
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+.example-modal-code {
+  margin: 0.35rem 0 0;
+  overflow: auto;
+  padding: 1rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  user-select: text;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  font-family: 'IBM Plex Mono', 'SFMono-Regular', monospace;
 }
 
 .panel-input {
@@ -260,7 +621,7 @@ label {
 
 @media (max-width: 720px) {
   .template-grid,
-  .form-grid {
+  .template-example-modal-grid {
     grid-template-columns: 1fr;
   }
 }

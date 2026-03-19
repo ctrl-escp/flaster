@@ -160,7 +160,10 @@ export function groupStructureMatches(matches) {
  *
  * @param {Arborist} arb
  * @param {readonly string[]} [structureIds]
- * @param {{candidateFilter?: (node: KnownStructureMatch['node']) => boolean}} [options={}]
+ * @param {{
+ *   candidateFilter?: (node: KnownStructureMatch['node']) => boolean,
+ *   structures?: readonly KnownStructureDescriptor[],
+ * }} [options={}]
  * @returns {{
  *   structureIds: string[],
  *   skippedStructureIds: string[],
@@ -174,9 +177,14 @@ export function groupStructureMatches(matches) {
  * }}
  */
 export function runKnownStructureMatchingSession(arb, structureIds, options = {}) {
-  const requestedIds = getRequestedStructureIds(structureIds);
-  const idsToRun = getRunnableStructureIds(requestedIds);
-  const runs = idsToRun.map((structureId) => runKnownStructureMatcher(arb, structureId, options));
+  const availableStructures = Array.isArray(options.structures) && options.structures.length
+    ? options.structures
+    : knownStructures;
+  const structuresById = Object.fromEntries(availableStructures.map((structure) => [structure.id, structure]));
+  const requestedIds = getRequestedStructureIds(structureIds, availableStructures);
+  const idsToRun = getRunnableStructureIds(requestedIds, availableStructures);
+  const runs = idsToRun.map((structureId) =>
+    runKnownStructureMatcher(arb, structuresById[structureId] ?? structureId, options));
   const matches = runs.flatMap((run) => run.matches);
   const groupedMatches = groupStructureMatches(matches);
   const matchCounts = Object.fromEntries(runs.map((run) => [run.structureId, run.count]));
@@ -199,25 +207,30 @@ export function runKnownStructureMatchingSession(arb, structureIds, options = {}
  * Normalizes a requested list of structure IDs into a de-duplicated runnable set.
  *
  * @param {readonly string[] | undefined} structureIds
+ * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
  * @returns {string[]}
  */
-export function getRequestedStructureIds(structureIds) {
+export function getRequestedStructureIds(structureIds, structures = knownStructures) {
+  const structuresById = Object.fromEntries(structures.map((structure) => [structure.id, structure]));
   const requestedIds = Array.isArray(structureIds) && structureIds.length
     ? structureIds
-    : getDefaultSelectedStructureIds();
+    : getDefaultSelectedStructureIds(structures);
 
-  return [...new Set(requestedIds)].filter((structureId) => !!getKnownStructure(structureId));
+  return [...new Set(requestedIds)].filter((structureId) => !!structuresById[structureId]);
 }
 
 /**
  * Filters a requested structure list down to the entries runnable in the current browser.
  *
  * @param {readonly string[] | undefined} structureIds
+ * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
  * @returns {string[]}
  */
-export function getRunnableStructureIds(structureIds) {
-  return getRequestedStructureIds(structureIds).filter((structureId) => {
-    const structure = getKnownStructure(structureId);
+export function getRunnableStructureIds(structureIds, structures = knownStructures) {
+  const structuresById = Object.fromEntries(structures.map((structure) => [structure.id, structure]));
+
+  return getRequestedStructureIds(structureIds, structures).filter((structureId) => {
+    const structure = structuresById[structureId];
     return !!structure?.browserRunnable && !!structure.matcherAvailable;
   });
 }

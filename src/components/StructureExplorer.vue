@@ -9,6 +9,8 @@ import IconArrowLeft from './icons/IconArrowLeft.vue';
 import IconArrowRight from './icons/IconArrowRight.vue';
 import IconCopy from './icons/IconCopy.vue';
 import IconClose from './icons/IconClose.vue';
+import IconPlus from './icons/IconPlus.vue';
+import FilterEditor from '../FilterEditor.vue';
 
 const PAGE_SIZE = 100;
 
@@ -20,6 +22,8 @@ const filters = reactive({
 const expandedStructureId = ref(null);
 const currentPage = ref(0);
 const exampleStructureId = ref('');
+const showMatchesOnly = ref(false);
+const showDefineStructure = ref(false);
 
 const categories = computed(() => [...new Set(
   store.availableKnownStructures.map((structure) => structure.category),
@@ -30,6 +34,10 @@ const visibleStructures = computed(() => {
 
   return store.availableKnownStructures
     .filter((structure) => {
+      if (showMatchesOnly.value && !hasStructureMatches(structure)) {
+        return false;
+      }
+
       if (filters.category && structure.category !== filters.category) {
         return false;
       }
@@ -135,15 +143,28 @@ function stepStructureMatch(structureId, direction = 1) {
 }
 
 function canTransformStructure(structure) {
-  return hasStructureMatches(structure) && store.canPreviewKnownStructureTransform(structure.id);
+  return Boolean(
+    structure?.browserRunnable &&
+    store.isCurrentInputParsed() &&
+    hasStructureMatches(structure),
+  );
 }
 
 function openStructureTransform(structureId) {
-  store.previewKnownStructureTransform(structureId);
-  store.setActiveTemplate('apply-known-transform');
+  const defaultTemplate = store.canPreviewKnownStructureTransform(structureId)
+    ? 'apply-known-transform'
+    : 'advanced-js-step';
+
   store.setInspectedKnownStructure(structureId);
   activateStructure(structureId);
-  store.setActiveWorkspaceTab('inspector');
+  store.setActiveInspectorPanel('templates');
+  store.setActiveTemplate(defaultTemplate);
+
+  if (defaultTemplate === 'apply-known-transform') {
+    store.previewKnownStructureTransform(structureId);
+  } else {
+    store.clearKnownStructureTransformPreview(structureId);
+  }
 }
 
 function toggleExpandedStructure(structureId) {
@@ -156,6 +177,10 @@ function openExample(structureId) {
 
 function closeExample() {
   exampleStructureId.value = '';
+}
+
+function handleStructureCreated() {
+  showDefineStructure.value = false;
 }
 
 async function copyExample() {
@@ -288,9 +313,30 @@ onBeforeUnmount(() => {
       >
         <icon-trash />
       </button>
+      <button
+        class="mini-btn structure-define-btn"
+        type="button"
+        :title="showDefineStructure ? 'Hide the new structure editor' : 'Define a new structure rule'"
+        :aria-label="showDefineStructure ? 'Hide define new structure editor' : 'Show define new structure editor'"
+        @click="showDefineStructure = !showDefineStructure"
+      >
+        <icon-close v-if="showDefineStructure" />
+        <icon-plus v-else />
+        <span>{{ showDefineStructure ? 'Hide New Structure' : 'Define New Structure' }}</span>
+      </button>
+      <label class="matches-toggle" title="Only show structures with one or more matches">
+        <input v-model="showMatchesOnly" type="checkbox">
+        <span>Matches only</span>
+      </label>
     </div>
 
-    <div class="structure-list">
+    <filter-editor
+      v-if="showDefineStructure"
+      create-structure
+      @complete="handleStructureCreated"
+    />
+
+    <div v-else class="structure-list">
       <article
         v-for="structure in pagedStructures"
         :key="structure.id"
@@ -406,7 +452,7 @@ onBeforeUnmount(() => {
               class="structure-action"
               type="button"
               :disabled="!canTransformStructure(structure)"
-              title="Preview this built-in transform and open it in the template panel"
+              title="Open the transformation options for this structure"
               aria-label="Open structure transform"
               @click="openStructureTransform(structure.id)"
             >
@@ -425,6 +471,7 @@ onBeforeUnmount(() => {
         would apply {{ activePreview.pendingChanges }} changes.
       </span>
     </div>
+
     <div
       v-if="exampleStructure"
       class="example-modal-backdrop"
@@ -585,6 +632,20 @@ h2 {
   flex-wrap: wrap;
 }
 
+.explorer-actions {
+  align-items: center;
+}
+
+.matches-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
 .filter-label {
   color: var(--text-muted);
   font-size: 0.78rem;
@@ -604,6 +665,20 @@ h2 {
 .secondary-btn:not(.icon-btn),
 .mini-btn:not(.icon-btn) {
   padding: 0.42rem 0.65rem;
+}
+
+.structure-define-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.structure-define-btn svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
 }
 
 .secondary-btn:disabled,
