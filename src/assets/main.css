@@ -138,3 +138,12 @@ legend {
   height: auto;
   padding: 0 0.25rem;
 }
+
+@media (max-width: 900px) {
+  .cm-editor,
+  .cm-scroller,
+  .cm-content,
+  .cm-line {
+    touch-action: pan-y pinch-zoom;
+  }
+}

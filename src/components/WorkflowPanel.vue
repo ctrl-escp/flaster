@@ -251,6 +251,19 @@ function openStage(stageId) {
 }
 
 @media (max-width: 900px) {
+  .workflow-pane {
+    height: auto;
+  }
+
+  .workflow-content {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .workflow-content :deep(.workspace-panel) {
+    flex: 0 0 auto;
+  }
+
   .flow-rail {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

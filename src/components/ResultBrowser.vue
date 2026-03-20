@@ -416,4 +416,15 @@ watch(totalPages, (nextTotalPages) => {
   font-size: 1.15rem;
   line-height: 1;
 }
+
+@media (max-width: 900px) {
+  .workspace-panel {
+    height: auto;
+  }
+
+  .result-list {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+}
 </style>

@@ -207,6 +207,13 @@ function openTab(tabId) {
   height: 1rem;
 }
 
+@media (max-width: 900px) {
+  .code-structures-stage {
+    flex: 0 0 auto;
+    height: auto;
+  }
+}
+
 @keyframes pulse-results-glow {
   0% {
     box-shadow:

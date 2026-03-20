@@ -306,6 +306,15 @@ dd {
 }
 
 @media (max-width: 720px) {
+  .inspector-panel {
+    height: auto;
+  }
+
+  .inspector-content {
+    overflow: visible;
+    padding-right: 0;
+  }
+
   .overview-list div {
     grid-template-columns: 1fr;
   }

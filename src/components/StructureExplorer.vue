@@ -1044,6 +1044,16 @@ h2 {
 }
 
 @media (max-width: 720px) {
+  .workspace-panel {
+    height: auto;
+  }
+
+  .structure-list {
+    flex: 0 0 auto;
+    overflow: visible;
+    padding-right: 0;
+  }
+
   .filter-grid {
     grid-template-columns: 1fr;
   }

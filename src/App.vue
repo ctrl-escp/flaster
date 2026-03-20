@@ -205,17 +205,32 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 900px) {
+  .app-shell {
+    height: auto;
+    min-height: calc(100dvh - 1.8rem);
+    overflow-x: visible;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .workspace-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
     grid-template-areas:
       'header'
       'left'
       'right';
+    flex: 0 0 auto;
+    min-height: auto;
   }
 
+  .workspace-column,
   .right-column {
-    overflow: hidden;
+    overflow: visible;
+  }
+
+  .code-panel {
+    min-height: 55dvh;
   }
 }
 </style>
