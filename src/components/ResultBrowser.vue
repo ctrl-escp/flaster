@@ -427,4 +427,5 @@ watch(totalPages, (nextTotalPages) => {
     overflow: visible;
   }
 }
+
 </style>

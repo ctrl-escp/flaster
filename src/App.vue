@@ -15,12 +15,16 @@ const MIN_RIGHT_WIDTH = 288;
 const HANDLE_WIDTH = 10;
 const MIN_PANEL_RATIO = 1 / 3;
 const MAX_PANEL_RATIO = 2 / 3;
+const MOBILE_BREAKPOINT = 900;
 
 let activeResize = null;
+const mobileActivePane = ref('left');
 
 const workspaceGridStyle = computed(() => ({
   '--left-column-width': leftWidth.value > 0 ? `${leftWidth.value}px` : '1fr',
   '--right-column-width': leftWidth.value > 0 ? 'minmax(18rem, 1fr)' : '1fr',
+  '--mobile-left-row': mobileActivePane.value === 'left' ? 'minmax(5.5rem, 9fr)' : 'minmax(5.5rem, 1fr)',
+  '--mobile-right-row': mobileActivePane.value === 'right' ? 'minmax(5.5rem, 9fr)' : 'minmax(5.5rem, 1fr)',
 }));
 
 function getAvailableContentWidth() {
@@ -66,6 +70,14 @@ function startResize(side, event) {
   window.addEventListener('pointerup', stopResize);
 }
 
+function setMobileActivePane(pane) {
+  if (window.innerWidth > MOBILE_BREAKPOINT) {
+    return;
+  }
+
+  mobileActivePane.value = pane;
+}
+
 onBeforeUnmount(() => {
   stopResize();
 });
@@ -78,7 +90,15 @@ onBeforeUnmount(() => {
         <workspace-header />
       </section>
 
-      <aside class="workspace-column left-column">
+      <aside
+        class="workspace-column left-column"
+        :class="{
+          'is-mobile-active': mobileActivePane === 'left',
+          'is-mobile-inactive': mobileActivePane !== 'left',
+        }"
+        @click="setMobileActivePane('left')"
+      >
+        <div class="mobile-pane-hint" aria-hidden="true">Tap to expand workflow</div>
         <workflow-panel />
       </aside>
 
@@ -88,7 +108,15 @@ onBeforeUnmount(() => {
         @pointerdown.prevent="startResize('left', $event)"
       ></div>
 
-      <section class="workspace-column right-column">
+      <section
+        class="workspace-column right-column"
+        :class="{
+          'is-mobile-active': mobileActivePane === 'right',
+          'is-mobile-inactive': mobileActivePane !== 'right',
+        }"
+        @click="setMobileActivePane('right')"
+      >
+        <div class="mobile-pane-hint" aria-hidden="true">Tap to expand code editor</div>
         <section class="workspace-panel code-panel">
           <input-code-editor />
         </section>
@@ -146,6 +174,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+  position: relative;
 }
 
 .resize-handle {
@@ -206,31 +235,69 @@ onBeforeUnmount(() => {
 
 @media (max-width: 900px) {
   .app-shell {
-    height: auto;
+    height: calc(100dvh - 1.8rem);
     min-height: calc(100dvh - 1.8rem);
-    overflow-x: visible;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
   }
 
   .workspace-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto var(--mobile-left-row) var(--mobile-right-row);
     grid-template-areas:
       'header'
       'left'
       'right';
-    flex: 0 0 auto;
-    min-height: auto;
+    min-height: 0;
   }
 
   .workspace-column,
   .right-column {
-    overflow: visible;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    transition: flex-basis 180ms ease, min-height 180ms ease, opacity 180ms ease;
+  }
+
+  .workspace-column.is-mobile-active {
+    opacity: 1;
+  }
+
+  .workspace-column.is-mobile-inactive {
+    opacity: 0.92;
+  }
+
+  .mobile-pane-hint {
+    position: sticky;
+    top: 0.35rem;
+    align-self: flex-end;
+    z-index: 2;
+    margin: 0.35rem 0.35rem -0.2rem;
+    padding: 0.22rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid rgba(126, 202, 255, 0.16);
+    background: rgba(7, 17, 29, 0.78);
+    color: rgba(233, 240, 248, 0.72);
+    font-size: 0.72rem;
+    letter-spacing: 0.02em;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 180ms ease, transform 180ms ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .workspace-column.is-mobile-inactive .mobile-pane-hint {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .workspace-column.is-mobile-inactive :deep(.flow-step-copy small),
+  .workspace-column.is-mobile-inactive :deep(.helper-copy),
+  .workspace-column.is-mobile-inactive :deep(.panel-meta) {
+    opacity: 0;
   }
 
   .code-panel {
-    min-height: 55dvh;
+    min-height: 0;
   }
 }
 </style>

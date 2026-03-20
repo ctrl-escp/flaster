@@ -132,6 +132,9 @@ body {
 .cm-scroller {
   height: 100%;
   min-height: 0;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 legend {
@@ -144,6 +147,6 @@ legend {
   .cm-scroller,
   .cm-content,
   .cm-line {
-    touch-action: pan-y pinch-zoom;
+    touch-action: auto;
   }
 }

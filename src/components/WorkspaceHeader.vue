@@ -358,4 +358,10 @@ h1 {
     display: none;
   }
 }
+
+@media (max-width: 560px) {
+  .header-script-name {
+    display: none;
+  }
+}
 </style>
