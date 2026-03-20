@@ -336,11 +336,12 @@ function hasMatchedAncestor(node, matchedNodes) {
 }
 
 function getOutermostMatchedNodes(matches = []) {
-  const matchedNodes = new Set(matches.map((match) => match.node).filter(Boolean));
+  const nodes = matches
+    .map((match) => (match && typeof match === 'object' && 'node' in match ? match.node : match))
+    .filter(Boolean);
+  const matchedNodes = new Set(nodes);
 
-  return matches
-    .map((match) => match.node)
-    .filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
+  return nodes.filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
 }
 
 function createNodeAttributeEntries(node) {
