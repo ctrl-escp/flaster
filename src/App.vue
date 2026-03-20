@@ -13,6 +13,8 @@ const leftWidth = ref(0);
 const MIN_LEFT_WIDTH = 288;
 const MIN_RIGHT_WIDTH = 288;
 const HANDLE_WIDTH = 10;
+const MIN_PANEL_RATIO = 1 / 3;
+const MAX_PANEL_RATIO = 2 / 3;
 
 let activeResize = null;
 
@@ -27,8 +29,11 @@ function getAvailableContentWidth() {
 }
 
 function clampLeftWidth(width) {
-  const maxWidth = getAvailableContentWidth() - MIN_RIGHT_WIDTH;
-  return Math.min(Math.max(width, MIN_LEFT_WIDTH), Math.max(MIN_LEFT_WIDTH, maxWidth));
+  const availableWidth = getAvailableContentWidth();
+  const minWidth = Math.max(MIN_LEFT_WIDTH, availableWidth * MIN_PANEL_RATIO);
+  const maxWidth = Math.min(availableWidth - MIN_RIGHT_WIDTH, availableWidth * MAX_PANEL_RATIO);
+
+  return Math.min(Math.max(width, minWidth), Math.max(minWidth, maxWidth));
 }
 
 function updateResize(event) {
@@ -199,22 +204,17 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 900px) {
-  .app-shell {
-    height: auto;
-    overflow: visible;
-  }
-
   .workspace-grid {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
       'header'
       'left'
       'right';
   }
 
-  .workspace-column,
   .right-column {
-    overflow: visible;
+    overflow: hidden;
   }
 }
 </style>

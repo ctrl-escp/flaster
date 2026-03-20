@@ -1,12 +1,9 @@
 <script setup>
-import {computed} from 'vue';
 import store from '../store';
 import IconArrowUp from './icons/IconArrowUp.vue';
 import IconArrowDown from './icons/IconArrowDown.vue';
 import IconEye from './icons/IconEye.vue';
 import IconClose from './icons/IconClose.vue';
-
-const selectedStep = computed(() => store.getPipelineStep());
 </script>
 
 <template>
@@ -61,12 +58,6 @@ const selectedStep = computed(() => store.getPipelineStep());
         </div>
       </article>
     </div>
-
-    <div v-if="selectedStep" class="selected-step-card">
-      <h3>Selected step</h3>
-      <p>{{ selectedStep.label }}</p>
-      <pre>{{ JSON.stringify(selectedStep.params || {}, null, 2) }}</pre>
-    </div>
   </section>
 </template>
 
@@ -98,8 +89,7 @@ const selectedStep = computed(() => store.getPipelineStep());
   color: var(--text-muted);
 }
 
-.step-card,
-.selected-step-card {
+.step-card {
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   padding: 0.8rem;
@@ -143,10 +133,5 @@ const selectedStep = computed(() => store.getPipelineStep());
 .mini-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-pre {
-  white-space: pre-wrap;
-  color: var(--text-muted);
 }
 </style>

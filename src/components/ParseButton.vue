@@ -102,7 +102,7 @@ onMounted(() => {
 
 <template>
   <button
-    class="toolbar-btn parse-btn icon-btn"
+    class="toolbar-btn parse-btn"
     :class="{disabled: !canParse}"
     type="button"
     :disabled="!canParse"
@@ -111,6 +111,7 @@ onMounted(() => {
     @click="parseContent"
   >
     <icon-parse ref="parsedStatusEl" class="toolbar-icon unparsed" />
+    <span class="parse-btn-label">Parse</span>
   </button>
 </template>
 
@@ -122,7 +123,9 @@ onMounted(() => {
   color: var(--text-primary);
   display: inline-flex;
   align-items: center;
+  gap: 0.45rem;
   cursor: pointer;
+  padding: 0.5rem 0.8rem;
 }
 
 .toolbar-btn:disabled,
@@ -136,11 +139,25 @@ onMounted(() => {
   height: 1.2rem;
 }
 
+.parse-btn-label {
+  white-space: nowrap;
+}
+
 .unparsed {
   fill: #d05858;
 }
 
 .parsed {
   fill: #67df8d;
+}
+
+@media (max-width: 1100px) {
+  .parse-btn-label {
+    display: none;
+  }
+
+  .toolbar-btn {
+    padding: 0.5rem;
+  }
 }
 </style>

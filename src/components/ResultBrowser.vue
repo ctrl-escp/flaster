@@ -91,6 +91,18 @@ function canOpenMode(modeId) {
 }
 
 function selectItem(item) {
+  store.setActiveWorkspaceTab('results');
+  store.setActiveInspectorPanel('browser');
+
+  if (item.kind === 'match') {
+    store.setSelectedKnownStructureMatch(item.match.structureId, item.match.index, false);
+    return;
+  }
+
+  store.setSelectedNode(item.node, store.activeResultMode);
+}
+
+function openItemDetails(item) {
   if (item.kind === 'match') {
     store.setSelectedKnownStructureMatch(item.match.structureId, item.match.index);
     return;
@@ -139,7 +151,7 @@ watch(totalPages, (nextTotalPages) => {
 <template>
   <section class="workspace-panel">
     <div class="panel-header">
-      <h2>Matches, nodes, and context</h2>
+      <h2>Explore Nodes</h2>
       <div class="panel-meta">
         <button
           v-if="isPaged"
@@ -206,20 +218,31 @@ watch(totalPages, (nextTotalPages) => {
     </div>
 
     <div class="result-list">
-      <button
+      <article
         v-for="item in pagedItems"
         :key="item.key"
         class="result-item"
         :class="{active: isActive(item)}"
-        type="button"
-        :disabled="isActive(item)"
-        :title="item.summary"
-        @click="selectItem(item)"
       >
-        <strong>{{ item.label }}</strong>
-        <span>{{ item.summary }}</span>
-        <small>{{ item.meta }}</small>
-      </button>
+        <button
+          class="result-item-main"
+          type="button"
+          :title="item.summary"
+          @click="selectItem(item)"
+        >
+          <strong>{{ item.label }}</strong>
+          <span>{{ item.summary }}</span>
+          <small>{{ item.meta }}</small>
+        </button>
+        <button
+          class="result-item-detail mini-btn"
+          type="button"
+          :title="isActive(item) ? 'Open Node Info for this selection' : 'See more about this selection'"
+          @click="openItemDetails(item)"
+        >
+          {{ isActive(item) ? 'Node Info' : 'See more' }}
+        </button>
+      </article>
     </div>
   </section>
 </template>
@@ -265,7 +288,8 @@ watch(totalPages, (nextTotalPages) => {
 
 .mode-btn,
 .mini-btn,
-.result-item {
+.result-item,
+.result-item-main {
   border: 1px solid var(--panel-border);
   color: var(--text-primary);
 }
@@ -300,13 +324,13 @@ watch(totalPages, (nextTotalPages) => {
 
 .mode-btn:disabled,
 .mini-btn:disabled,
-.result-item:disabled {
+.result-item-main:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
 .mode-btn.active:disabled,
-.result-item.active:disabled {
+.result-item-main.active:disabled {
   opacity: 1;
   cursor: default;
 }
@@ -327,15 +351,13 @@ watch(totalPages, (nextTotalPages) => {
 }
 
 .result-item {
-  text-align: left;
   background: var(--panel-card);
   border-radius: 12px;
   padding: 0.7rem 0.8rem;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.18rem;
-  cursor: pointer;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
   width: 100%;
   box-sizing: border-box;
   flex: 0 0 auto;
@@ -343,17 +365,31 @@ watch(totalPages, (nextTotalPages) => {
   max-width: 100%;
 }
 
-.result-item strong,
-.result-item span,
-.result-item small {
+.result-item-main {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.18rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.result-item-main strong,
+.result-item-main span,
+.result-item-main small {
   min-width: 0;
   max-width: 100%;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-.result-item span,
-.result-item small {
+.result-item-main span,
+.result-item-main small {
   color: var(--text-muted);
 }
 
@@ -361,6 +397,17 @@ watch(totalPages, (nextTotalPages) => {
   border-color: rgba(126, 202, 255, 0.5);
   box-shadow: 0 0 0 1px rgba(126, 202, 255, 0.16);
   background: rgba(126, 202, 255, 0.08);
+}
+
+.result-item-main:hover,
+.result-item-main:focus-visible {
+  outline: none;
+}
+
+.result-item-detail {
+  flex: 0 0 auto;
+  align-self: center;
+  white-space: nowrap;
 }
 
 .icon-btn {

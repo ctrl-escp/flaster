@@ -4,7 +4,6 @@ import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
 import IconBandaid from './icons/IconBandaid.vue';
-import IconExport from './icons/IconExport.vue';
 import IconGithub from './icons/IconGithub.vue';
 import IconReset from './icons/IconReset.vue';
 
@@ -24,7 +23,6 @@ const dependencyVersions = computed(() => ([
   },
 ]));
 const canUndo = computed(() => store.states.length > 0);
-const canExport = computed(() => store.steps.length > 0);
 const bandaidAnimationStyle = ref(createBandaidAnimationStyle());
 
 let bandaidAnimationTimer = null;
@@ -60,7 +58,7 @@ onBeforeUnmount(() => {
   <section class="workspace-header">
     <div class="header-brand">
       <icon-bandaid class="brand-icon" :style="bandaidAnimationStyle" />
-      <h1>flASTer Workspace</h1>
+      <h1>flASTer</h1>
     </div>
     <div class="header-script-name" :title="store.currentScriptLabel">
       {{ store.getCurrentScriptDisplayName() }}
@@ -78,16 +76,6 @@ onBeforeUnmount(() => {
       >
         <icon-reset class="header-icon" />
         <span>Undo</span>
-      </button>
-      <button
-        class="header-btn header-btn-secondary icon-btn"
-        type="button"
-        :disabled="!canExport"
-        :title="canExport ? 'Open the generated Node.js export in a modal' : 'Add at least one pipeline step before exporting'"
-        aria-label="Open export panel"
-        @click="store.exportPanelOpen = true"
-      >
-        <icon-export class="header-icon" />
       </button>
       <div class="version-chips" aria-label="Tool dependency versions">
         <a
@@ -190,7 +178,8 @@ h1 {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  max-width: min(28rem, calc(100% - 34rem));
+  min-width: 0;
+  max-width: min(22rem, calc(100% - 28rem));
   text-align: center;
   font-size: 1rem;
   font-weight: 600;
@@ -207,12 +196,16 @@ h1 {
   gap: 0.5rem;
   margin-left: auto;
   justify-content: flex-end;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .version-chip {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
+  max-width: 10rem;
   min-height: 1.75rem;
   padding: 0.2rem 0.65rem;
   border-radius: 999px;
@@ -222,6 +215,9 @@ h1 {
   font-size: 0.82rem;
   letter-spacing: 0.01em;
   text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
 }
 
@@ -242,6 +238,8 @@ h1 {
   flex-wrap: nowrap;
   min-width: 0;
   overflow: visible;
+  position: relative;
+  z-index: 1;
 }
 
 .header-btn {
@@ -306,32 +304,58 @@ h1 {
   height: 2.5rem;
 }
 
+@media (max-width: 1100px) {
+  .header-btn-text span {
+    display: none;
+  }
+
+  .header-btn-text {
+    padding: 0.5rem;
+  }
+}
+
 @media (max-width: 980px) {
-  .header-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
   .workspace-header {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 0.55rem;
   }
 
-  .header-script-name {
-    position: static;
-    left: auto;
-    transform: none;
-    max-width: none;
-    text-align: left;
+  .header-brand {
+    gap: 0.35rem;
   }
 
   h1 {
-    white-space: normal;
+    font-size: 1.05rem;
+  }
+
+  .header-script-name {
+    font-size: 0.92rem;
+    max-width: min(14rem, calc(100% - 18rem));
+  }
+
+  .header-actions {
+    gap: 0.4rem;
   }
 
   .version-chips {
-    margin-left: 0;
-    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .version-chip {
+    max-width: 8rem;
+    min-height: 1.6rem;
+    padding: 0.18rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .github-icon {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+}
+
+@media (max-width: 700px) {
+  .version-chips {
+    display: none;
   }
 }
 </style>

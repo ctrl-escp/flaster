@@ -1,23 +1,20 @@
 <script setup>
 import {computed, ref, watch} from 'vue';
 import store from '../store';
-import StructureExplorer from './StructureExplorer.vue';
-import ResultBrowser from './ResultBrowser.vue';
+import CodeStructuresStage from './CodeStructuresStage.vue';
 import TemplateWorkbench from './TemplateWorkbench.vue';
 import PipelineBuilder from './PipelineBuilder.vue';
-import NodeInspector from './NodeInspector.vue';
 import IconBrowse from './icons/IconBrowse.vue';
-import IconListChecks from './icons/IconListChecks.vue';
 import IconTransform from './icons/IconTransform.vue';
 import IconPipeline from './icons/IconPipeline.vue';
-import IconInspect from './icons/IconInspect.vue';
+import IconExport from './icons/IconExport.vue';
+import GenerateAutomationStage from './GenerateAutomationStage.vue';
 
 const panels = {
-  structures: StructureExplorer,
-  matches: ResultBrowser,
+  structures: CodeStructuresStage,
   transform: TemplateWorkbench,
   pipeline: PipelineBuilder,
-  inspect: NodeInspector,
+  automation: GenerateAutomationStage,
 };
 
 const steps = computed(() => {
@@ -33,32 +30,21 @@ const steps = computed(() => {
   return [
     {
       id: 'structures',
-      label: '1. Find',
-      title: 'Choose structures and run matching',
+      label: '1. Code Structures',
+      description: 'Define and identify meaningful code structures',
       icon: IconBrowse,
       hint: hasSelection
-        ? `${store.selectedKnownStructureIds.length} selected`
-        : 'Pick structures to search for',
-      ready: hasSelection,
+        ? `${store.selectedKnownStructureIds.length} selected, ${store.latestKnownStructureMatches.length} matches`
+        : hasMatches || hasAstNodes || hasInspectionTarget
+          ? 'Structures are available to explore'
+          : 'Pick structures to search for',
+      ready: hasSelection || hasMatches || hasAstNodes || hasInspectionTarget,
       enabled: true,
     },
     {
-      id: 'matches',
-      label: '2. Review',
-      title: 'Browse matches, AST nodes, and related nodes',
-      icon: IconListChecks,
-      hint: hasMatches
-        ? `${store.latestKnownStructureMatches.length} matches`
-        : hasAstNodes
-          ? `${store.areFiltersActive ? store.filteredNodes.length : store.arb?.ast?.length ?? 0} nodes available`
-          : 'Parse code first',
-      ready: hasMatches || hasAstNodes,
-      enabled: hasMatches || hasAstNodes,
-    },
-    {
       id: 'transform',
-      label: '3. Transform',
-      title: 'Choose how to transform the active structure',
+      label: '2. Transform',
+      description: 'Modify, augment, move, or remove code structures',
       icon: IconTransform,
       hint: hasActiveStructureMatches
         ? store.getKnownStructureById(store.inspectedKnownStructureId ?? store.activeKnownStructureId)?.title || 'Ready'
@@ -68,21 +54,21 @@ const steps = computed(() => {
     },
     {
       id: 'pipeline',
-      label: '4. Pipeline',
-      title: 'Review and reorder the transformation timeline',
+      label: '3. Pipeline',
+      description: 'Orchestrate transformation order',
       icon: IconPipeline,
       hint: hasPipeline ? `${store.steps.length} steps` : 'No steps yet',
       ready: hasPipeline,
       enabled: true,
     },
     {
-      id: 'inspect',
-      label: '5. Inspect',
-      title: 'Inspect the selected node or match details',
-      icon: IconInspect,
-      hint: hasInspectionTarget ? store.getSelectedNode()?.type || 'Selected node' : 'Pick a node or match',
-      ready: hasInspectionTarget,
-      enabled: hasInspectionTarget,
+      id: 'automation',
+      label: '4. Generate Automation',
+      description: 'Export your pipeline to a Node.js script.',
+      icon: IconExport,
+      hint: hasPipeline ? `${store.steps.length} pipeline steps ready to export` : 'Add pipeline steps first',
+      ready: hasPipeline,
+      enabled: true,
     },
   ];
 });
@@ -98,12 +84,11 @@ const inferredStage = computed(() => {
     return 'pipeline';
   }
 
-  if (store.activeInspectorPanel === 'inspector' && store.selectedNodeId !== null) {
-    return 'inspect';
-  }
-
-  if (store.activeWorkspaceTab === 'results') {
-    return 'matches';
+  if (
+    store.activeInspectorPanel === 'inspector' ||
+    store.activeWorkspaceTab === 'results'
+  ) {
+    return 'structures';
   }
 
   return 'structures';
@@ -111,17 +96,10 @@ const inferredStage = computed(() => {
 
 const activeStage = computed(() => forcedStage.value ?? inferredStage.value);
 
-const activeStep = computed(() =>
-  steps.value.find((step) => step.id === activeStage.value) ?? steps.value[0]);
-
-const activePanel = computed(() => panels[activeStage.value] ?? StructureExplorer);
+const activePanel = computed(() => panels[activeStage.value] ?? CodeStructuresStage);
 
 watch(inferredStage, (nextStage) => {
-  if (!forcedStage.value) {
-    return;
-  }
-
-  if (['transform', 'pipeline', 'inspect'].includes(nextStage) || forcedStage.value === nextStage) {
+  if (forcedStage.value && forcedStage.value !== nextStage) {
     forcedStage.value = null;
   }
 });
@@ -134,11 +112,6 @@ function openStage(stageId) {
     return;
   }
 
-  if (stageId === 'matches') {
-    store.setActiveWorkspaceTab('results');
-    return;
-  }
-
   if (stageId === 'transform') {
     store.setActiveInspectorPanel('templates');
     return;
@@ -146,10 +119,7 @@ function openStage(stageId) {
 
   if (stageId === 'pipeline') {
     store.setActiveInspectorPanel('pipeline');
-    return;
   }
-
-  store.setActiveInspectorPanel('inspector');
 }
 </script>
 
@@ -166,24 +136,16 @@ function openStage(stageId) {
         }"
         type="button"
         :disabled="!step.enabled || step.id === activeStage"
-        :title="step.title"
+        :title="step.description"
         @click="openStage(step.id)"
       >
         <component :is="step.icon" class="flow-step-icon" />
         <span class="flow-step-copy">
           <strong>{{ step.label }}</strong>
-          <small>{{ step.hint }}</small>
+          <small>{{ step.description }}</small>
         </span>
       </button>
     </div>
-
-    <div class="active-stage-card">
-      <div class="active-stage-meta">
-        <strong>{{ activeStep.title }}</strong>
-        <span>{{ activeStep.hint }}</span>
-      </div>
-    </div>
-
     <div class="workflow-content">
       <component :is="activePanel" />
     </div>
@@ -200,15 +162,12 @@ function openStage(stageId) {
   height: 100%;
 }
 
-.active-stage-card,
-.flow-step,
-.active-stage-meta {
+.flow-step {
   display: flex;
   align-items: center;
   gap: 0.7rem;
 }
 
-.active-stage-meta span,
 .flow-step-copy small {
   color: var(--text-muted);
 }
@@ -276,21 +235,6 @@ function openStage(stageId) {
   opacity: 1;
   cursor: default;
 }
-
-.active-stage-card {
-  justify-content: space-between;
-  padding: 0.8rem 0.9rem;
-  border: 1px solid var(--panel-border);
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(255, 191, 102, 0.1), rgba(126, 202, 255, 0.08));
-}
-
-.active-stage-meta {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.12rem;
-}
-
 .workflow-content {
   flex: 1;
   min-height: 0;

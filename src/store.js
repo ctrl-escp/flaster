@@ -1011,7 +1011,7 @@ const store = reactive({
       this.refreshKnownStructureHighlights();
     }
   },
-  setSelectedKnownStructureMatch(structureId, matchIndex) {
+  setSelectedKnownStructureMatch(structureId, matchIndex, revealInInspector = true) {
     const match = this.getKnownStructureMatches(structureId).find((candidate) => candidate.index === matchIndex);
 
     if (!match) {
@@ -1032,7 +1032,9 @@ const store = reactive({
       [match.structureId]: match.index,
     };
     this.setSelectedNode(match.node, 'match');
-    this.activeInspectorPanel = 'inspector';
+    if (revealInInspector) {
+      this.activeInspectorPanel = 'inspector';
+    }
     this.refreshKnownStructureHighlights();
   },
   selectKnownStructureMatchStep(direction = 1) {

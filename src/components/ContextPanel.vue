@@ -16,7 +16,7 @@ const panels = {
 };
 
 const tabs = [
-  {id: 'inspector', label: 'Inspector', icon: IconInspect},
+  {id: 'inspector', label: 'Node Info', icon: IconInspect},
   {id: 'templates', label: 'Templates', icon: IconCompose},
   {id: 'pipeline', label: 'Pipeline', icon: IconPipeline},
 ];
@@ -27,7 +27,7 @@ const canExport = computed(() => store.steps.length > 0);
 <template>
   <section class="context-pane">
     <div class="pane-header">
-      <h2>Focused workspace</h2>
+      <h2>Focused flASTer</h2>
       <div class="pane-actions">
         <div class="tab-row">
           <button

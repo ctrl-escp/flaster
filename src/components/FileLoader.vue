@@ -104,7 +104,7 @@ function loadSample(sampleId) {
 <template>
   <div class="file-loader">
     <button
-      class="toolbar-btn icon-btn"
+      class="toolbar-btn load-btn"
       :class="{highlighted: shouldHighlightLoad}"
       type="button"
       title="Open script actions for loading, sampling, or clearing the current script"
@@ -112,6 +112,7 @@ function loadSample(sampleId) {
       @click="toggleMenu"
     >
       <icon-folder class="toolbar-icon" />
+      <span class="load-btn-label">Load</span>
     </button>
 
     <div v-if="isOpen" class="load-menu">
@@ -173,7 +174,9 @@ function loadSample(sampleId) {
   color: var(--text-primary);
   display: inline-flex;
   align-items: center;
+  gap: 0.45rem;
   cursor: pointer;
+  padding: 0.5rem 0.8rem;
 }
 
 .toolbar-btn.highlighted {
@@ -197,15 +200,18 @@ function loadSample(sampleId) {
   height: 1.2rem;
 }
 
+.load-btn-label {
+  white-space: nowrap;
+}
+
 @keyframes pulse-glow {
-  0%,
-  100% {
+  0% {
     box-shadow:
       0 0 0 0 rgba(0, 204, 255, 0.7),
       0 0 18px rgba(0, 204, 255, 0.32);
   }
 
-  70% {
+  100% {
     box-shadow:
       0 0 0 15px rgba(0, 204, 255, 0),
       0 0 24px rgba(0, 204, 255, 0.14);
@@ -278,5 +284,15 @@ function loadSample(sampleId) {
 
 .input-file {
   display: none;
+}
+
+@media (max-width: 1100px) {
+  .load-btn-label {
+    display: none;
+  }
+
+  .toolbar-btn {
+    padding: 0.5rem;
+  }
 }
 </style>

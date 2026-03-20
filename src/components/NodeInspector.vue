@@ -46,7 +46,7 @@ function jumpToNode(node, source = 'related') {
 <template>
   <section class="workspace-panel inspector-panel">
     <div class="panel-header">
-      <h2>{{ selectedNode ? selectedNode.type : 'Select a match or node' }}</h2>
+      <h2>{{ selectedNode ? `Node Info: ${selectedNode.type}` : 'Node Info' }}</h2>
       <div class="panel-meta">{{ store.selectedNodeSource || 'No selection' }}</div>
     </div>
 
@@ -168,7 +168,7 @@ function jumpToNode(node, source = 'related') {
     </div>
 
     <div v-else class="empty-state">
-      Select a match, AST node, or related node to inspect its source, scope chain, attributes, and structural overlaps.
+      Select a match, AST node, or related node to inspect its node info, scope chain, attributes, and structural overlaps.
     </div>
   </section>
 </template>

@@ -486,12 +486,12 @@ onBeforeUnmount(() => {
               class="structure-action"
               type="button"
               :disabled="!canInspectStructure(structure)"
-              title="Show matches for this structure in the result browser and inspector"
+              title="Open Explore Nodes and Node Info for this structure"
               aria-label="Show structure matches"
               @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('inspector')"
             >
               <icon-list-checks />
-              <span>Inspect</span>
+              <span>Node Info</span>
             </button>
             <button
               class="structure-action"
