@@ -128,6 +128,7 @@ onBeforeUnmount(() => {
   min-width: 0;
   display: flex;
   align-items: center;
+  padding-top: 0.35rem;
 }
 
 .left-column {

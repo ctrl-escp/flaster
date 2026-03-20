@@ -149,7 +149,9 @@ function createImportPlan(steps) {
       });
 
       if (implementation?.importPath && implementation?.namespaceImport) {
-        needsKnownStructureRuntime = true;
+        if (stepNeedsKnownStructureRuntime(step)) {
+          needsKnownStructureRuntime = true;
+        }
         const importEntry = restringerImports.get(implementation.importPath) ?? {
           importPath: implementation.importPath,
           namespaceImport: implementation.namespaceImport,
@@ -257,6 +259,10 @@ function createPipelineEpilogue() {
  * @returns {string}
  */
 function createCustomStepBlock(step, stepNumber, combineFilters) {
+  if (isNoTransformStep(step)) {
+    return createNoTransformStepBlock(step, stepNumber, combineFilters);
+  }
+
   const enabledFilters = step?.kind === 'custom'
     ? step.filters?.filter((filter) => filter?.enabled && !!filter?.src) ?? []
     : [];
@@ -429,6 +435,14 @@ function isStructureSelectionStep(step) {
     step?.templateType === 'isolate-structure-matches';
 }
 
+function isNoTransformStep(step) {
+  return step?.templateType === 'no-transform';
+}
+
+function stepNeedsKnownStructureRuntime(step) {
+  return step?.kind === 'known-structure-transform' || isStructureSelectionStep(step);
+}
+
 function getCustomStepRunMode(step) {
   const runMode = step?.runMode ?? step?.params?.runMode ?? 'until-stable';
   return ['once', 'count', 'until-stable'].includes(runMode) ? runMode : 'until-stable';
@@ -447,6 +461,79 @@ function getCustomStepMaxIterations(step) {
   }
 
   return 1;
+}
+
+function createNoTransformStepBlock(step, stepNumber, combineFilters) {
+  const structureId = step?.selectionSource?.kind === 'known-structure'
+    ? step.selectionSource.structureId ?? step?.params?.structureId ?? ''
+    : step?.params?.structureId ?? '';
+  const implementation = structureId
+    ? maybeResolveKnownStructureImplementation({structureId})
+    : null;
+  const enabledFilters = step?.kind === 'custom'
+    ? step.filters?.filter((filter) => filter?.enabled && !!filter?.src) ?? []
+    : [];
+  const filter = enabledFilters.length
+    ? combineFilters(enabledFilters.map((filterEntry) => filterEntry.src))
+    : 'true';
+  const arbVar = `arb${stepNumber}`;
+  const rawMatchesVar = `rawMatches${stepNumber}`;
+  const matchFuncVar = `customMatchFunc${stepNumber}`;
+  const transformFuncVar = `customTransform${stepNumber}`;
+  const nextChangesVar = `appliedChanges${stepNumber}`;
+
+  if (implementation?.matcherName && implementation?.namespaceImport) {
+    return `// Step ${stepNumber}: ${step?.label ?? 'No Transform'}
+function ${transformFuncVar}(arb, matches) {
+  // Intentionally empty. Edit this after export.
+  return arb;
+}
+let ${arbVar} = new Arborist(script);
+const ${rawMatchesVar} = ${implementation.namespaceImport}.${implementation.matcherName}(${arbVar}, () => true);
+
+${transformFuncVar}(${arbVar}, ${rawMatchesVar});
+
+const ${nextChangesVar} = ${arbVar}.applyChanges();
+script = ${arbVar}.script;
+
+console.debug(
+  \`[i] Step ${stepNumber} matched \${${rawMatchesVar}.length} group\${${rawMatchesVar}.length === 1 ? '' : 's'} for ${step?.label ?? 'No Transform'}\`,
+);
+
+if (${nextChangesVar} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} applied \${${nextChangesVar}} change\${${nextChangesVar} === 1 ? '' : 's'}\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
+  }
+
+  return `// Step ${stepNumber}: ${step?.label ?? 'No Transform'}
+const ${matchFuncVar} = (arb) => (arb.ast ?? []).filter((n) => ${filter});
+function ${transformFuncVar}(arb, matches) {
+  // Intentionally empty. Edit this after export.
+  return arb;
+}
+let ${arbVar} = new Arborist(script);
+const ${rawMatchesVar} = ${matchFuncVar}(${arbVar});
+
+${transformFuncVar}(${arbVar}, ${rawMatchesVar});
+
+const ${nextChangesVar} = ${arbVar}.applyChanges();
+script = ${arbVar}.script;
+
+console.debug(
+  \`[i] Step ${stepNumber} matched \${${rawMatchesVar}.length} node\${${rawMatchesVar}.length === 1 ? '' : 's'} for ${step?.label ?? 'No Transform'}\`,
+);
+
+if (${nextChangesVar} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} applied \${${nextChangesVar}} change\${${nextChangesVar} === 1 ? '' : 's'}\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
 }
 
 function createStructureSelectionStepBlock(step, stepNumber, resolveStructureFilter) {

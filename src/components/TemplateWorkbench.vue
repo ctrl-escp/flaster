@@ -222,6 +222,16 @@ const transformOptions = computed(() => store.templateCatalog.map((template) => 
     };
   }
 
+  if (template.type === 'no-transform') {
+    return {
+      ...template,
+      disabled: !activeStructure.value || activeMatchCount.value < 1,
+      detail: activeStructure.value && activeMatchCount.value > 0
+        ? 'Export matcher scaffolding without changing the current script.'
+        : 'Choose a matched structure first.',
+    };
+  }
+
   return {
     ...template,
     disabled: !activeStructure.value || activeMatchCount.value < 1,

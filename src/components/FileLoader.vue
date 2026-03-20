@@ -208,13 +208,13 @@ function loadSample(sampleId) {
   0% {
     box-shadow:
       0 0 0 0 rgba(0, 204, 255, 0.7),
-      0 0 18px rgba(0, 204, 255, 0.32);
+      0 0 9px rgba(0, 204, 255, 0.32);
   }
 
   100% {
     box-shadow:
-      0 0 0 15px rgba(0, 204, 255, 0),
-      0 0 24px rgba(0, 204, 255, 0.14);
+      0 0 0 7.5px rgba(0, 204, 255, 0),
+      0 0 12px rgba(0, 204, 255, 0.14);
   }
 }
 

@@ -43,11 +43,13 @@ function resetParsedState() {
   store.arb = {ast: [], script: ''};
   store.clearKnownStructureResults();
   store.parsedContentVersion = -1;
+  store.hasVisitedExploreNodes = false;
+  store.shouldPulseCodeStructuresStage = false;
   setContentUnparsed();
   store.page = 0;
 }
 
-function parseContent() {
+function parseContent({focusExploreNodes = false, pulseCodeStructures = false} = {}) {
   if (!canParse.value) {
     return;
   }
@@ -73,6 +75,15 @@ function parseContent() {
       store.filteredNodes = store.arb.ast;
       store.markCurrentInputParsed();
       setContentParsed();
+
+      if (focusExploreNodes) {
+        store.setActiveWorkspaceTab('results');
+        store.setActiveInspectorPanel('browser');
+      }
+
+      if (pulseCodeStructures) {
+        store.shouldPulseCodeStructuresStage = true;
+      }
     }).catch((error) => store.logMessage(error.message, 'error'));
   } catch (error) {
     store.logMessage(error.message, 'error');
@@ -88,7 +99,10 @@ onMounted(() => {
     }
 
     store.shouldAutoParseInitialInput = false;
-    parseContent();
+    parseContent({
+      focusExploreNodes: true,
+      pulseCodeStructures: true,
+    });
     return true;
   };
 

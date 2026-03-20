@@ -1,23 +1,13 @@
 <script setup>
+import initialScript from '../initialScript.js?raw';
 import store from '../store';
 import CodeEditor from './CodeEditor.vue';
-
-const initialValue = `/*
-flASTer usage:
-
-1. Paste JavaScript here or load a local file / saved sample from the top menu.
-2. Samples parse automatically. For pasted code or loaded files, click Parse to build the AST and enable structure matching.
-3. Use the Structure Explorer to match patterns, inspect results, and open transforms.
-4. Apply built-in or custom transforms from the inspector when you are ready.
-
-Replace this comment with the code you want to analyze.
-*/`;
 
 </script>
 
 <template>
   <div class="code-editor-wrapper">
-    <code-editor :editor-id="store.editorIds.inputCodeEditor" :initial-value="initialValue"/>
+    <code-editor :editor-id="store.editorIds.inputCodeEditor" :initial-value="initialScript"/>
   </div>
 </template>
 

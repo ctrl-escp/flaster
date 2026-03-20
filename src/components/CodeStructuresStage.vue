@@ -13,6 +13,14 @@ const hasResults = computed(() =>
   (store.areFiltersActive ? store.filteredNodes : store.arb?.ast ?? []).length > 0,
 );
 const hasNodeInfo = computed(() => Boolean(store.getSelectedNode()));
+const shouldHighlightResults = computed(() =>
+  hasResults.value &&
+  !store.hasVisitedExploreNodes &&
+  !store.shouldPulseCodeStructuresStage,
+);
+const shouldPulseStructures = computed(() =>
+  store.shouldPulseCodeStructuresStage,
+);
 
 const tabs = computed(() => [
   {
@@ -78,6 +86,7 @@ function openTab(tabId) {
     return;
   }
 
+  store.shouldPulseCodeStructuresStage = false;
   store.setActiveWorkspaceTab('explorer');
 }
 </script>
@@ -89,7 +98,11 @@ function openTab(tabId) {
         v-for="tab in tabs"
         :key="tab.id"
         class="subtab-btn"
-        :class="{active: activeSubview === tab.id}"
+        :class="{
+          active: activeSubview === tab.id,
+          highlighted: tab.id === 'results' && shouldHighlightResults,
+          pulsating: tab.id === 'structures' && shouldPulseStructures,
+        }"
         type="button"
         :disabled="!tab.enabled || activeSubview === tab.id"
         :title="tab.label"
@@ -120,6 +133,8 @@ function openTab(tabId) {
   display: flex;
   gap: 0.55rem;
   flex-wrap: wrap;
+  padding-top: 0.35rem;
+  padding-left: 0.35rem;
 }
 
 .subtab-btn {
@@ -139,6 +154,35 @@ function openTab(tabId) {
   border-color: rgba(126, 202, 255, 0.42);
   color: #eef8ff;
   box-shadow: inset 0 0 0 1px rgba(126, 202, 255, 0.12);
+}
+
+.subtab-btn.highlighted {
+  border-color: rgba(255, 215, 64, 0.95);
+  background: rgba(255, 215, 64, 0.2);
+  box-shadow: 0 0 0 0 rgba(255, 215, 64, 0.65);
+  animation: pulse-results-glow 2s infinite;
+}
+
+.subtab-btn.highlighted:hover:not(:disabled):not(.active),
+.subtab-btn.highlighted:focus-visible:not(:disabled):not(.active) {
+  background: rgba(255, 215, 64, 0.26);
+  border-color: rgba(255, 215, 64, 1);
+}
+
+.subtab-btn.pulsating {
+  border-color: rgba(255, 215, 64, 0.95);
+  background: rgba(255, 215, 64, 0.22);
+  box-shadow: 0 0 0 0 rgba(255, 215, 64, 0.7);
+  animation: pulse-structures-glow 2s infinite;
+  position: relative;
+  z-index: 1;
+}
+
+.subtab-btn.pulsating:hover:not(:disabled):not(.active),
+.subtab-btn.pulsating:focus-visible:not(:disabled):not(.active) {
+  background: rgba(255, 215, 64, 0.28);
+  border-color: rgba(255, 215, 64, 1);
+  outline: none;
 }
 
 .subtab-btn:hover:not(:disabled):not(.active),
@@ -161,5 +205,33 @@ function openTab(tabId) {
 .subtab-icon {
   width: 1rem;
   height: 1rem;
+}
+
+@keyframes pulse-results-glow {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(255, 215, 64, 0.65),
+      0 0 18px rgba(255, 215, 64, 0.28);
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 15px rgba(255, 215, 64, 0),
+      0 0 24px rgba(255, 215, 64, 0.12);
+  }
+}
+
+@keyframes pulse-structures-glow {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(255, 215, 64, 0.7),
+      0 0 9px rgba(255, 215, 64, 0.32);
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 7.5px rgba(255, 215, 64, 0),
+      0 0 12px rgba(255, 215, 64, 0.14);
+  }
 }
 </style>

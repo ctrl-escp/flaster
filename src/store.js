@@ -219,6 +219,12 @@ const templateCatalog = Object.freeze([
     description: 'Keep matched nodes inside a single block and remove everything outside them.',
     kind: 'transform',
   },
+  {
+    type: 'no-transform',
+    title: 'No Transform',
+    description: 'Export a match-only scaffold with an empty transform function you can edit later.',
+    kind: 'transform',
+  },
 ]);
 
 function cloneValue(value) {
@@ -460,6 +466,15 @@ const store = reactive({
     this.logMessage('No changes made', 'error');
     return false;
   },
+  addPipelineStep(stepEntry, message = 'Step added to pipeline') {
+    const nextStep = this.normalizeStepEntry(stepEntry);
+
+    this.steps.push(nextStep);
+    this.selectedPipelineStepIndex = this.steps.length - 1;
+    this.activeInspectorPanel = 'pipeline';
+    this.logMessage(message, 'success');
+    return true;
+  },
   loadNewScript(script) {
     const inputEditor = this.getEditor(this.editorIds.inputCodeEditor);
 
@@ -506,6 +521,8 @@ const store = reactive({
   filteredNodes: [],
   areFiltersActive: true,
   activeWorkspaceTab: 'explorer',
+  hasVisitedExploreNodes: false,
+  shouldPulseCodeStructuresStage: false,
   activeResultMode: 'matches',
   activeInspectorPanel: 'inspector',
   activeNodeInspectorSection: 'overview',
@@ -635,6 +652,10 @@ const store = reactive({
       return false;
     }
 
+    if (templateType === 'no-transform') {
+      return Boolean(activeStructure) && hasStructureMatches;
+    }
+
     if (templateType === 'delete-structure-matches' || templateType === 'isolate-structure-matches') {
       return Boolean(activeStructure) && hasStructureMatches;
     }
@@ -754,6 +775,7 @@ const store = reactive({
     this.activeWorkspaceTab = tabName;
 
     if (tabName === 'results') {
+      this.hasVisitedExploreNodes = true;
       this.activeResultMode = this.getPreferredResultMode(this.activeResultMode);
     }
   },
@@ -831,7 +853,9 @@ const store = reactive({
         label: sample.title,
         baselineContent: source,
       });
-      this.parseContent();
+      this.parseContent({
+        pulseCodeStructures: true,
+      });
       this.logMessage(`Sample loaded and parsed: "${sample.title}"`, 'success');
       return true;
     } catch (error) {
@@ -1683,6 +1707,38 @@ const store = reactive({
       return false;
     }
   },
+  applyNoTransformStep(
+    structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId,
+  ) {
+    const structure = this.getKnownStructureById(structureId);
+    const matches = this.getKnownStructureMatches(structureId);
+
+    if (!structure || !matches.length) {
+      this.logMessage('Pick a matched structure before exporting a no-transform step', 'error');
+      return false;
+    }
+
+    return this.addPipelineStep({
+      kind: 'custom',
+      filters: [],
+      transformationCode: '',
+      label: `${structure.title} (No Transform)`,
+      templateType: 'no-transform',
+      runMode: 'once',
+      maxIterations: 1,
+      params: {
+        structureId: structure.id,
+        exportedMatchCount: matches.length,
+        runMode: 'once',
+        maxIterations: 1,
+      },
+      previewSummary: `Export-only scaffold for ${matches.length} matches`,
+      selectionSource: {
+        kind: 'known-structure',
+        structureId: structure.id,
+      },
+    }, `Added ${structure.title} as a no-transform export step`);
+  },
   getPipelineStep(index = this.selectedPipelineStepIndex) {
     return this.steps[index] ?? null;
   },
@@ -1714,17 +1770,314 @@ const store = reactive({
 
     step.enabled = step.enabled === false;
   },
-  removePipelineStep(index) {
-    if (index < 0 || index >= this.steps.length) {
-      return;
+  getPipelineReplayBaseScript() {
+    const firstSavedState = this.states[0];
+
+    if (typeof firstSavedState?.script === 'string') {
+      return firstSavedState.script;
     }
 
-    this.steps.splice(index, 1);
-    this.steps = this.steps.map((step, sequenceIndex) => ({
-      ...step,
-      sequenceIndex: sequenceIndex + 1,
+    if (typeof this.currentScriptBaseline === 'string' && this.currentScriptBaseline.length) {
+      return this.currentScriptBaseline;
+    }
+
+    return this.getCurrentScriptContent();
+  },
+  getPipelineStepStructureId(step = null) {
+    if (!step || typeof step !== 'object') {
+      return null;
+    }
+
+    return step.selectionSource?.kind === 'known-structure'
+      ? step.selectionSource.structureId
+      : step.params?.structureId ?? step.structureId ?? null;
+  },
+  confirmPipelineReplay(message) {
+    if (typeof window?.confirm === 'function') {
+      return window.confirm(message);
+    }
+
+    return true;
+  },
+  runCustomTransformationOnScript(script, step) {
+    const arb = createArborist(script);
+    const source = typeof step?.transformationCode === 'string'
+      ? step.transformationCode.trim()
+      : '';
+
+    if (!source) {
+      return {
+        script,
+        didMutate: false,
+        transformationCode: '',
+      };
+    }
+
+    const candidateFilters = Array.isArray(step?.filters)
+      ? step.filters.filter((filter) => filter?.enabled !== false && filter?.src)
+      : [];
+    const structureId = this.getPipelineStepStructureId(step);
+    const runSettings = this.normalizeCustomTransformRunSettings(step);
+    const firstPassNodes = candidateFilters.length ? null : [...arb.ast];
+    let totalChanges = 0;
+    let iterationCount = 0;
+    const shouldContinue = () => runSettings.runMode === 'until-stable' ||
+      (runSettings.runMode === 'count' && iterationCount < runSettings.maxIterations) ||
+      (runSettings.runMode === 'once' && iterationCount < 1);
+
+    while (shouldContinue()) {
+      if (structureId) {
+        const matchRun = runKnownStructureMatcher(arb, structureId, {
+          candidateFilter: candidateFilters.length
+            ? (node) => candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node))
+            : () => true,
+        });
+
+        if (matchRun.error) {
+          throw matchRun.error;
+        }
+
+        const matches = matchRun.rawMatches;
+        eval(source);
+      } else {
+        const candidateNodes = candidateFilters.length
+          ? arb.ast.filter((node) =>
+            candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node)))
+          : iterationCount === 0
+            ? firstPassNodes
+            : arb.ast;
+
+        for (const n of candidateNodes) {
+          eval(source);
+        }
+      }
+
+      const changes = arb.applyChanges();
+      if (changes < 1) {
+        break;
+      }
+
+      totalChanges += changes;
+      iterationCount += 1;
+    }
+
+    return {
+      script: arb.script,
+      didMutate: totalChanges > 0,
+      transformationCode: source,
+    };
+  },
+  replayPipelineStepOnScript(script, step) {
+    const normalizedStep = this.normalizeStepEntry(step);
+    const templateType = normalizedStep.templateType ?? '';
+    const structureId = this.getPipelineStepStructureId(normalizedStep);
+
+    if (normalizedStep.enabled === false) {
+      return {
+        script,
+        didMutate: false,
+        transformationCode: typeof normalizedStep.transformationCode === 'string'
+          ? normalizedStep.transformationCode
+          : null,
+      };
+    }
+
+    if (templateType === 'advanced-js-step' ||
+      (normalizedStep.kind === 'custom' && normalizedStep.transformationCode)) {
+      return this.runCustomTransformationOnScript(script, normalizedStep);
+    }
+
+    if (templateType === 'apply-known-transform' ||
+      normalizedStep.kind === 'known-structure-transform') {
+      const arb = createArborist(script);
+      const transformSession = runKnownStructureTransformSession(arb, structureId);
+
+      if (transformSession.error) {
+        throw transformSession.error;
+      }
+
+      if ((transformSession.pendingChanges ?? 0) < 1) {
+        return {script, didMutate: false, transformationCode: null};
+      }
+
+      arb.applyChanges();
+      return {script: arb.script, didMutate: true, transformationCode: null};
+    }
+
+    if (templateType === 'delete-structure-matches') {
+      const arb = createArborist(script);
+      const runSettings = this.normalizeDeleteStructureRunSettings(normalizedStep);
+      let totalChanges = 0;
+      let iterationCount = 0;
+      const shouldContinue = () => runSettings.runMode === 'until-stable' ||
+        (runSettings.runMode === 'count' && iterationCount < runSettings.maxIterations) ||
+        (runSettings.runMode === 'once' && iterationCount < 1);
+
+      while (shouldContinue()) {
+        const matchRun = runKnownStructureMatcher(arb, structureId);
+        if (matchRun.error) {
+          throw matchRun.error;
+        }
+
+        const matchedNodes = collectKnownStructureMatchNodes(matchRun.rawMatches);
+        if (!matchedNodes.length) {
+          break;
+        }
+
+        for (const node of matchedNodes) {
+          if (node) {
+            arb.markNode(node);
+          }
+        }
+
+        const changes = arb.applyChanges();
+        if (changes < 1) {
+          break;
+        }
+
+        totalChanges += changes;
+        iterationCount += 1;
+      }
+
+      return {script: arb.script, didMutate: totalChanges > 0, transformationCode: null};
+    }
+
+    if (templateType === 'isolate-structure-matches') {
+      const arb = createArborist(script);
+      const matchRun = runKnownStructureMatcher(arb, structureId);
+      const programNode = arb?.ast?.find((node) => node.type === 'Program');
+
+      if (matchRun.error) {
+        throw matchRun.error;
+      }
+
+      if (!programNode) {
+        return {script, didMutate: false, transformationCode: null};
+      }
+
+      const matchedNodes = collectKnownStructureMatchNodes(matchRun.rawMatches);
+      const isolatedNodes = getOutermostMatchedNodes(matchedNodes).filter(Boolean);
+
+      if (!isolatedNodes.length) {
+        return {script, didMutate: false, transformationCode: null};
+      }
+
+      arb.markNode(programNode, {
+        type: 'Program',
+        sourceType: programNode.sourceType,
+        body: [{
+          type: 'BlockStatement',
+          body: isolatedNodes,
+        }],
+      });
+      arb.applyChanges();
+      return {script: arb.script, didMutate: true, transformationCode: null};
+    }
+
+    return {script, didMutate: false, transformationCode: null};
+  },
+  replayPipelineSteps(nextSteps, {
+    selectedPipelineStepIndex = -1,
+    activeStructureId = null,
+    activeTemplateType = null,
+    successMessage = 'Pipeline rebuilt',
+  } = {}) {
+    const baseScript = this.getPipelineReplayBaseScript();
+    const normalizedSteps = nextSteps.map((step, index) => ({
+      ...this.normalizeStepEntry(step),
+      sequenceIndex: index + 1,
     }));
-    this.selectedPipelineStepIndex = Math.min(index, this.steps.length - 1);
+    let nextScript = baseScript;
+    let transformationCode = '';
+
+    try {
+      for (const step of normalizedSteps) {
+        const result = this.replayPipelineStepOnScript(nextScript, step);
+        nextScript = result.script;
+
+        if (typeof result.transformationCode === 'string') {
+          transformationCode = result.transformationCode;
+        }
+      }
+    } catch (error) {
+      this.logMessage(`Unable to rebuild pipeline: ${error.message}`, 'error');
+      return false;
+    }
+
+    this.states = [];
+    this.loadNewScript(nextScript);
+    this.steps = normalizedSteps;
+    this.transformationCode = transformationCode;
+    this.selectedPipelineStepIndex = selectedPipelineStepIndex >= 0 &&
+      selectedPipelineStepIndex < this.steps.length
+      ? selectedPipelineStepIndex
+      : this.steps.length
+        ? this.steps.length - 1
+        : -1;
+
+    if (activeStructureId) {
+      this.setActiveKnownStructure(activeStructureId);
+      this.setInspectedKnownStructure(activeStructureId);
+    }
+
+    if (activeTemplateType) {
+      this.setActiveTemplate(activeTemplateType);
+    }
+
+    this.logMessage(successMessage, 'success');
+    return true;
+  },
+  editPipelineStep(index) {
+    if (index < 0 || index >= this.steps.length) {
+      return false;
+    }
+
+    const step = this.steps[index];
+    const structureId = this.getPipelineStepStructureId(step);
+    const templateType = this.templateCatalog.some((template) => template.type === step.templateType)
+      ? step.templateType
+      : 'advanced-js-step';
+    const confirmed = this.confirmPipelineReplay(
+      'Editing this pipeline item will reparse the script, restore the original code, and reapply all pipeline items that came before it. Continue?',
+    );
+
+    if (!confirmed) {
+      return false;
+    }
+
+    const replayed = this.replayPipelineSteps(this.steps.slice(0, index), {
+      selectedPipelineStepIndex: this.steps.slice(0, index).length - 1,
+      activeStructureId: structureId,
+      activeTemplateType: templateType,
+      successMessage: 'Rebuilt the script up to the selected pipeline item',
+    });
+
+    if (!replayed) {
+      return false;
+    }
+
+    this.activeInspectorPanel = 'templates';
+    this.logMessage('Choose a replacement transform for this structure', 'info');
+    return true;
+  },
+  removePipelineStep(index) {
+    if (index < 0 || index >= this.steps.length) {
+      return false;
+    }
+
+    const confirmed = this.confirmPipelineReplay(
+      'Deleting this pipeline item will reparse the script and reapply all of the other pipeline items. Continue?',
+    );
+
+    if (!confirmed) {
+      return false;
+    }
+
+    const nextSteps = this.steps.filter((_, stepIndex) => stepIndex !== index);
+    return this.replayPipelineSteps(nextSteps, {
+      selectedPipelineStepIndex: Math.min(index, nextSteps.length - 1),
+      successMessage: 'Removed the pipeline item and rebuilt the script',
+    });
   },
   getDefaultSelectionFilter() {
     const selectedNode = this.getSelectedNode();
@@ -1765,6 +2118,10 @@ const store = reactive({
     if (templateType === 'advanced-js-step') {
       this.openAdvancedTools();
       return true;
+    }
+
+    if (templateType === 'no-transform') {
+      return this.applyNoTransformStep(activeStructure?.id);
     }
 
     if (templateType === 'delete-structure-matches') {

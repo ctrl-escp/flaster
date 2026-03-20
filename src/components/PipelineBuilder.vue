@@ -4,6 +4,7 @@ import IconArrowUp from './icons/IconArrowUp.vue';
 import IconArrowDown from './icons/IconArrowDown.vue';
 import IconEye from './icons/IconEye.vue';
 import IconClose from './icons/IconClose.vue';
+import IconTransform from './icons/IconTransform.vue';
 </script>
 
 <template>
@@ -51,6 +52,15 @@ import IconClose from './icons/IconClose.vue';
           </button>
           <button class="mini-btn icon-btn icon-btn-sm" type="button" :title="step.enabled === false ? 'Enable this step' : 'Disable this step'" :aria-label="step.enabled === false ? 'Enable step' : 'Disable step'" @click.stop="store.togglePipelineStep(index)">
             <icon-eye />
+          </button>
+          <button
+            class="mini-btn icon-btn icon-btn-sm"
+            type="button"
+            title="Replace this step by reparsing and reopening the Transform panel"
+            aria-label="Replace step transform"
+            @click.stop="store.editPipelineStep(index)"
+          >
+            <icon-transform />
           </button>
           <button class="mini-btn icon-btn icon-btn-sm" type="button" title="Remove this step from the pipeline" aria-label="Remove step" @click.stop="store.removePipelineStep(index)">
             <icon-close />
