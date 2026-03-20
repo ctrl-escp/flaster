@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
+import {computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
 import store from '../store';
 import IconSearch from './icons/IconSearch.vue';
 import IconTrash from './icons/IconTrash.vue';
@@ -24,6 +24,7 @@ const currentPage = ref(0);
 const exampleStructureId = ref('');
 const showMatchesOnly = ref(false);
 const showDefineStructure = ref(false);
+const structureList = ref(null);
 
 const categories = computed(() => [...new Set(
   store.availableKnownStructures.map((structure) => structure.category),
@@ -74,6 +75,8 @@ const activePreview = computed(() => store.getKnownStructureTransformPreview(act
 const exampleStructure = computed(() => store.getKnownStructureById(exampleStructureId.value));
 const canFindMatches = computed(() => store.hasPendingKnownStructureScan());
 const canClearResults = computed(() => store.hasKnownStructureResultsToClear());
+const firstMatchedStructureId = computed(() =>
+  visibleStructures.value.find((structure) => hasStructureMatches(structure))?.id ?? null);
 
 function toggleSelection(structureId) {
   const nextIds = store.selectedKnownStructureIds.includes(structureId)
@@ -204,6 +207,46 @@ function prevPage() {
   currentPage.value = currentPage.value <= 0 ? totalPages.value - 1 : currentPage.value - 1;
 }
 
+async function scrollFirstMatchedStructureIntoView() {
+  const targetStructureId = firstMatchedStructureId.value;
+
+  if (!targetStructureId) {
+    return;
+  }
+
+  const targetIndex = visibleStructures.value.findIndex((structure) => structure.id === targetStructureId);
+
+  if (targetIndex === -1) {
+    return;
+  }
+
+  const targetPage = Math.floor(targetIndex / PAGE_SIZE);
+
+  if (currentPage.value !== targetPage) {
+    currentPage.value = targetPage;
+  }
+
+  await nextTick();
+
+  const container = structureList.value;
+  const targetCard = container?.querySelector(`[data-structure-id="${targetStructureId}"]`);
+
+  if (!container || !targetCard) {
+    return;
+  }
+
+  const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+  const targetScrollTop = Math.min(
+    Math.max(0, targetCard.offsetTop - container.offsetTop),
+    maxScrollTop,
+  );
+
+  container.scrollTo({
+    top: targetScrollTop,
+    behavior: 'smooth',
+  });
+}
+
 watch(
   [
     () => filters.search,
@@ -223,6 +266,17 @@ watch(totalPages, (nextTotalPages) => {
     currentPage.value = Math.max(0, nextTotalPages - 1);
   }
 });
+
+watch(
+  () => store.knownStructureExecutionStatus.lastRunAt,
+  async (lastRunAt, previousLastRunAt) => {
+    if (!lastRunAt || lastRunAt === previousLastRunAt) {
+      return;
+    }
+
+    await scrollFirstMatchedStructureIntoView();
+  },
+);
 
 function handleWindowKeydown(event) {
   if (event.key === 'Escape' && exampleStructure.value) {
@@ -336,10 +390,11 @@ onBeforeUnmount(() => {
       @complete="handleStructureCreated"
     />
 
-    <div v-else class="structure-list">
+    <div v-else ref="structureList" class="structure-list">
       <article
         v-for="structure in pagedStructures"
         :key="structure.id"
+        :data-structure-id="structure.id"
         class="structure-card"
         :class="{
           active: structure.id === store.activeKnownStructureId,

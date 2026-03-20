@@ -87,10 +87,7 @@ export function createKnownStructureState(structures = knownStructures) {
   return {
     availableKnownStructures,
     selectedKnownStructureIds,
-    activeKnownStructureId: getInitialActiveStructureId(
-      availableKnownStructures,
-      selectedKnownStructureIds,
-    ),
+    activeKnownStructureId: null,
     latestKnownStructureMatches: [],
     knownStructureMatchesById: {},
     knownStructureMatchCounts: {},

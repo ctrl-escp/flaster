@@ -11,6 +11,10 @@ const inputCodeEditorId = store.editorIds.inputCodeEditor;
 const fileInput = ref(null);
 const isOpen = ref(false);
 const showSamples = ref(false);
+const shouldHighlightLoad = computed(() =>
+  store.currentScriptKind === 'custom' &&
+  !store.isCurrentScriptModified,
+);
 const canClearEditor = computed(() => !!(
   store.getCurrentScriptContent().length ||
   store.isCurrentInputParsed() ||
@@ -101,6 +105,7 @@ function loadSample(sampleId) {
   <div class="file-loader">
     <button
       class="toolbar-btn icon-btn"
+      :class="{highlighted: shouldHighlightLoad}"
       type="button"
       title="Open script actions for loading, sampling, or clearing the current script"
       aria-label="Open script actions"
@@ -158,6 +163,7 @@ function loadSample(sampleId) {
 <style scoped>
 .file-loader {
   position: relative;
+  isolation: isolate;
 }
 
 .toolbar-btn {
@@ -170,9 +176,40 @@ function loadSample(sampleId) {
   cursor: pointer;
 }
 
+.toolbar-btn.highlighted {
+  border-color: rgba(0, 204, 255, 0.95);
+  background: rgba(0, 204, 255, 0.22);
+  box-shadow: 0 0 0 0 rgba(0, 204, 255, 0.7);
+  animation: pulse-glow 2s infinite;
+  position: relative;
+  z-index: 1;
+}
+
+.toolbar-btn.highlighted:hover,
+.toolbar-btn.highlighted:focus-visible {
+  border-color: rgba(0, 204, 255, 1);
+  background: rgba(0, 204, 255, 0.28);
+  outline: none;
+}
+
 .toolbar-icon {
   width: 1.2rem;
   height: 1.2rem;
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(0, 204, 255, 0.7),
+      0 0 18px rgba(0, 204, 255, 0.32);
+  }
+
+  70% {
+    box-shadow:
+      0 0 0 15px rgba(0, 204, 255, 0),
+      0 0 24px rgba(0, 204, 255, 0.14);
+  }
 }
 
 .load-menu {

@@ -4,6 +4,7 @@ import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
 import IconBandaid from './icons/IconBandaid.vue';
+import IconExport from './icons/IconExport.vue';
 import IconGithub from './icons/IconGithub.vue';
 import IconReset from './icons/IconReset.vue';
 
@@ -23,6 +24,7 @@ const dependencyVersions = computed(() => ([
   },
 ]));
 const canUndo = computed(() => store.states.length > 0);
+const canExport = computed(() => store.steps.length > 0);
 const bandaidAnimationStyle = ref(createBandaidAnimationStyle());
 
 let bandaidAnimationTimer = null;
@@ -76,6 +78,16 @@ onBeforeUnmount(() => {
       >
         <icon-reset class="header-icon" />
         <span>Undo</span>
+      </button>
+      <button
+        class="header-btn header-btn-secondary icon-btn"
+        type="button"
+        :disabled="!canExport"
+        :title="canExport ? 'Open the generated Node.js export in a modal' : 'Add at least one pipeline step before exporting'"
+        aria-label="Open export panel"
+        @click="store.exportPanelOpen = true"
+      >
+        <icon-export class="header-icon" />
       </button>
       <div class="version-chips" aria-label="Tool dependency versions">
         <a

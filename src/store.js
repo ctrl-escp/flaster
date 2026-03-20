@@ -3,7 +3,6 @@ import {
   createEmptyMatchGroups,
   createExecutionStatus,
   createKnownStructureState,
-  getInitialActiveStructureId,
   groupStructureMatches,
   runKnownStructureMatchingSession,
 } from './integrations/restringer/matchingEngine.js';
@@ -959,10 +958,7 @@ const store = reactive({
     }
 
     if (this.activeKnownStructureId === structureId) {
-      this.activeKnownStructureId = getInitialActiveStructureId(
-        this.availableKnownStructures,
-        Object.keys(nextMatchesById),
-      );
+      this.activeKnownStructureId = null;
     }
 
     if (this.inspectedKnownStructureId === structureId) {
@@ -991,12 +987,7 @@ const store = reactive({
     }
 
     if (!this.selectedKnownStructureIds.includes(this.activeKnownStructureId)) {
-      this.activeKnownStructureId = getInitialActiveStructureId(
-        this.availableKnownStructures,
-        this.selectedKnownStructureIds.filter((structureId) =>
-          this.isKnownStructureBrowserRunnable(structureId),
-        ),
-      );
+      this.activeKnownStructureId = null;
     }
 
     if (this.activeKnownStructureId) {
@@ -1837,11 +1828,8 @@ const store = reactive({
     this.lastKnownStructureRunInputVersion = this.knownStructureInputVersion;
     this.lastKnownStructureRunSelectionVersion = this.knownStructureSelectionVersion;
 
-    if (!this.activeKnownStructureId || !session.structureIds.includes(this.activeKnownStructureId)) {
-      this.activeKnownStructureId = getInitialActiveStructureId(
-        this.availableKnownStructures,
-        session.structureIds,
-      );
+    if (this.activeKnownStructureId && !session.structureIds.includes(this.activeKnownStructureId)) {
+      this.activeKnownStructureId = null;
     }
 
     for (const structureId of session.structureIds) {
