@@ -33,7 +33,8 @@ import {getKnownStructure} from '../integrations/restringer/index.js';
 /**
  * @typedef {{
  *   importPath: string,
- *   defaultImport: string,
+ *   defaultImport?: string,
+ *   namespaceImport?: string,
  * }} GeneratedImportEntry
  */
 
@@ -127,7 +128,35 @@ function createImportPlan(steps) {
 
     if (isStructureSelectionStep(step)) {
       flastSpecifiers.add('Arborist');
+      const implementation = maybeResolveKnownStructureImplementation(step);
+
+      if (implementation?.importPath && implementation?.namespaceImport) {
+        needsKnownStructureRuntime = true;
+        const importEntry = restringerImports.get(implementation.importPath) ?? {
+          importPath: implementation.importPath,
+          namespaceImport: implementation.namespaceImport,
+        };
+
+        restringerImports.set(implementation.importPath, importEntry);
+      }
       continue;
+    }
+
+    if (step?.selectionSource?.kind === 'known-structure') {
+      flastSpecifiers.add('Arborist');
+      const implementation = maybeResolveKnownStructureImplementation({
+        structureId: step?.selectionSource?.structureId ?? step?.params?.structureId ?? '',
+      });
+
+      if (implementation?.importPath && implementation?.namespaceImport) {
+        needsKnownStructureRuntime = true;
+        const importEntry = restringerImports.get(implementation.importPath) ?? {
+          importPath: implementation.importPath,
+          namespaceImport: implementation.namespaceImport,
+        };
+
+        restringerImports.set(implementation.importPath, importEntry);
+      }
     }
 
     if (getCustomStepRunMode(step) === 'until-stable') {
@@ -166,7 +195,14 @@ function createImportBlock(importPlan) {
   for (const importEntry of [...importPlan.restringerImports.values()].sort((left, right) =>
     left.importPath.localeCompare(right.importPath),
   )) {
-    lines.push(`import ${importEntry.defaultImport} from '${importEntry.importPath}';`);
+    if (importEntry.defaultImport) {
+      lines.push(`import ${importEntry.defaultImport} from '${importEntry.importPath}';`);
+      continue;
+    }
+
+    if (importEntry.namespaceImport) {
+      lines.push(`import * as ${importEntry.namespaceImport} from '${importEntry.importPath}';`);
+    }
   }
 
   return lines.join('\n');
@@ -230,8 +266,52 @@ function createCustomStepBlock(step, stepNumber, combineFilters) {
   const transformationCode = step?.kind === 'custom' ? step.transformationCode ?? '' : '';
   const runMode = getCustomStepRunMode(step);
   const maxIterations = getCustomStepMaxIterations(step);
+  const loopCondition = runMode === 'until-stable'
+    ? 'true'
+    : `${iterationsVar} < ${maxIterations}`;
+  const structureId = step?.selectionSource?.kind === 'known-structure'
+    ? step.selectionSource.structureId ?? step?.params?.structureId ?? ''
+    : '';
+  const implementation = structureId
+    ? maybeResolveKnownStructureImplementation({structureId})
+    : null;
 
   if (runMode === 'until-stable') {
+    if (implementation?.matcherName && implementation?.namespaceImport) {
+      const rawMatchesVar = `rawMatches${stepNumber}`;
+      const transformFuncVar = `customTransform${stepNumber}`;
+
+      return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
+function ${transformFuncVar}(arb, matches) {${transformationCode}}
+let arb${stepNumber} = new Arborist(script);
+let appliedChanges${stepNumber} = 0;
+let iterations${stepNumber} = 0;
+
+while (iterations${stepNumber} < ${maxIterations}) {
+  const ${rawMatchesVar} = ${implementation.namespaceImport}.${implementation.matcherName}(arb${stepNumber});
+
+  ${transformFuncVar}(arb${stepNumber}, ${rawMatchesVar});
+
+  const nextChanges${stepNumber} = arb${stepNumber}.applyChanges();
+  if (nextChanges${stepNumber} < 1) {
+    break;
+  }
+
+  appliedChanges${stepNumber} += nextChanges${stepNumber};
+  iterations${stepNumber} += 1;
+}
+
+script = arb${stepNumber}.script;
+
+if (appliedChanges${stepNumber} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} applied ${step?.label ?? 'Custom transform'} (\${appliedChanges${stepNumber}} changes)\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
+    }
+
     return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
 script = applyIteratively(script, [
   treeModifier(
@@ -248,6 +328,39 @@ logger.setLogLevelLog();`;
   const iterationsVar = `iterations${stepNumber}`;
   const matchFuncVar = `customMatchFunc${stepNumber}`;
   const transformFuncVar = `customTransform${stepNumber}`;
+  const rawMatchesVar = `rawMatches${stepNumber}`;
+
+  if (implementation?.matcherName && implementation?.namespaceImport) {
+    return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
+function ${transformFuncVar}(arb, matches) {${transformationCode}}
+let ${arbVar} = new Arborist(script);
+let ${changesVar} = 0;
+let ${iterationsVar} = 0;
+
+while (${iterationsVar} < ${maxIterations}) {
+  const ${rawMatchesVar} = ${implementation.namespaceImport}.${implementation.matcherName}(${arbVar}, () => true);
+
+  ${transformFuncVar}(${arbVar}, ${rawMatchesVar});
+
+  const ${nextChangesVar} = ${arbVar}.applyChanges();
+  if (${nextChangesVar} < 1) {
+    break;
+  }
+
+  ${changesVar} += ${nextChangesVar};
+  ${iterationsVar} += 1;
+}
+
+script = ${arbVar}.script;
+
+if (${changesVar} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} applied ${step?.label ?? 'Custom transform'} (\${${changesVar}} changes)\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
+  }
 
   return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
 const ${matchFuncVar} = (n, arb) => ${filter};
@@ -342,41 +455,225 @@ function createStructureSelectionStepBlock(step, stepNumber, resolveStructureFil
     step?.structureTitle ||
     step?.selectionSource?.structureId ||
     'Selected structure';
+  const implementation = maybeResolveKnownStructureImplementation({
+    structureId,
+    structureTitle,
+  });
   const filterSrc = structureId ? stripLeadingComments(resolveStructureFilter(structureId)) : '';
-
-  if (!filterSrc) {
-    throw new Error(`Cannot export structure step without a structure rule: ${structureId || 'unknown'}`);
-  }
 
   const arbVar = `arb${stepNumber}`;
   const matchesVar = `matches${stepNumber}`;
+  const rawMatchesVar = `rawMatches${stepNumber}`;
   const appliedChangesVar = `appliedChanges${stepNumber}`;
-  const matchFuncVar = `customMatchFunc${stepNumber}`;
+  const nextChangesVar = `nextChanges${stepNumber}`;
+  const iterationsVar = `iterations${stepNumber}`;
+  const outermostMatchesVar = `outermostMatches${stepNumber}`;
+  const matcherVar = implementation?.matcherName && implementation?.namespaceImport
+    ? `${implementation.namespaceImport}.${implementation.matcherName}`
+    : '';
+  const runMode = getCustomStepRunMode(step);
+  const maxIterations = getCustomStepMaxIterations(step);
+  const loopCondition = runMode === 'until-stable'
+    ? 'true'
+    : `${iterationsVar} < ${maxIterations}`;
 
   if (step.templateType === 'delete-structure-matches') {
+    if (!matcherVar) {
+      if (!filterSrc) {
+        throw new Error(`Cannot export structure step without a structure rule: ${structureId || 'unknown'}`);
+      }
+
+      return `// Step ${stepNumber}: ${step?.label ?? `Delete ${structureTitle} matches`}
+const customMatchFunc${stepNumber} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
+let ${arbVar} = new Arborist(script);
+let ${appliedChangesVar} = 0;
+let ${iterationsVar} = 0;
+
+while (${loopCondition}) {
+  const ${matchesVar} = customMatchFunc${stepNumber}(${arbVar});
+  if (!${matchesVar}.length) {
+    break;
+  }
+
+  for (const n of ${matchesVar}) {
+    ${arbVar}.markNode(n);
+  }
+
+  const ${nextChangesVar} = ${arbVar}.applyChanges();
+  if (${nextChangesVar} < 1) {
+    break;
+  }
+
+  ${appliedChangesVar} += ${matchesVar}.length;
+  ${iterationsVar} += 1;
+}
+
+script = ${arbVar}.script;
+
+if (${appliedChangesVar} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} deleted \${${appliedChangesVar}} ${structureTitle} matches\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
+    }
+
     return `// Step ${stepNumber}: ${step?.label ?? `Delete ${structureTitle} matches`}
+let ${arbVar} = new Arborist(script);
+let ${appliedChangesVar} = 0;
+let ${iterationsVar} = 0;
+
+while (${loopCondition}) {
+  const ${rawMatchesVar} = ${matcherVar}(${arbVar});
+  const ${matchesVar} = collectKnownStructureMatchNodes(${rawMatchesVar});
+  if (!${matchesVar}.length) {
+    break;
+  }
+
+  for (const n of ${matchesVar}) {
+    ${arbVar}.markNode(n);
+  }
+
+  const ${nextChangesVar} = ${arbVar}.applyChanges();
+  if (${nextChangesVar} < 1) {
+    break;
+  }
+
+  ${appliedChangesVar} += ${matchesVar}.length;
+  ${iterationsVar} += 1;
+}
+
+script = ${arbVar}.script;
+
+if (${appliedChangesVar} > 0) {
+  console.debug(
+    \`[+] Step ${stepNumber} deleted \${${appliedChangesVar}} ${structureTitle} matches\`,
+  );
+} else {
+  console.debug(\`[!] Step ${stepNumber} did not change the script\`);
+}`;
+  }
+
+  if (!matcherVar) {
+    if (!filterSrc) {
+      throw new Error(`Cannot export structure step without a structure rule: ${structureId || 'unknown'}`);
+    }
+
+    return `// Step ${stepNumber}: ${step?.label ?? `Keep only ${structureTitle} matches`}
 /**
- * Marks every matched node for deletion in a single pass.
+ * Rewrites the program so only the matched nodes remain inside one block.
  *
  * @param {Arborist} arb
  * @param {Array<unknown>} [matches=[]]
  * @returns {Arborist}
  */
-function deleteAllMatches(arb, matches = []) {
-  for (const match of matches) arb.markNode(match);
-  return arb;
+function cloneAstNode(node) {
+  if (Array.isArray(node)) {
+    return node.map((value) => cloneAstNode(value));
+  }
+
+  if (!node || typeof node !== 'object') {
+    return node;
+  }
+
+  const clone = {};
+
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'parentNode' || key === 'children') {
+      continue;
+    }
+
+    clone[key] = cloneAstNode(value);
+  }
+
+  return clone;
 }
 
-const ${matchFuncVar} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
+function hasMatchedAncestor(node, matchedNodes) {
+  let current = node?.parentNode ?? null;
+
+  while (current) {
+    if (matchedNodes.has(current)) {
+      return true;
+    }
+
+    current = current.parentNode ?? null;
+  }
+
+  return false;
+}
+
+function getOutermostMatchedNodes(matches = []) {
+  const matchedNodes = new Set(matches.filter(Boolean));
+
+  return matches.filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
+}
+
+function wrapNodeAsStatement(node) {
+  if (!node || typeof node !== 'object') {
+    return null;
+  }
+
+  const statementTypes = new Set([
+    'BlockStatement',
+    'BreakStatement',
+    'ClassDeclaration',
+    'ContinueStatement',
+    'DebuggerStatement',
+    'DoWhileStatement',
+    'EmptyStatement',
+    'ExportAllDeclaration',
+    'ExportDefaultDeclaration',
+    'ExportNamedDeclaration',
+    'ExpressionStatement',
+    'ForInStatement',
+    'ForOfStatement',
+    'ForStatement',
+    'FunctionDeclaration',
+    'IfStatement',
+    'ImportDeclaration',
+    'LabeledStatement',
+    'ReturnStatement',
+    'SwitchStatement',
+    'ThrowStatement',
+    'TryStatement',
+    'VariableDeclaration',
+    'WhileStatement',
+    'WithStatement',
+  ]);
+
+  if (statementTypes.has(node.type)) {
+    return node;
+  }
+
+  return {
+    type: 'ExpressionStatement',
+    expression: node,
+  };
+}
+
+const customMatchFunc${stepNumber} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
 let ${arbVar} = new Arborist(script);
-const ${matchesVar} = ${matchFuncVar}(${arbVar});
-${arbVar} = deleteAllMatches(${arbVar}, ${matchesVar});
+const ${matchesVar} = customMatchFunc${stepNumber}(${arbVar});
+const ${outermostMatchesVar} = getOutermostMatchedNodes(${matchesVar})
+  .map((node) => wrapNodeAsStatement(cloneAstNode(node)))
+  .filter(Boolean);
+
+${arbVar}.markNode(${arbVar}.ast[0], {
+  ...cloneAstNode(${arbVar}.ast[0]),
+  body: [{
+    type: 'BlockStatement',
+    body: ${outermostMatchesVar},
+  }],
+});
+
 const ${appliedChangesVar} = ${arbVar}.applyChanges();
 script = ${arbVar}.script;
 
 if (${appliedChangesVar} > 0) {
   console.debug(
-    \`[+] Step ${stepNumber} deleted \${${matchesVar}.length} ${structureTitle} matches\`,
+    \`[+] Step ${stepNumber} kept only \${${outermostMatchesVar}.length} ${structureTitle} matches\`,
   );
 } else {
   console.debug(\`[!] Step ${stepNumber} did not change the script\`);
@@ -391,27 +688,112 @@ if (${appliedChangesVar} > 0) {
  * @param {Array<unknown>} [matches=[]]
  * @returns {Arborist}
  */
-function keepOnlyMatches(arb, matches = []) {
-  arb.markNode(arb.ast[0], {
-    type: 'program',
-    body: {
-      type: 'BlockStatement',
-      body: matches
+function cloneAstNode(node) {
+  if (Array.isArray(node)) {
+    return node.map((value) => cloneAstNode(value));
+  }
+
+  if (!node || typeof node !== 'object') {
+    return node;
+  }
+
+  const clone = {};
+
+  for (const [key, value] of Object.entries(node)) {
+    if (key === 'parentNode' || key === 'children') {
+      continue;
     }
-  });
-  return arb;
+
+    clone[key] = cloneAstNode(value);
+  }
+
+  return clone;
 }
 
-const ${matchFuncVar} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
+function hasMatchedAncestor(node, matchedNodes) {
+  let current = node?.parentNode ?? null;
+
+  while (current) {
+    if (matchedNodes.has(current)) {
+      return true;
+    }
+
+    current = current.parentNode ?? null;
+  }
+
+  return false;
+}
+
+function getOutermostMatchedNodes(matches = []) {
+  const matchedNodes = new Set(matches.filter(Boolean));
+
+  return matches.filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
+}
+
+function wrapNodeAsStatement(node) {
+  if (!node || typeof node !== 'object') {
+    return null;
+  }
+
+  const statementTypes = new Set([
+    'BlockStatement',
+    'BreakStatement',
+    'ClassDeclaration',
+    'ContinueStatement',
+    'DebuggerStatement',
+    'DoWhileStatement',
+    'EmptyStatement',
+    'ExportAllDeclaration',
+    'ExportDefaultDeclaration',
+    'ExportNamedDeclaration',
+    'ExpressionStatement',
+    'ForInStatement',
+    'ForOfStatement',
+    'ForStatement',
+    'FunctionDeclaration',
+    'IfStatement',
+    'ImportDeclaration',
+    'LabeledStatement',
+    'ReturnStatement',
+    'SwitchStatement',
+    'ThrowStatement',
+    'TryStatement',
+    'VariableDeclaration',
+    'WhileStatement',
+    'WithStatement',
+  ]);
+
+  if (statementTypes.has(node.type)) {
+    return node;
+  }
+
+  return {
+    type: 'ExpressionStatement',
+    expression: node,
+  };
+}
+
 let ${arbVar} = new Arborist(script);
-const ${matchesVar} = ${matchFuncVar}(${arbVar});
-${arbVar} = keepOnlyMatches(${arbVar}, ${matchesVar});
+const ${rawMatchesVar} = ${matcherVar}(${arbVar});
+const ${matchesVar} = collectKnownStructureMatchNodes(${rawMatchesVar});
+const ${outermostMatchesVar} = getOutermostMatchedNodes(${matchesVar})
+  .map((node) => wrapNodeAsStatement(cloneAstNode(node)))
+  .filter(Boolean);
+
+${arbVar}.markNode(${arbVar}.ast[0], {
+  ...cloneAstNode(${arbVar}.ast[0]),
+  body: [{
+    type: 'BlockStatement',
+    body: ${outermostMatchesVar},
+  }],
+});
+
 const ${appliedChangesVar} = ${arbVar}.applyChanges();
 script = ${arbVar}.script;
 
 if (${appliedChangesVar} > 0) {
   console.debug(
-    \`[+] Step ${stepNumber} kept only \${${matchesVar}.length} ${structureTitle} matches\`,
+    \`[+] Step ${stepNumber} kept only \${${outermostMatchesVar}.length} ${structureTitle} matches\`,
   );
 } else {
   console.debug(\`[!] Step ${stepNumber} did not change the script\`);
@@ -463,6 +845,7 @@ function resolveKnownStructureImplementation(step) {
   const structureTitle = step?.structureTitle ?? structure?.title ?? step?.structureId ?? 'Unknown Structure';
   const description = structure?.description ?? `Applies ${structureTitle}.`;
   const moduleName = step?.moduleName ?? structure?.implementation?.moduleName ?? null;
+  const matcherName = step?.matcherName ?? structure?.implementation?.matcherName ?? null;
 
   if (!step?.structureId || !moduleName) {
     throw new Error(
@@ -475,9 +858,19 @@ function resolveKnownStructureImplementation(step) {
     structureTitle,
     description,
     moduleName,
+    matcherName,
     defaultImport: moduleName,
+    namespaceImport: `${moduleName}Module`,
     importPath: `restringer/src/modules/safe/${moduleName}.js`,
   };
+}
+
+function maybeResolveKnownStructureImplementation(step) {
+  try {
+    return resolveKnownStructureImplementation(step);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -486,7 +879,75 @@ function resolveKnownStructureImplementation(step) {
  * @returns {string}
  */
 function createKnownStructureRuntimeBlock() {
-  return `function applyKnownStructureTransformStep(inputScript, runStep) {
+  return `function isKnownStructureNodeLike(value) {
+  return !!value &&
+    typeof value === 'object' &&
+    typeof value.type === 'string' &&
+    Array.isArray(value.range);
+}
+
+function findNodeInKnownStructureMatch(match, seen = new Set()) {
+  if (!match || typeof match !== 'object' || seen.has(match)) {
+    return null;
+  }
+
+  if (isKnownStructureNodeLike(match)) {
+    return match;
+  }
+
+  seen.add(match);
+
+  const preferredKeys = [
+    'node',
+    'targetNode',
+    'funcNode',
+    'referenceNode',
+    'declarationNode',
+    'candidateNode',
+    'expressionNode',
+    'statementNode',
+    'callNode',
+    'calleeNode',
+    'parentNode',
+    'declaratorNode',
+    'proxyIdentifier',
+  ];
+
+  for (const key of preferredKeys) {
+    const candidate = findNodeInKnownStructureMatch(match[key], seen);
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  if (Array.isArray(match)) {
+    for (const entry of match) {
+      const candidate = findNodeInKnownStructureMatch(entry, seen);
+      if (candidate) {
+        return candidate;
+      }
+    }
+
+    return null;
+  }
+
+  for (const value of Object.values(match)) {
+    const candidate = findNodeInKnownStructureMatch(value, seen);
+    if (candidate) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function collectKnownStructureMatchNodes(matches = []) {
+  return matches
+    .map((match) => findNodeInKnownStructureMatch(match))
+    .filter(Boolean);
+}
+
+function applyKnownStructureTransformStep(inputScript, runStep) {
   const arb = new Arborist(inputScript);
   runStep(arb, () => true);
   const appliedChanges = arb.applyChanges();

@@ -7,7 +7,12 @@ import {
   groupStructureMatches,
   runKnownStructureMatchingSession,
 } from './integrations/restringer/matchingEngine.js';
-import {runKnownStructureTransformSession} from './integrations/restringer/index.js';
+import {
+  collectKnownStructureMatchNodes,
+  describeKnownStructureMatchShape,
+  runKnownStructureMatcher,
+  runKnownStructureTransformSession,
+} from './integrations/restringer/index.js';
 import {getSampleScript, sampleScripts} from './sampleScripts.js';
 
 /**
@@ -352,7 +357,7 @@ function hasMatchedAncestor(node, matchedNodes) {
   return false;
 }
 
-function getTopLevelMatchedNodes(matches = []) {
+function getOutermostMatchedNodes(matches = []) {
   const matchedNodes = new Set(matches.map((match) => match.node).filter(Boolean));
 
   return matches
@@ -435,6 +440,10 @@ function createTemplateDrafts() {
       mode: 'selected-node-type',
     },
     'match-structure': {},
+    'delete-structure-matches': {
+      runMode: 'until-stable',
+      maxIterations: 3,
+    },
     'advanced-js-step': {
       runMode: 'until-stable',
       maxIterations: 3,
@@ -911,6 +920,15 @@ const store = reactive({
     return this.getKnownStructureMatches(selection.structureId)
       .find((match) => match.index === selection.index) ?? null;
   },
+  getKnownStructureMatchNodes(structureId = this.activeKnownStructureId) {
+    return collectKnownStructureMatchNodes(this.getKnownStructureMatches(structureId));
+  },
+  getKnownStructureMatchShape(structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId) {
+    const matches = this.getKnownStructureMatches(structureId)
+      ?.map((match) => match?.match)
+      .filter((match) => match !== undefined) ?? [];
+    return matches.length ? describeKnownStructureMatchShape(matches) : null;
+  },
   refreshKnownStructureHighlights() {
     const editor = this.getEditor(this.editorIds.inputCodeEditor);
 
@@ -1317,6 +1335,25 @@ const store = reactive({
       maxIterations,
     };
   },
+  normalizeDeleteStructureRunSettings(metadata = {}) {
+    const draft = this.templateDrafts['delete-structure-matches'] ?? {};
+    const requestedMode = metadata.runMode ?? draft.runMode ?? 'until-stable';
+    const runMode = ['once', 'count', 'until-stable'].includes(requestedMode)
+      ? requestedMode
+      : 'until-stable';
+    const requestedIterations = Number.parseInt(
+      metadata.maxIterations ?? draft.maxIterations ?? 3,
+      10,
+    );
+    const maxIterations = runMode === 'count'
+      ? Math.max(1, Number.isFinite(requestedIterations) ? requestedIterations : 1)
+      : 1;
+
+    return {
+      runMode,
+      maxIterations,
+    };
+  },
   applyCustomTransformation(transformSrc, metadata = {}) {
     const source = transformSrc || this.getEditor(this.editorIds.transformEditor)?.state?.doc?.toString();
     if (!source) {
@@ -1331,6 +1368,9 @@ const store = reactive({
       const candidateFilters = Array.isArray(metadata.filters) && metadata.filters.length
         ? metadata.filters.filter((filter) => filter?.enabled && filter?.src)
         : this.filters.filter((filter) => filter?.enabled && filter?.src);
+      const structureId = metadata?.selectionSource?.kind === 'known-structure'
+        ? metadata.selectionSource.structureId
+        : metadata?.params?.structureId;
       const runSettings = this.normalizeCustomTransformRunSettings(metadata);
       const firstPassNodes = candidateFilters.length ? null : [...this.filteredNodes];
       let totalChanges = 0;
@@ -1340,15 +1380,30 @@ const store = reactive({
         (runSettings.runMode === 'once' && iterationCount < 1);
 
       while (shouldContinue()) {
-        const candidateNodes = candidateFilters.length
-          ? this.arb.ast.filter((node) =>
-            candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node)))
-          : iterationCount === 0
-            ? firstPassNodes
-            : this.arb.ast;
+        if (structureId) {
+          const matchRun = runKnownStructureMatcher(this.arb, structureId, {
+            candidateFilter: candidateFilters.length
+              ? (node) => candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node))
+              : () => true,
+          });
 
-        for (const n of candidateNodes) {
+          if (matchRun.error) {
+            throw matchRun.error;
+          }
+
+          const matches = matchRun.rawMatches;
           eval(normalizedSource);
+        } else {
+          const candidateNodes = candidateFilters.length
+            ? this.arb.ast.filter((node) =>
+              candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node)))
+            : iterationCount === 0
+              ? firstPassNodes
+              : this.arb.ast;
+
+          for (const n of candidateNodes) {
+            eval(normalizedSource);
+          }
         }
 
         const changes = this.arb.applyChanges();
@@ -1566,8 +1621,10 @@ const store = reactive({
   ) {
     const structure = this.getKnownStructureById(structureId);
     const matches = this.getKnownStructureMatches(structureId);
+    const matchedNodes = this.getKnownStructureMatchNodes(structureId);
+    const runSettings = this.normalizeDeleteStructureRunSettings();
 
-    if (!structure || !matches.length) {
+    if (!structure || !matches.length || !matchedNodes.length) {
       this.logMessage('Pick a matched structure before deleting its matches', 'error');
       return false;
     }
@@ -1575,10 +1632,34 @@ const store = reactive({
     this.saveState();
 
     try {
-      const targetNodes = getTopLevelMatchedNodes(matches);
+      let totalDeletedMatches = 0;
+      let iterationCount = 0;
+      const shouldContinue = () => runSettings.runMode === 'until-stable' ||
+        (runSettings.runMode === 'count' && iterationCount < runSettings.maxIterations) ||
+        (runSettings.runMode === 'once' && iterationCount < 1);
 
-      for (const node of targetNodes) {
-        this.arb.markNode(node);
+      while (shouldContinue()) {
+        const nextMatchedNodes = this.getKnownStructureMatchNodes(structureId);
+        if (!nextMatchedNodes.length) {
+          break;
+        }
+
+        for (const node of nextMatchedNodes) {
+          if (!node) {
+            continue;
+          }
+          this.arb.markNode(node);
+        }
+
+        const changes = this.arb.applyChanges();
+        if (changes < 1) {
+          break;
+        }
+
+        totalDeletedMatches += nextMatchedNodes.length;
+        iterationCount += 1;
+        this.loadNewScript(this.arb.script);
+        this.runKnownStructureMatching();
       }
 
       const stepEntry = {
@@ -1587,18 +1668,27 @@ const store = reactive({
         transformationCode: '',
         label: `Delete ${structure.title} matches`,
         templateType: 'delete-structure-matches',
+        runMode: runSettings.runMode,
+        maxIterations: runSettings.maxIterations,
         params: {
           structureId: structure.id,
-          deletedMatches: targetNodes.length,
+          deletedMatches: totalDeletedMatches,
+          runMode: runSettings.runMode,
+          maxIterations: runSettings.maxIterations,
+          executedIterations: iterationCount,
         },
-        previewSummary: `Delete ${targetNodes.length} matched nodes`,
+        previewSummary: runSettings.runMode === 'once'
+          ? `Delete ${totalDeletedMatches} matched nodes in 1 pass`
+          : runSettings.runMode === 'count'
+            ? `Delete ${totalDeletedMatches} matched nodes across ${iterationCount}/${runSettings.maxIterations} passes`
+            : `Delete ${totalDeletedMatches} matched nodes until no more remained`,
         selectionSource: {
           kind: 'known-structure',
           structureId: structure.id,
         },
       };
 
-      const applied = this.applyAndUpdateTransformation(null, stepEntry);
+      const applied = this.applyAndUpdateTransformation(null, stepEntry, totalDeletedMatches);
       if (!applied) {
         this.states.pop();
       }
@@ -1613,10 +1703,10 @@ const store = reactive({
     structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId,
   ) {
     const structure = this.getKnownStructureById(structureId);
-    const matches = this.getKnownStructureMatches(structureId);
+    const matchedNodes = this.getKnownStructureMatchNodes(structureId);
     const programNode = this.arb?.ast?.find((node) => node.type === 'Program');
 
-    if (!structure || !matches.length || !programNode) {
+    if (!structure || !matchedNodes.length || !programNode) {
       this.logMessage('Pick a matched structure before isolating its matches', 'error');
       return false;
     }
@@ -1624,7 +1714,7 @@ const store = reactive({
     this.saveState();
 
     try {
-      const isolatedNodes = getTopLevelMatchedNodes(matches)
+      const isolatedNodes = getOutermostMatchedNodes(matchedNodes)
         .map((node) => wrapNodeAsStatement(cloneAstNode(node)))
         .filter(Boolean);
 

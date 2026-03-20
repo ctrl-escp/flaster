@@ -454,6 +454,49 @@ function findNodeInMatch(match, seen = new Set()) {
 }
 
 /**
+ * Produces a compact description of the top-level shape returned by a known
+ * structure matcher so custom-transform authors can see what `match` contains.
+ *
+ * @param {unknown} match
+ * @returns {{
+ *   kind: string,
+ *   keys: string[],
+ *   sample: string,
+ * }}
+ */
+export function describeKnownStructureMatchShape(match) {
+  if (Array.isArray(match)) {
+    const firstEntry = match[0];
+    const entryShape = describeKnownStructureMatchShape(firstEntry);
+
+    return Object.freeze({
+      kind: 'array',
+      keys: entryShape.keys,
+      sample: `Array(${match.length}) ${entryShape.sample}`,
+    });
+  }
+
+  if (!match || typeof match !== 'object') {
+    return Object.freeze({
+      kind: typeof match,
+      keys: [],
+      sample: String(match),
+    });
+  }
+
+  const keys = Object.keys(match).sort((left, right) => left.localeCompare(right));
+  const preview = keys.length
+    ? `{ ${keys.slice(0, 8).join(', ')}${keys.length > 8 ? ', ...' : ''} }`
+    : '{}';
+
+  return Object.freeze({
+    kind: 'object',
+    keys: Object.freeze(keys),
+    sample: preview,
+  });
+}
+
+/**
  * Creates a short human-readable label for a normalized match record.
  *
  * @param {typeof knownStructures[number]} structure
@@ -520,6 +563,26 @@ export function normalizeStructureMatch(structureOrId, match, index = 0) {
     srcSnippet: typeof node?.src === 'string' ? node.src.slice(0, 240) : null,
     summary: createSummary(structure, node, index),
   });
+}
+
+/**
+ * Flattens normalized or raw known-structure matches into the representative
+ * AST nodes that should be targeted by template-style operations such as
+ * delete-all-matches or keep-only-matches.
+ *
+ * @param {ReadonlyArray<unknown>} [matches=[]]
+ * @returns {ASTNode[]}
+ */
+export function collectKnownStructureMatchNodes(matches = []) {
+  return matches
+    .map((match) => {
+      if (match && typeof match === 'object' && 'node' in match) {
+        return match.node ?? null;
+      }
+
+      return findNodeInMatch(match);
+    })
+    .filter(Boolean);
 }
 
 /**
@@ -845,6 +908,8 @@ export const restringerBrowser = Object.freeze({
   safeUtils,
   listKnownStructures,
   getKnownStructure,
+  describeKnownStructureMatchShape,
+  collectKnownStructureMatchNodes,
   normalizeStructureMatch,
   getMatcherRunner,
   getTransformRunner,

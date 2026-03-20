@@ -192,6 +192,7 @@ const activeStructure = computed(() =>
   store.getKnownStructureById(store.inspectedKnownStructureId ?? store.activeKnownStructureId));
 const activeTemplate = computed(() =>
   store.templateCatalog.find((template) => template.type === store.activeTemplateType) ?? null);
+const deleteRunSettings = computed(() => store.templateDrafts['delete-structure-matches'] ?? {});
 const activeMatchCount = computed(() =>
   activeStructure.value ? store.getKnownStructureMatches(activeStructure.value.id).length : 0);
 const hasBuiltInTransform = computed(() =>
@@ -368,6 +369,35 @@ async function copyTransformExample() {
           <p class="template-help-line">{{ activeTemplateDescription }}</p>
         </template>
       </div>
+
+      <div
+        v-if="store.activeTemplateType === 'delete-structure-matches'"
+        class="run-controls template-run-controls"
+      >
+        <label class="run-field">
+          <span>Run mode</span>
+          <select
+            class="panel-input"
+            :value="deleteRunSettings.runMode || 'until-stable'"
+            @change="store.updateTemplateDraft('delete-structure-matches', 'runMode', $event.target.value)"
+          >
+            <option value="once">Run 1 time</option>
+            <option value="count">Run X times</option>
+            <option value="until-stable">Run until no longer effective</option>
+          </select>
+        </label>
+        <label v-if="deleteRunSettings.runMode === 'count'" class="run-field run-field-count">
+          <span>Iterations</span>
+          <input
+            class="panel-input"
+            type="number"
+            min="1"
+            step="1"
+            :value="deleteRunSettings.maxIterations || 3"
+            @input="store.updateTemplateDraft('delete-structure-matches', 'maxIterations', $event.target.value)"
+          >
+        </label>
+      </div>
     </div>
 
     <div
@@ -471,6 +501,29 @@ async function copyTransformExample() {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.run-controls {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.template-run-controls {
+  margin-top: 0.25rem;
+  padding-left: 0.1rem;
+}
+
+.run-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: min(18rem, 100%);
+  color: var(--text-muted);
+}
+
+.run-field-count {
+  min-width: 8rem;
 }
 
 .template-help-line {
