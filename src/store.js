@@ -321,28 +321,6 @@ function createCustomStructureDescriptor(title, filterSrc) {
   };
 }
 
-function cloneAstNode(node) {
-  if (Array.isArray(node)) {
-    return node.map((value) => cloneAstNode(value));
-  }
-
-  if (!node || typeof node !== 'object') {
-    return node;
-  }
-
-  const clone = {};
-
-  for (const [key, value] of Object.entries(node)) {
-    if (key === 'parentNode' || key === 'children') {
-      continue;
-    }
-
-    clone[key] = cloneAstNode(value);
-  }
-
-  return clone;
-}
-
 function hasMatchedAncestor(node, matchedNodes) {
   let current = node?.parentNode ?? null;
 
@@ -363,49 +341,6 @@ function getOutermostMatchedNodes(matches = []) {
   return matches
     .map((match) => match.node)
     .filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
-}
-
-function wrapNodeAsStatement(node) {
-  if (!node || typeof node !== 'object') {
-    return null;
-  }
-
-  const statementTypes = new Set([
-    'BlockStatement',
-    'BreakStatement',
-    'ClassDeclaration',
-    'ContinueStatement',
-    'DebuggerStatement',
-    'DoWhileStatement',
-    'EmptyStatement',
-    'ExportAllDeclaration',
-    'ExportDefaultDeclaration',
-    'ExportNamedDeclaration',
-    'ExpressionStatement',
-    'ForInStatement',
-    'ForOfStatement',
-    'ForStatement',
-    'FunctionDeclaration',
-    'IfStatement',
-    'ImportDeclaration',
-    'LabeledStatement',
-    'ReturnStatement',
-    'SwitchStatement',
-    'ThrowStatement',
-    'TryStatement',
-    'VariableDeclaration',
-    'WhileStatement',
-    'WithStatement',
-  ]);
-
-  if (statementTypes.has(node.type)) {
-    return node;
-  }
-
-  return {
-    type: 'ExpressionStatement',
-    expression: node,
-  };
 }
 
 function createNodeAttributeEntries(node) {
@@ -1715,11 +1650,11 @@ const store = reactive({
 
     try {
       const isolatedNodes = getOutermostMatchedNodes(matchedNodes)
-        .map((node) => wrapNodeAsStatement(cloneAstNode(node)))
         .filter(Boolean);
 
       this.arb.markNode(programNode, {
-        ...cloneAstNode(programNode),
+        type: 'Program',
+        sourceType: programNode.sourceType,
         body: [{
           type: 'BlockStatement',
           body: isolatedNodes,

@@ -568,28 +568,6 @@ if (${appliedChangesVar} > 0) {
  * @param {Array<unknown>} [matches=[]]
  * @returns {Arborist}
  */
-function cloneAstNode(node) {
-  if (Array.isArray(node)) {
-    return node.map((value) => cloneAstNode(value));
-  }
-
-  if (!node || typeof node !== 'object') {
-    return node;
-  }
-
-  const clone = {};
-
-  for (const [key, value] of Object.entries(node)) {
-    if (key === 'parentNode' || key === 'children') {
-      continue;
-    }
-
-    clone[key] = cloneAstNode(value);
-  }
-
-  return clone;
-}
-
 function hasMatchedAncestor(node, matchedNodes) {
   let current = node?.parentNode ?? null;
 
@@ -610,58 +588,15 @@ function getOutermostMatchedNodes(matches = []) {
   return matches.filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
 }
 
-function wrapNodeAsStatement(node) {
-  if (!node || typeof node !== 'object') {
-    return null;
-  }
-
-  const statementTypes = new Set([
-    'BlockStatement',
-    'BreakStatement',
-    'ClassDeclaration',
-    'ContinueStatement',
-    'DebuggerStatement',
-    'DoWhileStatement',
-    'EmptyStatement',
-    'ExportAllDeclaration',
-    'ExportDefaultDeclaration',
-    'ExportNamedDeclaration',
-    'ExpressionStatement',
-    'ForInStatement',
-    'ForOfStatement',
-    'ForStatement',
-    'FunctionDeclaration',
-    'IfStatement',
-    'ImportDeclaration',
-    'LabeledStatement',
-    'ReturnStatement',
-    'SwitchStatement',
-    'ThrowStatement',
-    'TryStatement',
-    'VariableDeclaration',
-    'WhileStatement',
-    'WithStatement',
-  ]);
-
-  if (statementTypes.has(node.type)) {
-    return node;
-  }
-
-  return {
-    type: 'ExpressionStatement',
-    expression: node,
-  };
-}
-
 const customMatchFunc${stepNumber} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
 let ${arbVar} = new Arborist(script);
 const ${matchesVar} = customMatchFunc${stepNumber}(${arbVar});
 const ${outermostMatchesVar} = getOutermostMatchedNodes(${matchesVar})
-  .map((node) => wrapNodeAsStatement(cloneAstNode(node)))
   .filter(Boolean);
 
 ${arbVar}.markNode(${arbVar}.ast[0], {
-  ...cloneAstNode(${arbVar}.ast[0]),
+  type: 'Program',
+  sourceType: ${arbVar}.ast[0].sourceType,
   body: [{
     type: 'BlockStatement',
     body: ${outermostMatchesVar},
@@ -688,28 +623,6 @@ if (${appliedChangesVar} > 0) {
  * @param {Array<unknown>} [matches=[]]
  * @returns {Arborist}
  */
-function cloneAstNode(node) {
-  if (Array.isArray(node)) {
-    return node.map((value) => cloneAstNode(value));
-  }
-
-  if (!node || typeof node !== 'object') {
-    return node;
-  }
-
-  const clone = {};
-
-  for (const [key, value] of Object.entries(node)) {
-    if (key === 'parentNode' || key === 'children') {
-      continue;
-    }
-
-    clone[key] = cloneAstNode(value);
-  }
-
-  return clone;
-}
-
 function hasMatchedAncestor(node, matchedNodes) {
   let current = node?.parentNode ?? null;
 
@@ -730,58 +643,15 @@ function getOutermostMatchedNodes(matches = []) {
   return matches.filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
 }
 
-function wrapNodeAsStatement(node) {
-  if (!node || typeof node !== 'object') {
-    return null;
-  }
-
-  const statementTypes = new Set([
-    'BlockStatement',
-    'BreakStatement',
-    'ClassDeclaration',
-    'ContinueStatement',
-    'DebuggerStatement',
-    'DoWhileStatement',
-    'EmptyStatement',
-    'ExportAllDeclaration',
-    'ExportDefaultDeclaration',
-    'ExportNamedDeclaration',
-    'ExpressionStatement',
-    'ForInStatement',
-    'ForOfStatement',
-    'ForStatement',
-    'FunctionDeclaration',
-    'IfStatement',
-    'ImportDeclaration',
-    'LabeledStatement',
-    'ReturnStatement',
-    'SwitchStatement',
-    'ThrowStatement',
-    'TryStatement',
-    'VariableDeclaration',
-    'WhileStatement',
-    'WithStatement',
-  ]);
-
-  if (statementTypes.has(node.type)) {
-    return node;
-  }
-
-  return {
-    type: 'ExpressionStatement',
-    expression: node,
-  };
-}
-
 let ${arbVar} = new Arborist(script);
 const ${rawMatchesVar} = ${matcherVar}(${arbVar});
 const ${matchesVar} = collectKnownStructureMatchNodes(${rawMatchesVar});
 const ${outermostMatchesVar} = getOutermostMatchedNodes(${matchesVar})
-  .map((node) => wrapNodeAsStatement(cloneAstNode(node)))
   .filter(Boolean);
 
 ${arbVar}.markNode(${arbVar}.ast[0], {
-  ...cloneAstNode(${arbVar}.ast[0]),
+  type: 'Program',
+  sourceType: ${arbVar}.ast[0].sourceType,
   body: [{
     type: 'BlockStatement',
     body: ${outermostMatchesVar},
