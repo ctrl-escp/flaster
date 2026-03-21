@@ -60,7 +60,7 @@ function clearEditor() {
   store.states = [];
   store.transformationCode = '';
   store.selectedPipelineStepIndex = -1;
-  store.activeResultMode = 'matches';
+  store.activeResultMode = 'ast';
   store.selectedNodeId = null;
   store.selectedNodeSource = null;
   store.setCurrentScriptSource({

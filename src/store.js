@@ -509,7 +509,7 @@ const store = reactive({
     this.filters.length = 0;
     this.selectedNodeId = null;
     this.selectedNodeSource = null;
-    this.activeResultMode = 'matches';
+    this.activeResultMode = 'ast';
     this.markCurrentInputParsed();
     this.runKnownStructureMatching();
   },
@@ -543,7 +543,7 @@ const store = reactive({
   activeWorkspaceTab: 'explorer',
   hasVisitedExploreNodes: false,
   shouldPulseCodeStructuresStage: false,
-  activeResultMode: 'matches',
+  activeResultMode: 'ast',
   activeInspectorPanel: 'inspector',
   activeNodeInspectorSection: 'overview',
   selectedNodeId: null,
@@ -785,13 +785,13 @@ const store = reactive({
   getRelatedNodes(node = this.getSelectedNode()) {
     return this.getRelatedNodeEntries(node).map((entry) => entry.node);
   },
-  hasResultModeContent(mode = 'matches') {
-    if (mode === 'matches') {
-      return this.latestKnownStructureMatches.length > 0;
-    }
-
+  hasResultModeContent(mode = 'ast') {
     if (mode === 'ast') {
       return (this.areFiltersActive ? this.filteredNodes : this.arb?.ast ?? []).length > 0;
+    }
+
+    if (mode === 'matches') {
+      return this.latestKnownStructureMatches.length > 0;
     }
 
     if (mode === 'related') {
@@ -800,12 +800,12 @@ const store = reactive({
 
     return false;
   },
-  getPreferredResultMode(preferredMode = 'matches') {
+  getPreferredResultMode(preferredMode = 'ast') {
     if (this.hasResultModeContent(preferredMode)) {
       return preferredMode;
     }
 
-    return ['matches', 'ast', 'related'].find((mode) => this.hasResultModeContent(mode)) ?? 'matches';
+    return ['ast', 'matches', 'related'].find((mode) => this.hasResultModeContent(mode)) ?? 'ast';
   },
   setActiveWorkspaceTab(tabName = 'explorer') {
     this.activeWorkspaceTab = tabName;
@@ -825,7 +825,7 @@ const store = reactive({
     this.advancedToolsOpen = true;
     this.activeInspectorPanel = 'templates';
   },
-  setActiveResultMode(mode = 'matches') {
+  setActiveResultMode(mode = 'ast') {
     this.activeResultMode = this.getPreferredResultMode(mode);
   },
   setActiveTemplate(templateType = 'apply-known-transform') {
