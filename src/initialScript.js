@@ -1,10 +1,11 @@
+/* eslint-disable */
 /*
 Welcome to flASTer.
 
 flASTer parses JavaScript into an AST so you can inspect code structure, match
 known patterns, and generate or apply structural transforms. It is built for
 code exploration, deobfuscation, and for building bespoke deobfuscators for
-whatever obfuscation patterns you need to untangle.
+whatever code patterns you need to untangle or re-order.
 
 Everything in flASTer runs client side on your machine. Your code stays local
 to your browser session while you inspect nodes, match structures, and test
@@ -19,9 +20,8 @@ Quick start:
    JavaScript to analyze.
 6. Replace these examples with your own code when you are ready to analyze it.
 
-This starter file intentionally includes one example for each built-in known
-structure, plus a few extra variants, so new users can explore the tool right
-away.
+This starter file intentionally includes examples for built-in known structure,
+plus a few extra variants, so new users can explore the tool right away.
 */
 
 function computeScore(value) {
