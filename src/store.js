@@ -253,6 +253,26 @@ function getNodeId(node) {
   return Number.isInteger(node?.nodeId) ? node.nodeId : null;
 }
 
+function createRelatedNodeEntry(node, relationKind) {
+  if (!node) {
+    return null;
+  }
+
+  const relationLabelMap = {
+    parent: 'Parent node',
+    child: 'Child node',
+    elderSibling: 'Preceding sibling',
+    self: 'Selected node',
+    youngerSibling: 'Following sibling',
+  };
+
+  return {
+    node,
+    relationKind,
+    relationLabel: relationLabelMap[relationKind] ?? 'Related node',
+  };
+}
+
 function createNodeSummary(node) {
   if (!node) {
     return 'No node selected';
@@ -736,18 +756,34 @@ const store = reactive({
       doRangesOverlap(match.range, node.range),
     );
   },
-  getRelatedNodes(node = this.getSelectedNode()) {
+  getRelatedNodeEntries(node = this.getSelectedNode()) {
     if (!node) {
       return [];
     }
 
-    const parent = node.parentNode ? [node.parentNode] : [];
-    const children = this.getNodeChildren(node);
-    const siblings = node.parentNode
-      ? this.getNodeChildren(node.parentNode).filter((candidate) => candidate.nodeId !== node.nodeId)
+    const parentEntries = node.parentNode
+      ? [createRelatedNodeEntry(node.parentNode, 'parent')]
+      : [];
+    const orderedSiblings = node.parentNode
+      ? this.getNodeChildren(node.parentNode)
+      : [node];
+    const currentIndex = orderedSiblings.findIndex((candidate) => candidate.nodeId === node.nodeId);
+    const elderSiblingEntries = (currentIndex > 0 ? orderedSiblings.slice(0, currentIndex) : [])
+      .map((siblingNode) => createRelatedNodeEntry(siblingNode, 'elderSibling'));
+    const selfEntry = createRelatedNodeEntry(node, 'self');
+    const childEntries = this.getNodeChildren(node)
+      .map((childNode) => createRelatedNodeEntry(childNode, 'child'));
+    const youngerSiblingEntries = currentIndex >= 0
+      ? orderedSiblings.slice(currentIndex + 1)
+        .map((siblingNode) => createRelatedNodeEntry(siblingNode, 'youngerSibling'))
       : [];
 
-    return [...parent, ...children, ...siblings].slice(0, 24);
+    return [...parentEntries, ...elderSiblingEntries, selfEntry, ...childEntries, ...youngerSiblingEntries]
+      .filter(Boolean)
+      .slice(0, 24);
+  },
+  getRelatedNodes(node = this.getSelectedNode()) {
+    return this.getRelatedNodeEntries(node).map((entry) => entry.node);
   },
   hasResultModeContent(mode = 'matches') {
     if (mode === 'matches') {

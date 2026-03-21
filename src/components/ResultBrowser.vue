@@ -12,7 +12,6 @@ const currentPage = ref(0);
 const modes = [
   {id: 'matches', label: 'Matches'},
   {id: 'ast', label: 'AST nodes'},
-  {id: 'related', label: 'Related nodes'},
 ];
 
 const visibleItems = computed(() => {
@@ -28,12 +27,13 @@ const visibleItems = computed(() => {
   }
 
   if (store.activeResultMode === 'related') {
-    return store.getRelatedNodes().map((node) => ({
-      key: `related:${node.nodeId}`,
-      label: node.type,
-      summary: node.src?.slice(0, 120) ?? 'No source snippet',
-      meta: node.parentNode?.type ?? 'Root',
-      node,
+    return store.getRelatedNodeEntries().map((entry) => ({
+      key: `related:${entry.node.nodeId}`,
+      label: entry.node.type,
+      summary: entry.node.src?.slice(0, 120) ?? 'No source snippet',
+      meta: `Inside ${entry.node.parentNode?.type ?? 'Root'}`,
+      relationLabel: entry.relationLabel,
+      node: entry.node,
       kind: 'node',
     }));
   }
@@ -231,6 +231,7 @@ watch(totalPages, (nextTotalPages) => {
           @click="selectItem(item)"
         >
           <strong>{{ item.label }}</strong>
+          <small v-if="item.relationLabel" class="relation-tag">{{ item.relationLabel }}</small>
           <span>{{ item.summary }}</span>
           <small>{{ item.meta }}</small>
         </button>
@@ -391,6 +392,15 @@ watch(totalPages, (nextTotalPages) => {
 .result-item-main span,
 .result-item-main small {
   color: var(--text-muted);
+}
+
+.relation-tag {
+  align-self: flex-start;
+  color: #eef8ff;
+  background: rgba(126, 202, 255, 0.18);
+  border: 1px solid rgba(126, 202, 255, 0.3);
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
 }
 
 .result-item.active {
