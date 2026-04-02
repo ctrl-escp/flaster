@@ -302,20 +302,26 @@ function createCustomStructureId(title) {
   return `custom-${normalizedTitle}-${Date.now()}`;
 }
 
-function createCustomStructureDescriptor(title, filterSrc) {
+function createCustomStructureDescriptor(title, filterSrc, category = 'custom') {
   const normalizedTitle = String(title || 'Custom Structure').trim() || 'Custom Structure';
   const normalizedFilter = String(filterSrc || '').trim();
+  const normalizedCategory = String(category || 'custom')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '') || 'custom';
   const predicate = eval(`n => ${normalizedFilter}`);
 
   return {
     id: createCustomStructureId(normalizedTitle),
     title: normalizedTitle,
-    category: 'custom',
+    categoryGroup: 'user-defined',
+    category: normalizedCategory,
     description: 'User-defined structure created from a custom filter rule.',
     codeExample: normalizedFilter,
-    tags: Object.freeze(['custom', 'user-defined']),
-    searchTerms: Object.freeze(['custom', 'user-defined']),
-    searchText: [normalizedTitle, 'custom', 'structure', 'user-defined'].join(' ').toLowerCase(),
+    tags: Object.freeze(['custom', 'user-defined', normalizedCategory]),
+    searchTerms: Object.freeze(['custom', 'user-defined', normalizedCategory]),
+    searchText: [normalizedTitle, normalizedCategory, 'custom', 'structure', 'user-defined'].join(' ').toLowerCase(),
     browserSafe: true,
     executionMode: 'browser-safe',
     availabilityStatus: 'available',
@@ -1267,9 +1273,10 @@ const store = reactive({
     this.filters = this.filters.filter((filter) => filter !== filterToDelete);
     this.reapplyFilters();
   },
-  addCustomKnownStructure(title, filterSrc) {
+  addCustomKnownStructure(title, filterSrc, category = 'custom') {
     const normalizedTitle = String(title || '').trim() || 'Custom Structure';
     const normalizedFilter = String(filterSrc || '').trim();
+    const normalizedCategory = String(category || '').trim() || 'custom';
 
     if (!normalizedFilter) {
       this.logMessage('Missing structure rule', 'error');
@@ -1277,7 +1284,7 @@ const store = reactive({
     }
 
     try {
-      const nextStructure = createCustomStructureDescriptor(normalizedTitle, normalizedFilter);
+      const nextStructure = createCustomStructureDescriptor(normalizedTitle, normalizedFilter, normalizedCategory);
       this.availableKnownStructures = [...this.availableKnownStructures, nextStructure];
       this.selectedKnownStructureIds = [...new Set([...this.selectedKnownStructureIds, nextStructure.id])];
       this.activeKnownStructureId = nextStructure.id;

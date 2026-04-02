@@ -2,6 +2,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'proxy-calls',
     title: 'Proxy Calls',
+    categoryGroup: 'obfuscation',
     category: 'calls',
     description: 'Matches wrapper functions that only forward arguments into another call.',
     codeExample: [
@@ -27,6 +28,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'proxy-variables',
     title: 'Proxy Variables',
+    categoryGroup: 'obfuscation',
     category: 'variables',
     description: 'Matches identifier aliases that point directly at another identifier.',
     codeExample: [
@@ -50,6 +52,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'proxy-references',
     title: 'Proxy References',
+    categoryGroup: 'obfuscation',
     category: 'variables',
     description: 'Matches proxy declarations that redirect reads to another identifier or member expression.',
     codeExample: [
@@ -75,6 +78,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'wrapped-value-shells',
     title: 'Wrapped Value Shells',
+    categoryGroup: 'obfuscation',
     category: 'wrappers',
     description: 'Matches function shells whose only job is to return a wrapped value.',
     codeExample: [
@@ -99,6 +103,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'iife-wrappers',
     title: 'IIFE Wrappers',
+    categoryGroup: 'obfuscation',
     category: 'wrappers',
     description: 'Matches immediately invoked wrapper functions that can be unwrapped structurally.',
     codeExample: [
@@ -122,6 +127,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'template-literal-strings',
     title: 'Template Literal Strings',
+    categoryGroup: 'obfuscation',
     category: 'literals',
     description: 'Matches template literals made entirely from static literal content.',
     codeExample: [
@@ -143,6 +149,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'fixed-assigned-values',
     title: 'Fixed Assigned Values',
+    categoryGroup: 'obfuscation',
     category: 'variables',
     description: 'Matches identifiers assigned a fixed value that can be propagated safely.',
     codeExample: [
@@ -168,6 +175,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'deterministic-if-statements',
     title: 'Deterministic If Statements',
+    categoryGroup: 'obfuscation',
     category: 'conditionals',
     description: 'Matches `if` statements whose branch outcome is statically determined.',
     codeExample: [
@@ -192,6 +200,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'sequence-rearrangement',
     title: 'Sequence Rearrangement',
+    categoryGroup: 'obfuscation',
     category: 'sequences',
     description: 'Matches sequence expressions that can be expanded into a clearer execution order.',
     codeExample: [
@@ -216,6 +225,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'switch-rearrangement',
     title: 'Switch Rearrangement',
+    categoryGroup: 'obfuscation',
     category: 'control-flow',
     description: 'Matches switch statements whose case order can be rearranged into a more direct flow.',
     codeExample: [
@@ -243,6 +253,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'computed-members',
     title: 'Computed Members',
+    categoryGroup: 'obfuscation',
     category: 'cleanup',
     description: 'Matches computed member access and property keys that can be normalized to identifier syntax.',
     codeExample: [
@@ -266,6 +277,7 @@ export const knownStructureRegistry = Object.freeze([
   {
     id: 'simplify-calls',
     title: 'Simplify Calls',
+    categoryGroup: 'obfuscation',
     category: 'calls',
     description: 'Matches call expressions that can be simplified without executing code.',
     codeExample: [

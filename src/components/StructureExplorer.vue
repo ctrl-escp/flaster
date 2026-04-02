@@ -16,6 +16,7 @@ const PAGE_SIZE = 100;
 
 const filters = reactive({
   search: '',
+  categoryGroup: '',
   category: '',
 });
 
@@ -26,9 +27,49 @@ const showMatchesOnly = ref(false);
 const showDefineStructure = ref(false);
 const structureList = ref(null);
 
-const categories = computed(() => [...new Set(
-  store.availableKnownStructures.map((structure) => structure.category),
-)].sort());
+function formatCategoryLabel(value) {
+  return String(value || '')
+    .split('-')
+    .filter(Boolean)
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
+}
+
+const categoryGroups = computed(() => [...new Set(
+  store.availableKnownStructures.map((structure) => structure.categoryGroup ?? 'obfuscation'),
+)]);
+
+const categoryGroupOptions = computed(() => categoryGroups.value
+  .map((categoryGroup) => {
+    const structuresInGroup = store.availableKnownStructures.filter((structure) =>
+      (structure.categoryGroup ?? 'obfuscation') === categoryGroup,
+    );
+    const subcategoryCount = new Set(structuresInGroup.map((structure) => structure.category)).size;
+
+    return {
+      value: categoryGroup,
+      label: `${formatCategoryLabel(categoryGroup)} (${subcategoryCount})`,
+    };
+  })
+  .sort((left, right) => left.label.localeCompare(right.label)));
+
+const categories = computed(() => {
+  const eligibleStructures = filters.categoryGroup
+    ? store.availableKnownStructures.filter((structure) =>
+      (structure.categoryGroup ?? 'obfuscation') === filters.categoryGroup,
+    )
+    : store.availableKnownStructures;
+
+  return [...new Set(eligibleStructures.map((structure) => structure.category))].sort();
+});
+
+const categoryOptions = computed(() => categories.value.map((category) => ({
+  value: category,
+  label: `${formatCategoryLabel(category)} (${store.availableKnownStructures.filter((structure) =>
+    structure.category === category &&
+    (!filters.categoryGroup || (structure.categoryGroup ?? 'obfuscation') === filters.categoryGroup)
+  ).length})`,
+})));
 
 const visibleStructures = computed(() => {
   const search = filters.search.trim().toLowerCase();
@@ -36,6 +77,11 @@ const visibleStructures = computed(() => {
   return store.availableKnownStructures
     .filter((structure) => {
       if (showMatchesOnly.value && !hasStructureMatches(structure)) {
+        return false;
+      }
+
+      if (filters.categoryGroup &&
+        (structure.categoryGroup ?? 'obfuscation') !== filters.categoryGroup) {
         return false;
       }
 
@@ -250,6 +296,7 @@ async function scrollFirstMatchedStructureIntoView() {
 watch(
   [
     () => filters.search,
+    () => filters.categoryGroup,
     () => filters.category,
     () => store.availableKnownStructures.length,
   ],
@@ -257,6 +304,15 @@ watch(
     currentPage.value = 0;
     if (expandedStructureId.value && !pagedStructures.value.some((structure) => structure.id === expandedStructureId.value)) {
       expandedStructureId.value = null;
+    }
+  },
+);
+
+watch(
+  [() => filters.categoryGroup, categories],
+  () => {
+    if (filters.category && !categories.value.includes(filters.category)) {
+      filters.category = '';
     }
   },
 );
@@ -319,9 +375,20 @@ onBeforeUnmount(() => {
       </label>
       <label class="filter-field filter-field-inline">
         <span class="filter-label">Category</span>
+        <select v-model="filters.categoryGroup" class="panel-select" title="Filter structures by category group">
+          <option value="">All</option>
+          <option v-for="categoryGroup in categoryGroupOptions" :key="categoryGroup.value" :value="categoryGroup.value">
+            {{ categoryGroup.label }}
+          </option>
+        </select>
+      </label>
+      <label class="filter-field filter-field-inline">
+        <span class="filter-label">Subcategory</span>
         <select v-model="filters.category" class="panel-select" title="Filter structures by category">
           <option value="">All</option>
-          <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
+          <option v-for="category in categoryOptions" :key="category.value" :value="category.value">
+            {{ category.label }}
+          </option>
         </select>
       </label>
     </div>
@@ -433,7 +500,8 @@ onBeforeUnmount(() => {
 
         <div v-if="expandedStructureId === structure.id" class="structure-details">
           <div class="structure-card-top">
-            <span class="structure-category">{{ structure.category }}</span>
+            <span class="structure-category">{{ formatCategoryLabel(structure.categoryGroup ?? 'obfuscation') }}</span>
+            <span class="structure-category">{{ formatCategoryLabel(structure.category) }}</span>
             <span class="status-pill" :class="structure.browserRunnable ? 'good' : 'muted'">
               {{ structure.transformEnabled ? 'transform-ready' : structure.browserRunnable ? 'matcher-only' : 'blocked' }}
             </span>

@@ -32,6 +32,14 @@ const enabledFilters = computed(() => store.filters.filter((filter) => filter?.e
 const numOfEnabledFilters = computed(() => enabledFilters.value.length);
 const numOfAvailableFilters = computed(() => store.filters.length);
 const structureName = ref('');
+const existingStructureCategories = computed(() => [...new Set(
+  store.availableKnownStructures
+    .filter((structure) => (structure.categoryGroup ?? 'obfuscation') === 'user-defined')
+    .map((structure) => structure.category)
+    .filter(Boolean),
+)].sort());
+const structureCategory = ref('');
+const pendingStructureCreation = ref(null);
 const filterSummary = computed(() => {
   if (!numOfAvailableFilters.value) {
     return 'No saved filters';
@@ -89,17 +97,71 @@ function addNewFilter() {
   }
 }
 
-function addNewStructure() {
-  const filterSrc = store.getEditor(store.editorIds.filterEditor)?.state.doc.toString()?.trim();
-  const nextStructure = store.addCustomKnownStructure(structureName.value, filterSrc);
+function findExistingStructureCategory(category) {
+  const normalizedCategory = String(category || '').trim().toLowerCase();
+
+  return existingStructureCategories.value.find((existingCategory) =>
+    existingCategory.trim().toLowerCase() === normalizedCategory,
+  ) ?? null;
+}
+
+function resetStructureForm() {
+  structureName.value = '';
+  structureCategory.value = '';
+  pendingStructureCreation.value = null;
+  store.setContent(store.getEditor(store.editorIds.filterEditor), initialValue);
+}
+
+function finalizeNewStructure(filterSrc, selectedCategory) {
+  const nextStructure = store.addCustomKnownStructure(
+    structureName.value,
+    filterSrc,
+    selectedCategory,
+  );
 
   if (!nextStructure) {
     return;
   }
 
-  structureName.value = '';
-  store.setContent(store.getEditor(store.editorIds.filterEditor), initialValue);
+  resetStructureForm();
   emit('complete', nextStructure);
+}
+
+function addNewStructure() {
+  const filterSrc = store.getEditor(store.editorIds.filterEditor)?.state.doc.toString()?.trim();
+  const requestedCategory = String(structureCategory.value || '').trim();
+
+  if (!requestedCategory) {
+    store.logMessage('Missing structure subcategory', 'error');
+    return;
+  }
+
+  const existingCategory = findExistingStructureCategory(requestedCategory);
+
+  if (existingCategory) {
+    finalizeNewStructure(filterSrc, existingCategory);
+    return;
+  }
+
+  pendingStructureCreation.value = {
+    filterSrc,
+    selectedCategory: requestedCategory,
+  };
+}
+
+function confirmNewStructureCategory() {
+  if (!pendingStructureCreation.value) {
+    return;
+  }
+
+  finalizeNewStructure(
+    pendingStructureCreation.value.filterSrc,
+    pendingStructureCreation.value.selectedCategory,
+  );
+}
+
+function cancelNewStructureCategory() {
+  pendingStructureCreation.value = null;
 }
 </script>
 
@@ -182,6 +244,24 @@ function addNewStructure() {
             placeholder="Custom Structure"
           >
         </label>
+        <div v-if="createStructure" class="name-field">
+          <span class="name-label">Subcategory</span>
+          <input
+            v-model="structureCategory"
+            list="structure-subcategory-options"
+            class="name-input"
+            type="text"
+            placeholder="custom"
+            title="Choose an existing subcategory or type a new one"
+          >
+          <datalist id="structure-subcategory-options">
+            <option
+              v-for="category in existingStructureCategories"
+              :key="category"
+              :value="category"
+            />
+          </datalist>
+        </div>
         <div class="editor-shell">
           <code-editor :editor-id="store.editorIds.filterEditor" :initial-value="initialValue" />
         </div>
@@ -231,6 +311,43 @@ function addNewStructure() {
         </div>
         <p v-else class="empty-copy">Save filters here to quickly reselect the same node patterns later.</p>
       </article>
+    </div>
+
+    <div
+      v-if="pendingStructureCreation"
+      class="confirm-modal-backdrop"
+      @click.self="cancelNewStructureCategory()"
+    >
+      <section
+        class="confirm-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Confirm new subcategory"
+      >
+        <div class="confirm-modal-copy">
+          <h4>Create New Subcategory?</h4>
+          <p class="confirm-modal-description">
+            The subcategory "{{ pendingStructureCreation.selectedCategory }}" does not exist yet.
+            Creating this structure will also create that new subcategory.
+          </p>
+        </div>
+        <div class="confirm-modal-actions">
+          <button
+            class="mini-btn"
+            type="button"
+            @click="cancelNewStructureCategory()"
+          >
+            Cancel
+          </button>
+          <button
+            class="mini-btn emphasis"
+            type="button"
+            @click="confirmNewStructureCategory()"
+          >
+            Create Subcategory
+          </button>
+        </div>
+      </section>
     </div>
   </section>
 </template>
@@ -430,6 +547,44 @@ function addNewStructure() {
   border: 1px dashed var(--panel-border);
   border-radius: 12px;
   padding: 0.9rem;
+}
+
+.confirm-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(4, 9, 16, 0.72);
+}
+
+.confirm-modal,
+.confirm-modal-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.confirm-modal {
+  width: min(440px, 100%);
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: #0b111b;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.confirm-modal-description {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.confirm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
 }
 
 .mini-btn {

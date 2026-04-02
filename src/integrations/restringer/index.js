@@ -108,6 +108,7 @@ function getSafeModuleMember(moduleName, memberName) {
  *
  * @param {{
  *   title: string,
+ *   categoryGroup?: string,
  *   category: string,
  *   description: string,
  *   tags: readonly string[],
@@ -118,6 +119,7 @@ function getSafeModuleMember(moduleName, memberName) {
 function createSearchText(definition) {
   return [
     definition.title,
+    definition.categoryGroup ?? '',
     definition.category,
     definition.description,
     ...definition.tags,
@@ -229,6 +231,7 @@ export const knownStructures = Object.freeze(
     return Object.freeze({
       id: definition.id,
       title: definition.title,
+      categoryGroup: definition.categoryGroup ?? 'obfuscation',
       category: definition.category,
       description: definition.description,
       codeExample: definition.codeExample ?? '',
@@ -294,6 +297,7 @@ export const safeTransforms = Object.freeze(
  * @param {{
  *   ids?: string[],
  *   search?: string,
+ *   categoryGroup?: string,
  *   category?: string,
  *   transformAvailable?: boolean,
  *   transformEnabled?: boolean,
@@ -317,6 +321,10 @@ export function listKnownStructures(filters = {}) {
     }
 
     if (filters.category && structure.category !== filters.category) {
+      return false;
+    }
+
+    if (filters.categoryGroup && structure.categoryGroup !== filters.categoryGroup) {
       return false;
     }
 
