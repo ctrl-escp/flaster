@@ -37,10 +37,6 @@ import {knownStructureRegistry} from './registry.js';
  * @typedef {'browser-safe' | 'iframe-sandbox' | 'node-only'} KnownStructureExecutionMode
  */
 
-/**
- * @typedef {'available' | 'unavailable-in-browser' | 'planned' | 'disabled'} KnownStructureAvailabilityStatus
- */
-
 const safeModules = Object.freeze({
   normalizeComputed: normalizeComputedModule,
   parseTemplateLiteralsIntoStringLiterals: parseTemplateLiteralsIntoStringLiteralsModule,
@@ -76,17 +72,6 @@ export const safeUtils = Object.freeze({
 });
 
 /**
- * Creates a frozen copy of an array for exported descriptor metadata.
- *
- * @template T
- * @param {readonly T[]} values
- * @returns {ReadonlyArray<T>}
- */
-function freezeArray(values) {
-  return Object.freeze([...values]);
-}
-
-/**
  * Looks up a named matcher or transform member from a curated safe REstringer module.
  *
  * @param {string} moduleName
@@ -111,8 +96,6 @@ function getSafeModuleMember(moduleName, memberName) {
  *   categoryGroup?: string,
  *   category: string,
  *   description: string,
- *   tags: readonly string[],
- *   searchTerms: readonly string[],
  * }} definition
  * @returns {string}
  */
@@ -122,15 +105,13 @@ function createSearchText(definition) {
     definition.categoryGroup ?? '',
     definition.category,
     definition.description,
-    ...definition.tags,
-    ...definition.searchTerms,
   ].join(' ').toLowerCase();
 }
 
 /**
  * Normalizes the execution mode for a structure registry entry.
  *
- * @param {{executionMode?: KnownStructureExecutionMode, browserSafe?: boolean}} definition
+ * @param {{executionMode?: KnownStructureExecutionMode, noEval?: boolean}} definition
  * @returns {KnownStructureExecutionMode}
  */
 function getExecutionMode(definition) {
@@ -138,31 +119,7 @@ function getExecutionMode(definition) {
     return definition.executionMode;
   }
 
-  return definition.browserSafe ? 'browser-safe' : 'node-only';
-}
-
-/**
- * Normalizes the availability state for a structure registry entry.
- *
- * @param {{
- *   availabilityStatus?: KnownStructureAvailabilityStatus,
- *   executionMode?: KnownStructureExecutionMode,
- *   browserSafe?: boolean,
- * }} definition
- * @returns {KnownStructureAvailabilityStatus}
- */
-function getAvailabilityStatus(definition) {
-  if (definition.availabilityStatus) {
-    return definition.availabilityStatus;
-  }
-
-  const executionMode = getExecutionMode(definition);
-
-  if (executionMode === 'browser-safe') {
-    return 'available';
-  }
-
-  return definition.browserSafe ? 'available' : 'unavailable-in-browser';
+  return definition.noEval ? 'browser-safe' : 'node-only';
 }
 
 /**
@@ -170,14 +127,12 @@ function getAvailabilityStatus(definition) {
  *
  * @param {{
  *   executionMode?: KnownStructureExecutionMode,
- *   availabilityStatus?: KnownStructureAvailabilityStatus,
- *   browserSafe?: boolean,
+ *   noEval?: boolean,
  * }} definition
  * @returns {boolean}
  */
 function isBrowserRunnable(definition) {
-  return getExecutionMode(definition) === 'browser-safe' &&
-    getAvailabilityStatus(definition) === 'available';
+  return getExecutionMode(definition) === 'browser-safe';
 }
 
 /**
@@ -186,27 +141,15 @@ function isBrowserRunnable(definition) {
  * @param {{
  *   title: string,
  *   executionMode?: KnownStructureExecutionMode,
- *   availabilityStatus?: KnownStructureAvailabilityStatus,
- *   browserSafe?: boolean,
+ *   noEval?: boolean,
  * }} definition
  * @returns {string}
  */
 function createAvailabilityNote(definition) {
   const executionMode = getExecutionMode(definition);
-  const availabilityStatus = getAvailabilityStatus(definition);
 
-  if (availabilityStatus === 'available') {
-    return executionMode === 'browser-safe'
-      ? 'Runnable in the current browser session.'
-      : 'Runnable in a supported non-browser environment.';
-  }
-
-  if (availabilityStatus === 'planned') {
-    return `${definition.title} is reserved for a future execution path.`;
-  }
-
-  if (availabilityStatus === 'disabled') {
-    return `${definition.title} is currently disabled.`;
+  if (executionMode === 'browser-safe') {
+    return 'Runnable in the current browser session.';
   }
 
   if (executionMode === 'iframe-sandbox') {
@@ -225,7 +168,6 @@ export const knownStructures = Object.freeze(
     const matcher = getSafeModuleMember(definition.moduleName, definition.matcherName);
     const transform = getSafeModuleMember(definition.moduleName, definition.transformName);
     const executionMode = getExecutionMode(definition);
-    const availabilityStatus = getAvailabilityStatus(definition);
     const browserRunnable = isBrowserRunnable(definition);
 
     return Object.freeze({
@@ -235,15 +177,10 @@ export const knownStructures = Object.freeze(
       category: definition.category,
       description: definition.description,
       codeExample: definition.codeExample ?? '',
-      tags: freezeArray(definition.tags),
-      searchTerms: freezeArray(definition.searchTerms),
       searchText: createSearchText(definition),
-      browserSafe: definition.browserSafe,
+      noEval: definition.noEval ?? executionMode === 'browser-safe',
       executionMode,
-      availabilityStatus,
       browserRunnable,
-      experimental: definition.experimental,
-      enabledByDefault: definition.enabledByDefault,
       matcher,
       matcherAvailable: browserRunnable && typeof matcher === 'function',
       transform,
@@ -301,12 +238,9 @@ export const safeTransforms = Object.freeze(
  *   category?: string,
  *   transformAvailable?: boolean,
  *   transformEnabled?: boolean,
- *   browserSafe?: boolean,
+ *   noEval?: boolean,
  *   browserRunnable?: boolean,
  *   executionMode?: KnownStructureExecutionMode,
- *   availabilityStatus?: KnownStructureAvailabilityStatus,
- *   enabledByDefault?: boolean,
- *   experimental?: boolean,
  * }} [filters={}]
  * @returns {ReadonlyArray<typeof knownStructures[number]>}
  */
@@ -338,8 +272,8 @@ export function listKnownStructures(filters = {}) {
       return false;
     }
 
-    if (typeof filters.browserSafe === 'boolean' &&
-      structure.browserSafe !== filters.browserSafe) {
+    if (typeof filters.noEval === 'boolean' &&
+      structure.noEval !== filters.noEval) {
       return false;
     }
 
@@ -349,20 +283,6 @@ export function listKnownStructures(filters = {}) {
     }
 
     if (filters.executionMode && structure.executionMode !== filters.executionMode) {
-      return false;
-    }
-
-    if (filters.availabilityStatus && structure.availabilityStatus !== filters.availabilityStatus) {
-      return false;
-    }
-
-    if (typeof filters.enabledByDefault === 'boolean' &&
-      structure.enabledByDefault !== filters.enabledByDefault) {
-      return false;
-    }
-
-    if (typeof filters.experimental === 'boolean' &&
-      structure.experimental !== filters.experimental) {
       return false;
     }
 

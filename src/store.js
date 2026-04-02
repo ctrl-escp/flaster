@@ -43,7 +43,6 @@ import {getSampleScript, sampleScripts} from './sampleScripts.js';
  *   structureTitle: string,
  *   transformName: string,
  *   executionMode: string,
- *   availabilityStatus: string,
  *   targetedMatchCount: number,
  *   pendingChanges: number,
  *   selectedMatchCount: number,
@@ -170,8 +169,7 @@ function createKnownStructureHighlightState(matches, selectedMatch) {
 function createKnownStructureRuleSeed(structure) {
   return `// Seeded from known structure: ${structure.title} (${structure.id})
 // Category: ${structure.category}
-// Tags: ${structure.tags.join(', ')}
-// Execution: ${structure.executionMode} / ${structure.availabilityStatus}
+// Execution: ${structure.executionMode}
 // Description: ${structure.description}
 //
 // Replace this placeholder with a custom flAST filter predicate.
@@ -319,15 +317,10 @@ function createCustomStructureDescriptor(title, filterSrc, category = 'custom') 
     category: normalizedCategory,
     description: 'User-defined structure created from a custom filter rule.',
     codeExample: normalizedFilter,
-    tags: Object.freeze(['custom', 'user-defined', normalizedCategory]),
-    searchTerms: Object.freeze(['custom', 'user-defined', normalizedCategory]),
     searchText: [normalizedTitle, normalizedCategory, 'custom', 'structure', 'user-defined'].join(' ').toLowerCase(),
-    browserSafe: true,
+    noEval: true,
     executionMode: 'browser-safe',
-    availabilityStatus: 'available',
     browserRunnable: true,
-    experimental: true,
-    enabledByDefault: true,
     matcher(arb, candidateFilter = () => true) {
       return (arb?.ast ?? []).filter((node) => candidateFilter(node) && predicate(node));
     },
@@ -1487,7 +1480,6 @@ const store = reactive({
         structureTitle: structure.title,
         transformName: previewSession.transformName,
         executionMode: structure.executionMode,
-        availabilityStatus: structure.availabilityStatus,
         targetedMatchCount: previewSession.targetedMatchCount,
         pendingChanges: previewSession.pendingChanges ?? 0,
         selectedMatchCount: this.getKnownStructureMatches(structure.id).length,
@@ -1514,7 +1506,6 @@ const store = reactive({
         structureTitle: structure.title,
         transformName: structure.implementation.transformName,
         executionMode: structure.executionMode,
-        availabilityStatus: structure.availabilityStatus,
         targetedMatchCount: 0,
         pendingChanges: 0,
         selectedMatchCount: this.getKnownStructureMatches(structure.id).length,

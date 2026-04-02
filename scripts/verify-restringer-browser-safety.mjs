@@ -56,16 +56,12 @@ if (true) { run(); } else { stop(); }
 const sampleArborist = new Arborist(sampleScript);
 
 for (const structure of adapterModule.knownStructures) {
-  if (!structure.browserSafe) {
+  if (!structure.noEval) {
     throw new Error(`Non-browser-safe structure exported: ${structure.id}`);
   }
 
   if (structure.executionMode !== 'browser-safe') {
     throw new Error(`Unexpected execution mode for shipped structure: ${structure.id}`);
-  }
-
-  if (structure.availabilityStatus !== 'available') {
-    throw new Error(`Unexpected availability status for shipped structure: ${structure.id}`);
   }
 
   if (!structure.browserRunnable) {
@@ -141,7 +137,7 @@ if (scriptGeneratorModule.getGeneratedScriptFilename() !== 'flaster.mjs') {
   throw new Error('getGeneratedScriptFilename did not return the expected Stage 6 filename');
 }
 
-const listedStructures = adapterModule.listKnownStructures({browserSafe: true});
+const listedStructures = adapterModule.listKnownStructures({noEval: true});
 if (listedStructures.length !== adapterModule.knownStructures.length) {
   throw new Error('listKnownStructures did not return the expected browser-safe structures');
 }
