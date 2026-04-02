@@ -191,6 +191,23 @@ function stepStructureMatch(structureId, direction = 1) {
   store.setSelectedKnownStructureMatch(structureId, matches[nextIndex].index);
 }
 
+function getCurrentStructureMatchPosition(structureId) {
+  const matches = store.getKnownStructureMatches(structureId);
+
+  if (!matches.length) {
+    return 0;
+  }
+
+  const currentSelection = store.selectedKnownStructureMatch?.structureId === structureId
+    ? store.selectedKnownStructureMatch
+    : null;
+  const rememberedIndex = store.knownStructureSelectionById[structureId];
+  const activeIndex = currentSelection?.index ?? rememberedIndex;
+  const matchedIndex = matches.findIndex((match) => match.index === activeIndex);
+
+  return matchedIndex === -1 ? 1 : matchedIndex + 1;
+}
+
 function canTransformStructure(structure) {
   return Boolean(
     structure?.browserRunnable &&
@@ -498,6 +515,38 @@ onBeforeUnmount(() => {
           </span>
         </button>
 
+        <div
+          v-if="expandedStructureId === structure.id && hasStructureMatches(structure)"
+          class="card-match-nav card-match-nav-inline"
+        >
+          <button
+            class="structure-nav-btn"
+            type="button"
+            title="Jump to the previous match for this structure"
+            aria-label="Previous structure match"
+            @click="stepStructureMatch(structure.id, -1)"
+          >
+            <icon-arrow-left />
+            <span>Prev</span>
+          </button>
+          <div class="card-match-status" aria-live="polite">
+            <strong>{{ getCurrentStructureMatchPosition(structure.id) }}</strong>
+            <span>/</span>
+            <span>{{ getStructureMatchCount(structure) }}</span>
+            <span>matches</span>
+          </div>
+          <button
+            class="structure-nav-btn"
+            type="button"
+            title="Jump to the next match for this structure"
+            aria-label="Next structure match"
+            @click="stepStructureMatch(structure.id, 1)"
+          >
+            <span>Next</span>
+            <icon-arrow-right />
+          </button>
+        </div>
+
         <div v-if="expandedStructureId === structure.id" class="structure-details">
           <div class="structure-card-top">
             <span class="structure-category">{{ formatCategoryLabel(structure.categoryGroup ?? 'obfuscation') }}</span>
@@ -515,73 +564,54 @@ onBeforeUnmount(() => {
             <span>{{ structure.executionMode }}</span>
           </div>
 
-          <div v-if="hasStructureMatches(structure)" class="card-match-nav">
-            <button
-              class="structure-action structure-action-compact"
-              type="button"
-              title="Jump to the previous match for this structure"
-              aria-label="Previous structure match"
-              @click="stepStructureMatch(structure.id, -1)"
-            >
-              <icon-arrow-left />
-              <span>Prev</span>
-            </button>
-            <button
-              class="structure-action structure-action-compact"
-              type="button"
-              title="Jump to the next match for this structure"
-              aria-label="Next structure match"
-              @click="stepStructureMatch(structure.id, 1)"
-            >
-              <span>Next</span>
-              <icon-arrow-right />
-            </button>
-          </div>
-
           <div class="card-actions">
-            <button
-              class="structure-action"
-              type="button"
-              :disabled="!canFindStructure(structure)"
-              title="Run matching for just this structure"
-              aria-label="Match this structure"
-              @click="findStructure(structure.id)"
-            >
-              <icon-search />
-              <span>Match</span>
-            </button>
-            <button
-              class="structure-action"
-              type="button"
-              :disabled="!canInspectStructure(structure)"
-              title="Open Explore Nodes and Node Info for this structure"
-              aria-label="Show structure matches"
-              @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('inspector')"
-            >
-              <icon-list-checks />
-              <span>Node Info</span>
-            </button>
-            <button
-              class="structure-action"
-              type="button"
-              title="Open a code example for this structure"
-              aria-label="Open structure example"
-              @click="openExample(structure.id)"
-            >
-              <icon-copy />
-              <span>Example</span>
-            </button>
-            <button
-              class="structure-action"
-              type="button"
-              :disabled="!canTransformStructure(structure)"
-              title="Open the transformation options for this structure"
-              aria-label="Open structure transform"
-              @click="openStructureTransform(structure.id)"
-            >
-              <icon-preview />
-              <span>Transform</span>
-            </button>
+            <div class="card-actions-main">
+              <button
+                class="structure-action"
+                type="button"
+                :disabled="!canInspectStructure(structure)"
+                title="Open Explore Nodes and Node Info for this structure"
+                aria-label="Show structure matches"
+                @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('inspector')"
+              >
+                <icon-list-checks />
+                <span>Node Info</span>
+              </button>
+              <button
+                class="structure-action structure-action-emphasis"
+                type="button"
+                :disabled="!canTransformStructure(structure)"
+                title="Open the transformation options for this structure"
+                aria-label="Open structure transform"
+                @click="openStructureTransform(structure.id)"
+              >
+                <icon-preview />
+                <span>Transform</span>
+              </button>
+            </div>
+            <div class="card-actions-secondary">
+              <button
+                class="structure-action structure-action-subtle"
+                type="button"
+                :disabled="!canFindStructure(structure)"
+                title="Run matching for just this structure"
+                aria-label="Match this structure"
+                @click="findStructure(structure.id)"
+              >
+                <icon-search />
+                <span>Match</span>
+              </button>
+              <button
+                class="structure-action structure-action-subtle"
+                type="button"
+                title="Open a code example for this structure"
+                aria-label="Open structure example"
+                @click="openExample(structure.id)"
+              >
+                <icon-copy />
+                <span>Example</span>
+              </button>
+            </div>
           </div>
         </div>
       </article>
@@ -666,7 +696,7 @@ onBeforeUnmount(() => {
 }
 
 .card-match-nav {
-  justify-content: flex-end;
+  justify-content: space-between;
 }
 
 h2 {
@@ -1005,15 +1035,41 @@ h2 {
 .structure-details {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
   padding: 0 0.9rem 0.85rem;
 }
 
+.card-match-nav-inline {
+  justify-content: flex-end;
+  padding: 0 0.9rem 0.15rem;
+}
+
 .card-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.55rem;
-  margin-top: 0.15rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-top: 0.1rem;
+}
+
+.card-actions-main,
+.card-actions-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.card-actions-main {
+  flex: 1 1 auto;
+}
+
+.card-actions-secondary {
+  flex: 0 0 auto;
+}
+
+.card-actions-main .structure-action {
+  flex: 1 1 0;
 }
 
 .structure-action {
@@ -1026,10 +1082,11 @@ h2 {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  width: 100%;
-  padding: 0.5rem 0.7rem;
-  min-height: 2.2rem;
+  width: auto;
+  padding: 0.46rem 0.7rem;
+  min-height: 2rem;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .structure-action span {
@@ -1061,6 +1118,19 @@ h2 {
   border-color: rgba(255, 191, 102, 0.48);
 }
 
+.structure-action-subtle {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+}
+
+.structure-action-subtle:hover:not(:disabled),
+.structure-action-subtle:focus-visible:not(:disabled) {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
 .structure-action:disabled {
   opacity: 1;
   cursor: not-allowed;
@@ -1069,9 +1139,73 @@ h2 {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-@media (max-width: 520px) {
+.structure-nav-btn {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.58rem;
+  min-height: 1.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.structure-nav-btn:hover:not(:disabled),
+.structure-nav-btn:focus-visible:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  outline: none;
+}
+
+.card-match-status {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.28rem;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+}
+
+.card-match-status strong {
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 640px) {
+  .card-match-nav,
+  .card-actions,
+  .card-actions-main,
+  .card-actions-secondary {
+    flex-wrap: wrap;
+  }
+
   .card-actions {
-    grid-template-columns: 1fr;
+    gap: 0.55rem;
+  }
+
+  .card-actions-main,
+  .card-actions-secondary {
+    width: 100%;
+  }
+
+  .card-actions-secondary {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .card-actions-main {
+    flex-direction: column;
+  }
+
+  .card-actions-main .structure-action {
+    width: 100%;
   }
 }
 
