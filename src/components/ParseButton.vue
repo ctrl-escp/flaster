@@ -1,5 +1,6 @@
 <script setup>
 import store from '../store';
+import {Arborist} from 'flast/src/arborist.js';
 import {computed, onMounted, ref} from 'vue';
 import IconParse from './icons/IconParse.vue';
 
@@ -65,7 +66,7 @@ function parseContent({focusExploreNodes = false, pulseCodeStructures = false} =
 
     new Promise(() => {
       store.filteredNodes = [];
-      store.arb = new window.flast.Arborist(code);
+      store.arb = new Arborist(code);
       store.markKnownStructureInputChanged();
       if (!store.arb?.ast?.length) {
         store.logMessage(messages.astParseFail, 'error');

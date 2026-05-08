@@ -1,5 +1,7 @@
 <script setup>
 import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
+import flastPackage from 'flast/package.json' with {type: 'json'};
+import restringerSafe from '../integrations/restringer/index.js';
 import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
@@ -13,12 +15,12 @@ const BANDAID_ANIMATION_MS = 30000;
 const dependencyVersions = computed(() => ([
   {
     label: 'flAST',
-    version: window.flast?.version ?? 'unknown',
+    version: flastPackage.version,
     href: 'https://github.com/ctrl-escp/flast',
   },
   {
     label: 'REstringer',
-    version: window.restringer?.version ?? 'unknown',
+    version: restringerSafe.version,
     href: 'https://github.com/ctrl-escp/restringer',
   },
 ]));

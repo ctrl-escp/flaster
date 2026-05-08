@@ -1,4 +1,5 @@
 import {reactive} from 'vue';
+import {Arborist} from 'flast/src/arborist.js';
 import {
   createEmptyMatchGroups,
   createExecutionStatus,
@@ -183,13 +184,7 @@ n.type === '${structure.category === 'calls' ? 'CallExpression' : 'Identifier'}'
  * @returns {import('flast/src/arborist.js').Arborist}
  */
 function createArborist(script) {
-  const ArboristConstructor = window.flast?.Arborist;
-
-  if (typeof ArboristConstructor !== 'function') {
-    throw new Error('flAST Arborist is not available');
-  }
-
-  return new ArboristConstructor(script);
+  return new Arborist(script);
 }
 
 const templateCatalog = Object.freeze([
@@ -2274,7 +2269,4 @@ const store = reactive({
   parseContent() {},
 });
 
-if (typeof window !== 'undefined') {
-  window.store = store;   // DEBUG
-}
 export default store;

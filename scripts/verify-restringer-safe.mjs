@@ -245,8 +245,6 @@ if (!(errorSession.errors['proxy-calls'] instanceof Error) ||
   throw new Error('runKnownStructureMatchingSession did not isolate per-structure matcher errors');
 }
 
-globalThis.window ??= {};
-globalThis.window.flast = {Arborist};
 const {default: store} = await import(pathToFileURL(storePath).href);
 
 store.arb = new Arborist(sampleScript);

@@ -26,7 +26,6 @@ function readText(relativePath) {
 
 async function loadStoreFresh() {
   vi.resetModules();
-  globalThis.window = {flast: {Arborist}};
   const mod = await import('../../src/store.js');
   return mod.default;
 }
