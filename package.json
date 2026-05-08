@@ -6,8 +6,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "npm run check:restringer-browser-safe && vite build",
-		"check:restringer-browser-safe": "node scripts/verify-restringer-browser-safety.mjs",
+		"build": "npm run check:restringer-safe && vite build",
+		"check:restringer-safe": "node scripts/verify-restringer-safe.mjs",
 		"preview": "vite preview"
 	},
 	"dependencies": {

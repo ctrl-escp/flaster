@@ -34,7 +34,7 @@ import {knownStructureRegistry} from './registry.js';
  */
 
 /**
- * @typedef {'browser-safe' | 'iframe-sandbox' | 'node-only'} KnownStructureExecutionMode
+ * @typedef {'no-eval' | 'iframe-sandbox' | 'node-only'} KnownStructureExecutionMode
  */
 
 const safeModules = Object.freeze({
@@ -119,11 +119,11 @@ function getExecutionMode(definition) {
     return definition.executionMode;
   }
 
-  return definition.noEval ? 'browser-safe' : 'node-only';
+  return definition.noEval ? 'no-eval' : 'node-only';
 }
 
 /**
- * Returns whether the current browser bundle can run the structure directly.
+ * Returns whether the current runtime can run the structure directly.
  *
  * @param {{
  *   executionMode?: KnownStructureExecutionMode,
@@ -131,8 +131,8 @@ function getExecutionMode(definition) {
  * }} definition
  * @returns {boolean}
  */
-function isBrowserRunnable(definition) {
-  return getExecutionMode(definition) === 'browser-safe';
+function isRunnable(definition) {
+  return getExecutionMode(definition) === 'no-eval';
 }
 
 /**
@@ -148,7 +148,7 @@ function isBrowserRunnable(definition) {
 function createAvailabilityNote(definition) {
   const executionMode = getExecutionMode(definition);
 
-  if (executionMode === 'browser-safe') {
+  if (executionMode === 'no-eval') {
     return 'Runnable in the current browser session.';
   }
 
@@ -160,7 +160,7 @@ function createAvailabilityNote(definition) {
     return `${definition.title} is intended for a future Node-only execution path.`;
   }
 
-  return `${definition.title} is not runnable in the current browser environment.`;
+  return `${definition.title} is not runnable in the current environment.`;
 }
 
 export const knownStructures = Object.freeze(
@@ -168,7 +168,7 @@ export const knownStructures = Object.freeze(
     const matcher = getSafeModuleMember(definition.moduleName, definition.matcherName);
     const transform = getSafeModuleMember(definition.moduleName, definition.transformName);
     const executionMode = getExecutionMode(definition);
-    const browserRunnable = isBrowserRunnable(definition);
+    const runnable = isRunnable(definition);
 
     return Object.freeze({
       id: definition.id,
@@ -178,19 +178,18 @@ export const knownStructures = Object.freeze(
       description: definition.description,
       codeExample: definition.codeExample ?? '',
       searchText: createSearchText(definition),
-      noEval: definition.noEval ?? executionMode === 'browser-safe',
+      noEval: definition.noEval ?? executionMode === 'no-eval',
       executionMode,
-      browserRunnable,
       matcher,
-      matcherAvailable: browserRunnable && typeof matcher === 'function',
+      matcherAvailable: runnable && typeof matcher === 'function',
       transform,
-      transformAvailable: browserRunnable && typeof transform === 'function',
-      transformEnabled: browserRunnable &&
+      transformAvailable: runnable && typeof transform === 'function',
+      transformEnabled: runnable &&
         definition.transformEnabled &&
         typeof transform === 'function',
       support: Object.freeze({
-        browserMatch: browserRunnable && typeof matcher === 'function',
-        browserTransform: browserRunnable &&
+        safeMatch: runnable && typeof matcher === 'function',
+        safeTransform: runnable &&
           definition.transformEnabled &&
           typeof transform === 'function',
         sandboxMatch: executionMode === 'iframe-sandbox',
@@ -239,7 +238,7 @@ export const safeTransforms = Object.freeze(
  *   transformAvailable?: boolean,
  *   transformEnabled?: boolean,
  *   noEval?: boolean,
- *   browserRunnable?: boolean,
+ *   runnable?: boolean,
  *   executionMode?: KnownStructureExecutionMode,
  * }} [filters={}]
  * @returns {ReadonlyArray<typeof knownStructures[number]>}
@@ -277,8 +276,8 @@ export function listKnownStructures(filters = {}) {
       return false;
     }
 
-    if (typeof filters.browserRunnable === 'boolean' &&
-      structure.browserRunnable !== filters.browserRunnable) {
+    if (typeof filters.runnable === 'boolean' &&
+      isRunnable(structure) !== filters.runnable) {
       return false;
     }
 
@@ -632,14 +631,14 @@ function createUnsupportedExecutionError(structure, operation) {
 }
 
 /**
- * Runs a browser-safe matcher and normalizes its output.
+ * Runs a safe matcher and normalizes its output.
  *
  * @param {typeof knownStructures[number]} structure
  * @param {Arborist} arb
  * @param {(node: ASTNode) => boolean} candidateFilter
  * @returns {ReturnType<typeof runKnownStructureMatcher>}
  */
-function runBrowserSafeMatcher(structure, arb, candidateFilter) {
+function runSafeMatcher(structure, arb, candidateFilter) {
   if (!structure.matcherAvailable) {
     throw createUnsupportedExecutionError(structure, 'match');
   }
@@ -688,14 +687,14 @@ function runUnsupportedMatcher(structure) {
 }
 
 /**
- * Runs a browser-safe transform against one raw match.
+ * Runs a safe transform against one raw match.
  *
  * @param {typeof knownStructures[number]} structure
  * @param {Arborist} arb
  * @param {unknown} match
  * @returns {ReturnType<typeof runKnownStructureTransform>}
  */
-function runBrowserSafeTransform(structure, arb, match) {
+function runSafeTransform(structure, arb, match) {
   if (!structure.transformEnabled) {
     throw createUnsupportedExecutionError(structure, 'transform');
   }
@@ -732,14 +731,14 @@ function runUnsupportedTransformSession(structure, matchRun) {
 }
 
 /**
- * Runs a browser-safe transform session across all matches from the current AST.
+ * Runs a safe transform session across all matches from the current AST.
  *
  * @param {typeof knownStructures[number]} structure
  * @param {Arborist} arb
  * @param {ReturnType<typeof runKnownStructureMatcher>} matchRun
  * @returns {ReturnType<typeof runKnownStructureTransformSession>}
  */
-function runBrowserSafeTransformSession(structure, arb, matchRun) {
+function runSafeTransformSession(structure, arb, matchRun) {
   if (!structure.transformEnabled) {
     return runUnsupportedTransformSession(structure, matchRun);
   }
@@ -774,13 +773,13 @@ function runBrowserSafeTransformSession(structure, arb, matchRun) {
 }
 
 const matchRunnersByMode = Object.freeze({
-  'browser-safe': runBrowserSafeMatcher,
+  'no-eval': runSafeMatcher,
   'iframe-sandbox': runUnsupportedMatcher,
   'node-only': runUnsupportedMatcher,
 });
 
 const transformRunnersByMode = Object.freeze({
-  'browser-safe': runBrowserSafeTransform,
+  'no-eval': runSafeTransform,
   'iframe-sandbox': (structure) => {
     throw createUnsupportedExecutionError(structure, 'transform');
   },
@@ -790,7 +789,7 @@ const transformRunnersByMode = Object.freeze({
 });
 
 const transformSessionRunnersByMode = Object.freeze({
-  'browser-safe': runBrowserSafeTransformSession,
+  'no-eval': runSafeTransformSession,
   'iframe-sandbox': runUnsupportedTransformSession,
   'node-only': runUnsupportedTransformSession,
 });
@@ -799,7 +798,7 @@ const transformSessionRunnersByMode = Object.freeze({
  * Returns the matcher runner for the structure's execution mode.
  *
  * @param {typeof knownStructures[number]} structure
- * @returns {typeof runBrowserSafeMatcher}
+ * @returns {typeof runSafeMatcher}
  */
 export function getMatcherRunner(structure) {
   return matchRunnersByMode[structure.executionMode] ?? runUnsupportedMatcher;
@@ -809,7 +808,7 @@ export function getMatcherRunner(structure) {
  * Returns the single-match transform runner for the structure's execution mode.
  *
  * @param {typeof knownStructures[number]} structure
- * @returns {typeof runBrowserSafeTransform}
+ * @returns {typeof runSafeTransform}
  */
 export function getTransformRunner(structure) {
   return transformRunnersByMode[structure.executionMode] ?? transformRunnersByMode['node-only'];
@@ -819,14 +818,14 @@ export function getTransformRunner(structure) {
  * Returns the transform-session runner for the structure's execution mode.
  *
  * @param {typeof knownStructures[number]} structure
- * @returns {typeof runBrowserSafeTransformSession}
+ * @returns {typeof runSafeTransformSession}
  */
 export function getTransformSessionRunner(structure) {
   return transformSessionRunnersByMode[structure.executionMode] ??
     transformSessionRunnersByMode['node-only'];
 }
 
-export const restringerBrowser = Object.freeze({
+export const restringerSafe = Object.freeze({
   version: restringerPackage.version,
   knownStructureRegistry: structureRegistryDefinitions,
   knownStructures,
@@ -847,4 +846,4 @@ export const restringerBrowser = Object.freeze({
   runKnownStructureTransformSession,
 });
 
-export default restringerBrowser;
+export default restringerSafe;

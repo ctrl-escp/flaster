@@ -196,7 +196,7 @@ const templateCatalog = Object.freeze([
   {
     type: 'apply-known-transform',
     title: 'Use default REstringer transformation',
-    description: 'Apply the browser-safe transform exposed by the active structure when one is available.',
+    description: 'Apply the safe transform exposed by the active structure when one is available.',
     kind: 'transform',
   },
   {
@@ -319,8 +319,7 @@ function createCustomStructureDescriptor(title, filterSrc, category = 'custom') 
     codeExample: normalizedFilter,
     searchText: [normalizedTitle, normalizedCategory, 'custom', 'structure', 'user-defined'].join(' ').toLowerCase(),
     noEval: true,
-    executionMode: 'browser-safe',
-    browserRunnable: true,
+    executionMode: 'no-eval',
     matcher(arb, candidateFilter = () => true) {
       return (arb?.ast ?? []).filter((node) => candidateFilter(node) && predicate(node));
     },
@@ -329,8 +328,8 @@ function createCustomStructureDescriptor(title, filterSrc, category = 'custom') 
     transformAvailable: false,
     transformEnabled: false,
     support: Object.freeze({
-      browserMatch: true,
-      browserTransform: false,
+      safeMatch: true,
+      safeTransform: false,
       sandboxMatch: false,
       sandboxTransform: false,
       nodeMatch: false,
@@ -655,7 +654,7 @@ const store = reactive({
     const structure = this.getKnownStructureById(structureId);
 
     return Boolean(structure &&
-      structure.browserRunnable &&
+      structure.executionMode === 'no-eval' &&
       structure.transformEnabled &&
       this.isCurrentInputParsed());
   },
@@ -898,8 +897,8 @@ const store = reactive({
       return false;
     }
   },
-  isKnownStructureBrowserRunnable(structureId) {
-    return Boolean(this.getKnownStructureById(structureId)?.browserRunnable);
+  isKnownStructureRunnable(structureId) {
+    return this.getKnownStructureById(structureId)?.executionMode === 'no-eval';
   },
   getKnownStructureMatches(structureId = this.activeKnownStructureId) {
     return this.knownStructureMatchesById[structureId] ?? [];
@@ -1185,7 +1184,7 @@ const store = reactive({
       return false;
     }
 
-    return requestedIds.some((structureId) => this.isKnownStructureBrowserRunnable(structureId));
+    return requestedIds.some((structureId) => this.isKnownStructureRunnable(structureId));
   },
   hasPendingKnownStructureScan(structureIds = this.selectedKnownStructureIds) {
     const requestedIds = Array.isArray(structureIds) ? structureIds : [];
@@ -1437,7 +1436,7 @@ const store = reactive({
     }
   },
   /**
-   * Builds a lightweight transform preview for a browser-safe known structure
+   * Builds a lightweight preview for a safe known-structure transform
    * without mutating the currently active Arborist instance.
    *
    * @param {string | null} [structureId=this.inspectedKnownStructureId ?? this.activeKnownStructureId]
@@ -1454,14 +1453,14 @@ const store = reactive({
       return null;
     }
 
-    if (!structure.browserRunnable) {
+    if (structure.executionMode !== 'no-eval') {
       this.logMessage(structure.support.note, 'error');
       this.clearKnownStructureTransformPreview(structure.id);
       return null;
     }
 
     if (!structure.transformEnabled) {
-      this.logMessage(`${structure.title} does not expose a browser-safe transform`, 'error');
+      this.logMessage(`${structure.title} does not expose a safe transform`, 'error');
       this.clearKnownStructureTransformPreview(structure.id);
       return null;
     }
@@ -1518,7 +1517,7 @@ const store = reactive({
     }
   },
   /**
-   * Applies a browser-safe known structure transform to the current script
+   * Applies a safe known-structure transform to the current script
    * after a preview has been generated for the same structure.
    *
    * @param {string | null} [structureId=this.inspectedKnownStructureId ?? this.activeKnownStructureId]
@@ -1534,7 +1533,7 @@ const store = reactive({
       return false;
     }
 
-    if (!structure.browserRunnable) {
+    if (structure.executionMode !== 'no-eval') {
       this.logMessage(structure.support.note, 'error');
       return false;
     }
@@ -2171,7 +2170,7 @@ const store = reactive({
   runKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
     const requestedIds = Array.isArray(structureIds) ? structureIds : [];
     const runnableIds = requestedIds.filter((structureId) =>
-      this.isKnownStructureBrowserRunnable(structureId),
+      this.isKnownStructureRunnable(structureId),
     );
     const hasParsedAst = Boolean(this.arb?.ast?.length);
 
@@ -2257,7 +2256,7 @@ const store = reactive({
     return this.knownStructureExecutionStatus;
   },
   runActiveKnownStructureMatching() {
-    if (!this.activeKnownStructureId || !this.isKnownStructureBrowserRunnable(this.activeKnownStructureId)) {
+    if (!this.activeKnownStructureId || !this.isKnownStructureRunnable(this.activeKnownStructureId)) {
       return this.runKnownStructureMatching([]);
     }
 

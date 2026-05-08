@@ -57,15 +57,15 @@ const sampleArborist = new Arborist(sampleScript);
 
 for (const structure of adapterModule.knownStructures) {
   if (!structure.noEval) {
-    throw new Error(`Non-browser-safe structure exported: ${structure.id}`);
+    throw new Error(`Unsafe structure exported: ${structure.id}`);
   }
 
-  if (structure.executionMode !== 'browser-safe') {
+  if (structure.executionMode !== 'no-eval') {
     throw new Error(`Unexpected execution mode for shipped structure: ${structure.id}`);
   }
 
-  if (!structure.browserRunnable) {
-    throw new Error(`Browser-safe structure was not marked runnable: ${structure.id}`);
+  if (structure.executionMode !== 'no-eval') {
+    throw new Error(`No-eval structure was not marked runnable: ${structure.id}`);
   }
 
   if (typeof structure.matcher !== 'function') {
@@ -139,12 +139,12 @@ if (scriptGeneratorModule.getGeneratedScriptFilename() !== 'flaster.mjs') {
 
 const listedStructures = adapterModule.listKnownStructures({noEval: true});
 if (listedStructures.length !== adapterModule.knownStructures.length) {
-  throw new Error('listKnownStructures did not return the expected browser-safe structures');
+  throw new Error('listKnownStructures did not return the expected safe structures');
 }
 
-const runnableStructures = adapterModule.listKnownStructures({browserRunnable: true});
+const runnableStructures = adapterModule.listKnownStructures({runnable: true});
 if (runnableStructures.length !== adapterModule.knownStructures.length) {
-  throw new Error('listKnownStructures did not return the expected browser-runnable structures');
+  throw new Error('listKnownStructures did not return the expected runnable structures');
 }
 
 const filteredStructures = adapterModule.listKnownStructures({search: 'proxy'});
@@ -191,7 +191,7 @@ const transformSession = adapterModule.runKnownStructureTransformSession(
 );
 
 if (transformSession.error || transformSession.targetedMatchCount < 1 || transformSession.pendingChanges < 1) {
-  throw new Error('runKnownStructureTransformSession did not preview a browser-safe transform session');
+  throw new Error('runKnownStructureTransformSession did not preview a safe transform session');
 }
 
 const session = matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
@@ -428,7 +428,7 @@ if (store.latestKnownStructureMatches.length || store.knownStructureExecutionSta
   throw new Error('store.clearKnownStructureResults did not reset known structure state');
 }
 
-console.log('REstringer browser safety and matching engine checks passed.');
+console.log('REstringer safe modules and matching engine checks passed.');
 
 async function readSourceFiles(rootDir) {
   const entries = await readDirectory(rootDir);

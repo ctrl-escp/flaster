@@ -217,7 +217,7 @@ export function getRequestedStructureIds(structureIds, structures = knownStructu
 }
 
 /**
- * Filters a requested structure list down to the entries runnable in the current browser.
+ * Filters a requested structure list down to the entries runnable in the current environment.
  *
  * @param {readonly string[] | undefined} structureIds
  * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
@@ -228,7 +228,7 @@ export function getRunnableStructureIds(structureIds, structures = knownStructur
 
   return getRequestedStructureIds(structureIds, structures).filter((structureId) => {
     const structure = structuresById[structureId];
-    return !!structure?.browserRunnable && !!structure.matcherAvailable;
+    return structure?.executionMode === 'no-eval' && !!structure.matcherAvailable;
   });
 }
 

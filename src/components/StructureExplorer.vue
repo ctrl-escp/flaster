@@ -143,7 +143,7 @@ function findStructure(structureId) {
 }
 
 function canFindStructure(structure) {
-  if (!structure?.browserRunnable || !store.isCurrentInputParsed()) {
+  if (structure?.executionMode !== 'no-eval' || !store.isCurrentInputParsed()) {
     return false;
   }
 
@@ -154,7 +154,7 @@ function canFindStructure(structure) {
 
 function canInspectStructure(structure) {
   return !!(
-    structure?.browserRunnable &&
+    structure?.executionMode === 'no-eval' &&
     store.isCurrentInputParsed() &&
     store.getKnownStructureMatches(structure.id).length > 0
   );
@@ -210,7 +210,7 @@ function getCurrentStructureMatchPosition(structureId) {
 
 function canTransformStructure(structure) {
   return Boolean(
-    structure?.browserRunnable &&
+    structure?.executionMode === 'no-eval' &&
     store.isCurrentInputParsed() &&
     hasStructureMatches(structure),
   );
@@ -499,9 +499,9 @@ onBeforeUnmount(() => {
             >
               <input
                 :checked="store.selectedKnownStructureIds.includes(structure.id)"
-                :disabled="!structure.browserRunnable"
+                :disabled="structure.executionMode !== 'no-eval'"
                 type="checkbox"
-                :title="structure.browserRunnable ? 'Include this structure when searching the selected set' : 'This structure cannot run in the browser yet'"
+                :title="structure.executionMode === 'no-eval' ? 'Include this structure when searching the selected set' : 'This structure cannot run in the current environment yet'"
                 @change="toggleSelection(structure.id)"
               >
             </label>
@@ -551,8 +551,8 @@ onBeforeUnmount(() => {
           <div class="structure-card-top">
             <span class="structure-category">{{ formatCategoryLabel(structure.categoryGroup ?? 'obfuscation') }}</span>
             <span class="structure-category">{{ formatCategoryLabel(structure.category) }}</span>
-            <span class="status-pill" :class="structure.browserRunnable ? 'good' : 'muted'">
-              {{ structure.transformEnabled ? 'transform-ready' : structure.browserRunnable ? 'matcher-only' : 'blocked' }}
+            <span class="status-pill" :class="structure.executionMode === 'no-eval' ? 'good' : 'muted'">
+              {{ structure.transformEnabled ? 'transform-ready' : structure.executionMode === 'no-eval' ? 'matcher-only' : 'blocked' }}
             </span>
           </div>
 
@@ -744,7 +744,6 @@ h2 {
 }
 
 .filter-field-inline {
-  grid-column: 1 / -1;
   flex-direction: row;
   align-items: center;
   gap: 0.55rem;
