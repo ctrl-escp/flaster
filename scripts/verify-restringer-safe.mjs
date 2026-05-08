@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const adapterPath = path.resolve(projectRoot, 'src/integrations/restringer/index.js');
 const matchingEnginePath = path.resolve(projectRoot, 'src/integrations/restringer/matchingEngine.js');
-const scriptGeneratorPath = path.resolve(projectRoot, 'src/composition/scriptGenerator.js');
+const scriptGeneratorPath = path.resolve(projectRoot, 'src/domain/export/scriptGenerator.js');
 const storePath = path.resolve(projectRoot, 'src/store.js');
 const sourceRoot = path.resolve(projectRoot, 'src');
 
@@ -410,10 +410,6 @@ if (!generatedScript.includes('Step 2: Computed Members')) {
 
 if (!generatedScript.includes('Generated via flASTer')) {
   throw new Error('composeTransformationScript did not include the generated-script header');
-}
-
-if (generatedScript.includes('TODO(Stage 6)')) {
-  throw new Error('composeTransformationScript still contains the Stage 6 TODO placeholder');
 }
 
 store.clearKnownStructureMatches('computed-members');

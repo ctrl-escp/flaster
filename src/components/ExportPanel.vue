@@ -8,7 +8,7 @@ import ExportCodeEditor from './ExportCodeEditor.vue';
 import {
   composeTransformationScript,
   getGeneratedScriptFilename,
-} from '../composition/scriptGenerator.js';
+} from '../domain/export/index.js';
 
 const generatedScript = computed(() => composeTransformationScript({
   steps: store.steps,

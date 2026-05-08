@@ -15,7 +15,7 @@ import {
   getDefaultSelectedStructureIds,
   runKnownStructureMatchingSession,
 } from '../../src/integrations/restringer/matchingEngine.js';
-import {composeTransformationScript} from '../../src/composition/scriptGenerator.js';
+import {composeTransformationScript} from '../../src/domain/export/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '..', '..');
