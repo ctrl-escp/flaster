@@ -1,5 +1,6 @@
 <script setup>
 import {computed, ref, watch} from 'vue';
+import {isKnownStructureMatchSelectionActive} from '../domain/selection/nodeSelection.js';
 import store from '../store';
 import IconArrowLeft from './icons/IconArrowLeft.vue';
 import IconArrowRight from './icons/IconArrowRight.vue';
@@ -118,11 +119,10 @@ function openItemDetails(item) {
 
 function isActive(item) {
   if (item.kind === 'match') {
-    return store.selectedKnownStructureMatch?.structureId === item.match.structureId &&
-      store.selectedKnownStructureMatch?.index === item.match.metadata?.matchOrdinal;
+    return isKnownStructureMatchSelectionActive(store.selectedKnownStructureMatch, item.match);
   }
 
-  return store.selectedNodeId === item.node?.nodeId;
+  return store.getSelectedNode()?.nodeId === item.node?.nodeId;
 }
 
 function nextPage() {

@@ -1,5 +1,12 @@
 import {reactive} from 'vue';
 import {createArborist, parseSource} from './domain/parse/parseSource.js';
+import {createKnownStructureHighlightState} from './domain/selection/highlightModel.js';
+import {
+  advanceFlatKnownStructureMatch,
+  getNodeId,
+  nodeForMatchSelection,
+  resolveSelectedNode,
+} from './domain/selection/nodeSelection.js';
 import {sourceRangesOverlap} from './domain/structures/matchNormalization.js';
 import {
   createEmptyMatchGroups,
@@ -106,48 +113,6 @@ function setContent(editor, content) {
 }
 
 /**
- * Builds the decoration ranges used to highlight known structure matches in the
- * input editor while keeping the active match visually distinct.
- *
- * @param {readonly KnownStructureMatch[]} matches
- * @param {KnownStructureMatchSelection} selectedMatch
- * @returns {{
- *   ranges: Array<{from: number, to: number, className: string}>,
- *   activeRange: {from: number, to: number, className: string} | null,
- * }}
- */
-function createKnownStructureHighlightState(matches, selectedMatch) {
-  const ranges = [];
-  let activeRange = null;
-
-  for (const match of matches) {
-    const span = match?.relevantNode?.range;
-    if (!Array.isArray(span) || span.length < 2) {
-      continue;
-    }
-
-    const range = {
-      from: span[0],
-      to: span[1],
-      className: 'known-structure-highlight',
-    };
-
-    const isSelected = Boolean(selectedMatch) &&
-      match.structureId === selectedMatch.structureId &&
-      match.metadata?.matchOrdinal === selectedMatch.index;
-
-    if (isSelected) {
-      range.className = 'known-structure-highlight-active';
-      activeRange = range;
-    }
-
-    ranges.push(range);
-  }
-
-  return {ranges, activeRange};
-}
-
-/**
  * Creates the reusable custom-filter seed text derived from a known structure descriptor.
  *
  * @param {KnownStructureDescriptor} structure
@@ -216,10 +181,6 @@ function areStringArraysEqual(left = [], right = []) {
   }
 
   return left.every((value, index) => value === right[index]);
-}
-
-function getNodeId(node) {
-  return Number.isInteger(node?.nodeId) ? node.nodeId : null;
 }
 
 function createRelatedNodeEntry(node, relationKind) {
@@ -478,8 +439,7 @@ const store = reactive({
     store.page = 0;
     this.filteredNodes = this.arb.ast;
     this.filters.length = 0;
-    this.selectedNodeId = null;
-    this.selectedNodeSource = null;
+    this.setSelectedNode(null);
     this.activeResultMode = 'ast';
     this.markCurrentInputParsed();
     this.runKnownStructureMatching();
@@ -523,6 +483,8 @@ const store = reactive({
   activeInspectorPanel: 'inspector',
   activeNodeInspectorSection: 'overview',
   selectedNodeId: null,
+  /** @type {number | null} Parse run id (`parseRunSequence`) that owns `selectedNodeId`. */
+  selectionParseRunId: null,
   selectedNodeSource: null,
   selectedPipelineStepIndex: -1,
   advancedToolsOpen: true,
@@ -679,11 +641,10 @@ const store = reactive({
       : this.currentScriptLabel;
   },
   getSelectedNode() {
-    if (!Number.isInteger(this.selectedNodeId)) {
-      return null;
-    }
-
-    return this.arb?.ast?.find((node) => node.nodeId === this.selectedNodeId) ?? null;
+    return resolveSelectedNode(this.arb, this.selectedNodeId, {
+      selectionParseRunId: this.selectionParseRunId,
+      currentParseRunId: this.parseRunSequence,
+    });
   },
   getNodeById(nodeId) {
     return this.arb?.ast?.find((node) => node.nodeId === nodeId) ?? null;
@@ -821,6 +782,7 @@ const store = reactive({
     const nodeId = getNodeId(node);
     this.selectedNodeId = nodeId;
     this.selectedNodeSource = nodeId === null ? null : source;
+    this.selectionParseRunId = nodeId === null ? null : this.parseRunSequence;
 
     if (node?.range?.length >= 2) {
       const editor = this.getEditor(this.editorIds.inputCodeEditor);
@@ -1069,7 +1031,7 @@ const store = reactive({
       ...this.knownStructureSelectionById,
       [match.structureId]: ord,
     };
-    this.setSelectedNode(match.relevantNode, 'match');
+    this.setSelectedNode(nodeForMatchSelection(match), 'match');
     if (revealInInspector) {
       this.activeInspectorPanel = 'inspector';
     }
@@ -1077,27 +1039,16 @@ const store = reactive({
   },
   selectKnownStructureMatchStep(direction = 1) {
     const matches = this.getKnownStructureMatches();
+    const nextSel = advanceFlatKnownStructureMatch(matches, this.selectedKnownStructureMatch, direction);
 
-    if (!matches.length) {
+    if (!nextSel) {
       this.selectedKnownStructureMatch = null;
       this.clearKnownStructureHighlights();
       return null;
     }
 
-    const currentIndex = this.selectedKnownStructureMatch
-      ? matches.findIndex((match) =>
-        match.structureId === this.selectedKnownStructureMatch.structureId &&
-        match.metadata?.matchOrdinal === this.selectedKnownStructureMatch.index,
-      )
-      : -1;
-
-    const nextIndex = currentIndex === -1
-      ? 0
-      : (currentIndex + direction + matches.length) % matches.length;
-
-    const nextMatch = matches[nextIndex];
-    this.setSelectedKnownStructureMatch(nextMatch.structureId, nextMatch.metadata.matchOrdinal);
-    return nextMatch;
+    this.setSelectedKnownStructureMatch(nextSel.structureId, nextSel.index);
+    return this.getSelectedKnownStructureMatch();
   },
   restoreKnownStructureSelection(structureId = this.activeKnownStructureId) {
     const matches = this.getKnownStructureMatches(structureId);
@@ -2235,7 +2186,10 @@ const store = reactive({
       this.setInspectedKnownStructure(this.activeKnownStructureId);
     }
 
-    this.setSelectedNode(restoredMatch?.relevantNode ?? null, restoredMatch ? 'match' : null);
+    this.setSelectedNode(
+      restoredMatch ? nodeForMatchSelection(restoredMatch) : null,
+      restoredMatch ? 'match' : null,
+    );
 
     this.refreshKnownStructureHighlights();
 

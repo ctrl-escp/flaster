@@ -61,8 +61,7 @@ function clearEditor() {
   store.transformationCode = '';
   store.selectedPipelineStepIndex = -1;
   store.activeResultMode = 'ast';
-  store.selectedNodeId = null;
-  store.selectedNodeSource = null;
+  store.setSelectedNode(null);
   store.setCurrentScriptSource({
     kind: 'custom',
     label: 'Custom script',

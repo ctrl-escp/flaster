@@ -1,5 +1,9 @@
 <script setup>
 import {computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
+import {
+  advanceStructureMatchOrdinal,
+  structureMatchDisplayIndex,
+} from '../domain/selection/nodeSelection.js';
 import store from '../store';
 import IconSearch from './icons/IconSearch.vue';
 import IconTrash from './icons/IconTrash.vue';
@@ -177,35 +181,31 @@ function stepStructureMatch(structureId, direction = 1) {
 
   store.setActiveKnownStructure(structureId);
 
-  const currentSelection = store.selectedKnownStructureMatch?.structureId === structureId
-    ? store.selectedKnownStructureMatch
-    : null;
   const rememberedIndex = store.knownStructureSelectionById[structureId];
-  const currentIndex = currentSelection
-    ? matches.findIndex((match) => match.metadata?.matchOrdinal === currentSelection.index)
-    : matches.findIndex((match) => match.metadata?.matchOrdinal === rememberedIndex);
-  const nextIndex = currentIndex === -1
-    ? direction > 0 ? 0 : matches.length - 1
-    : (currentIndex + direction + matches.length) % matches.length;
+  const nextOrdinal = advanceStructureMatchOrdinal(
+    matches,
+    structureId,
+    store.selectedKnownStructureMatch,
+    rememberedIndex,
+    direction,
+  );
 
-  store.setSelectedKnownStructureMatch(structureId, matches[nextIndex].metadata.matchOrdinal);
+  if (!Number.isInteger(nextOrdinal)) {
+    return;
+  }
+
+  store.setSelectedKnownStructureMatch(structureId, nextOrdinal);
 }
 
 function getCurrentStructureMatchPosition(structureId) {
   const matches = store.getKnownStructureMatches(structureId);
 
-  if (!matches.length) {
-    return 0;
-  }
-
-  const currentSelection = store.selectedKnownStructureMatch?.structureId === structureId
-    ? store.selectedKnownStructureMatch
-    : null;
-  const rememberedIndex = store.knownStructureSelectionById[structureId];
-  const activeIndex = currentSelection?.index ?? rememberedIndex;
-  const matchedIndex = matches.findIndex((match) => match.metadata?.matchOrdinal === activeIndex);
-
-  return matchedIndex === -1 ? 1 : matchedIndex + 1;
+  return structureMatchDisplayIndex(
+    matches,
+    structureId,
+    store.selectedKnownStructureMatch,
+    store.knownStructureSelectionById[structureId],
+  );
 }
 
 function canTransformStructure(structure) {
