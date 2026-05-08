@@ -13,6 +13,21 @@ import {
   normalizeCustomTransformRunSettings,
   runCustomTransformExecution,
 } from './domain/transforms/customTransformRuntime.js';
+import {
+  finalizePipelineStepForStorage,
+  getPipelineSaveWarningForStructure,
+  getPipelineSaveWarningForTransformBody,
+  getPipelineStepStructureId as getPipelineStepStructureIdFromModel,
+  normalizePipelineStepEntry,
+  pipelineStepsReferenceStructureId,
+} from './domain/pipeline/pipelineModel.js';
+import {addStep, moveStepAtIndex, setStepEnabledAtIndex} from './domain/pipeline/pipelineMutations.js';
+import {replayPipeline} from './domain/pipeline/pipelineReplay.js';
+import {
+  createPipelineStepExecutor,
+  getOutermostMatchedNodes,
+  normalizeDeleteStructureRunSettings as normalizeDeleteStructureRunSettingsFromPipeline,
+} from './domain/pipeline/pipelineStepRunner.js';
 import {executeKnownStructureTransformApply} from './domain/transforms/transformExecutor.js';
 import {
   createEmptyMatchGroups,
@@ -24,7 +39,6 @@ import {
 import {
   collectKnownStructureMatchNodes,
   describeKnownStructureMatchShape,
-  runKnownStructureMatcher,
   runKnownStructureTransformSession,
 } from './integrations/restringer/index.js';
 import {getSampleScript, sampleScripts} from './sampleScripts.js';
@@ -282,29 +296,6 @@ function createCustomStructureDescriptor(title, filterSrc, category = 'custom') 
   };
 }
 
-function hasMatchedAncestor(node, matchedNodes) {
-  let current = node?.parentNode ?? null;
-
-  while (current) {
-    if (matchedNodes.has(current)) {
-      return true;
-    }
-
-    current = current.parentNode ?? null;
-  }
-
-  return false;
-}
-
-function getOutermostMatchedNodes(matches = []) {
-  const nodes = matches
-    .map((match) => (match && typeof match === 'object' && 'relevantNode' in match ? match.relevantNode : match))
-    .filter(Boolean);
-  const matchedNodes = new Set(nodes);
-
-  return nodes.filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
-}
-
 function createNodeAttributeEntries(node) {
   if (!node || typeof node !== 'object') {
     return [];
@@ -412,7 +403,7 @@ const store = reactive({
         transformationCode: typeof transformSrc === 'string' ? transformSrc : '',
       });
       nextStep.previewSummary = nextStep.previewSummary || `${changes} pending edits applied`;
-      this.steps.push(nextStep);
+      this.steps = addStep(this.steps, nextStep);
       this.selectedPipelineStepIndex = this.steps.length - 1;
       this.activeInspectorPanel = 'pipeline';
       this.logMessage(`${changes} changes were made`, 'success');
@@ -425,7 +416,7 @@ const store = reactive({
   addPipelineStep(stepEntry, message = 'Step added to pipeline') {
     const nextStep = this.normalizeStepEntry(stepEntry);
 
-    this.steps.push(nextStep);
+    this.steps = addStep(this.steps, nextStep);
     this.selectedPipelineStepIndex = this.steps.length - 1;
     this.activeInspectorPanel = 'pipeline';
     this.logMessage(message, 'success');
@@ -520,35 +511,7 @@ const store = reactive({
   inspectedKnownStructureId: null,
   scrollKnownStructureSelectionIntoView: true,
   normalizeStepEntry(stepEntry = {}) {
-    const nextLabel = stepEntry.label ||
-      (stepEntry.kind === 'known-structure-transform'
-        ? `Apply ${stepEntry.structureTitle ?? stepEntry.structureId}`
-        : 'Custom JS transform');
-    const nextParams = stepEntry.params ?? {};
-    const nextRunMode = stepEntry.runMode ?? nextParams.runMode ?? 'once';
-    const nextMaxIterations = Number.isInteger(stepEntry.maxIterations)
-      ? stepEntry.maxIterations
-      : Number.isInteger(nextParams.maxIterations)
-        ? nextParams.maxIterations
-        : 1;
-
-    return {
-      enabled: stepEntry.enabled ?? true,
-      label: nextLabel,
-      templateType: stepEntry.templateType ?? (stepEntry.kind === 'known-structure-transform'
-        ? 'apply-known-transform'
-        : 'advanced-js-step'),
-      params: {
-        ...nextParams,
-        runMode: nextRunMode,
-        maxIterations: nextMaxIterations,
-      },
-      previewSummary: stepEntry.previewSummary ?? '',
-      selectionSource: stepEntry.selectionSource ?? null,
-      runMode: nextRunMode,
-      maxIterations: nextMaxIterations,
-      ...stepEntry,
-    };
+    return finalizePipelineStepForStorage(normalizePipelineStepEntry(stepEntry), {});
   },
   getKnownStructureById(structureId) {
     return this.availableKnownStructures.find((structure) => structure.id === structureId) ?? null;
@@ -1246,23 +1209,10 @@ const store = reactive({
     }
   },
   normalizeDeleteStructureRunSettings(metadata = {}) {
-    const draft = this.templateDrafts['delete-structure-matches'] ?? {};
-    const requestedMode = metadata.runMode ?? draft.runMode ?? 'until-stable';
-    const runMode = ['once', 'count', 'until-stable'].includes(requestedMode)
-      ? requestedMode
-      : 'until-stable';
-    const requestedIterations = Number.parseInt(
-      metadata.maxIterations ?? draft.maxIterations ?? 3,
-      10,
+    return normalizeDeleteStructureRunSettingsFromPipeline(
+      metadata,
+      this.templateDrafts['delete-structure-matches'] ?? {},
     );
-    const maxIterations = runMode === 'count'
-      ? Math.max(1, Number.isFinite(requestedIterations) ? requestedIterations : 1)
-      : 1;
-
-    return {
-      runMode,
-      maxIterations,
-    };
   },
   applyCustomTransformation(transformSrc, metadata = {}) {
     const source = transformSrc || this.getEditor(this.editorIds.transformEditor)?.state?.doc?.toString();
@@ -1689,12 +1639,7 @@ const store = reactive({
       return;
     }
 
-    const nextSteps = [...this.steps];
-    [nextSteps[index], nextSteps[nextIndex]] = [nextSteps[nextIndex], nextSteps[index]];
-    this.steps = nextSteps.map((step, sequenceIndex) => ({
-      ...step,
-      sequenceIndex: sequenceIndex + 1,
-    }));
+    this.steps = moveStepAtIndex(this.steps, index, direction);
     this.selectedPipelineStepIndex = nextIndex;
   },
   togglePipelineStep(index) {
@@ -1703,7 +1648,8 @@ const store = reactive({
       return;
     }
 
-    step.enabled = step.enabled === false;
+    const enabled = step.enabled !== false;
+    this.steps = setStepEnabledAtIndex(this.steps, index, !enabled);
   },
   getPipelineReplayBaseScript() {
     const firstSavedState = this.states[0];
@@ -1719,13 +1665,40 @@ const store = reactive({
     return this.getCurrentScriptContent();
   },
   getPipelineStepStructureId(step = null) {
-    if (!step || typeof step !== 'object') {
-      return null;
+    return getPipelineStepStructureIdFromModel(step);
+  },
+  /**
+   * Confirms replay messaging when a catalog definition change would invalidate the current script.
+   *
+   * @param {string} structureId
+   * @returns {boolean}
+   */
+  confirmStructureCatalogMutationIfPipelineAffected(structureId) {
+    const warning = getPipelineSaveWarningForStructure(this.steps, structureId);
+    if (!warning) {
+      return true;
     }
 
-    return step.selectionSource?.kind === 'known-structure'
-      ? step.selectionSource.structureId
-      : step.params?.structureId ?? step.structureId ?? null;
+    return this.confirmPipelineReplay(warning);
+  },
+  /**
+   * @param {string} transformationCode
+   * @returns {boolean}
+   */
+  confirmTransformBodyMutationIfPipelineAffected(transformationCode) {
+    const warning = getPipelineSaveWarningForTransformBody(this.steps, transformationCode);
+    if (!warning) {
+      return true;
+    }
+
+    return this.confirmPipelineReplay(warning);
+  },
+  /**
+   * @param {string} structureId
+   * @returns {boolean}
+   */
+  pipelineReferencesStructureId(structureId) {
+    return pipelineStepsReferenceStructureId(this.steps, structureId);
   },
   confirmPipelineReplay(message) {
     if (typeof window?.confirm === 'function') {
@@ -1733,153 +1706,6 @@ const store = reactive({
     }
 
     return true;
-  },
-  runCustomTransformationOnScript(script, step) {
-    const arb = createArborist(script);
-    const source = typeof step?.transformationCode === 'string'
-      ? step.transformationCode.trim()
-      : '';
-
-    if (!source) {
-      return {
-        script,
-        didMutate: false,
-        transformationCode: '',
-      };
-    }
-
-    const candidateFilters = Array.isArray(step?.filters)
-      ? step.filters.filter((filter) => filter?.enabled !== false && filter?.src)
-      : [];
-    const structureId = this.getPipelineStepStructureId(step);
-    const runSettings = normalizeCustomTransformRunSettings(
-      step,
-      this.templateDrafts['advanced-js-step'] ?? {},
-    );
-    const result = runCustomTransformExecution(arb, {
-      body: source,
-      structureId: structureId ?? null,
-      candidateFilters,
-      runSettings,
-    });
-
-    if (!result.isDone) {
-      throw result.error;
-    }
-
-    return {
-      script: result.source,
-      didMutate: result.changesCount > 0,
-      transformationCode: source,
-    };
-  },
-  replayPipelineStepOnScript(script, step) {
-    const normalizedStep = this.normalizeStepEntry(step);
-    const templateType = normalizedStep.templateType ?? '';
-    const structureId = this.getPipelineStepStructureId(normalizedStep);
-
-    if (normalizedStep.enabled === false) {
-      return {
-        script,
-        didMutate: false,
-        transformationCode: typeof normalizedStep.transformationCode === 'string'
-          ? normalizedStep.transformationCode
-          : null,
-      };
-    }
-
-    if (templateType === 'advanced-js-step' ||
-      (normalizedStep.kind === 'custom' && normalizedStep.transformationCode)) {
-      return this.runCustomTransformationOnScript(script, normalizedStep);
-    }
-
-    if (templateType === 'apply-known-transform' ||
-      normalizedStep.kind === 'known-structure-transform') {
-      const arb = createArborist(script);
-      const transformResult = executeKnownStructureTransformApply(arb, structureId);
-
-      if (!transformResult.isDone) {
-        throw transformResult.error;
-      }
-
-      if (transformResult.changesCount < 1) {
-        return {script, didMutate: false, transformationCode: null};
-      }
-
-      return {script: transformResult.source, didMutate: true, transformationCode: null};
-    }
-
-    if (templateType === 'delete-structure-matches') {
-      const arb = createArborist(script);
-      const runSettings = this.normalizeDeleteStructureRunSettings(normalizedStep);
-      let totalChanges = 0;
-      let iterationCount = 0;
-      const shouldContinue = () => runSettings.runMode === 'until-stable' ||
-        (runSettings.runMode === 'count' && iterationCount < runSettings.maxIterations) ||
-        (runSettings.runMode === 'once' && iterationCount < 1);
-
-      while (shouldContinue()) {
-        const matchRun = runKnownStructureMatcher(arb, structureId);
-        if (matchRun.error) {
-          throw matchRun.error;
-        }
-
-        const matchedNodes = collectKnownStructureMatchNodes(matchRun.rawMatches);
-        if (!matchedNodes.length) {
-          break;
-        }
-
-        for (const node of matchedNodes) {
-          if (node) {
-            arb.markNode(node);
-          }
-        }
-
-        const changes = arb.applyChanges();
-        if (changes < 1) {
-          break;
-        }
-
-        totalChanges += changes;
-        iterationCount += 1;
-      }
-
-      return {script: arb.script, didMutate: totalChanges > 0, transformationCode: null};
-    }
-
-    if (templateType === 'isolate-structure-matches') {
-      const arb = createArborist(script);
-      const matchRun = runKnownStructureMatcher(arb, structureId);
-      const programNode = arb?.ast?.find((node) => node.type === 'Program');
-
-      if (matchRun.error) {
-        throw matchRun.error;
-      }
-
-      if (!programNode) {
-        return {script, didMutate: false, transformationCode: null};
-      }
-
-      const matchedNodes = collectKnownStructureMatchNodes(matchRun.rawMatches);
-      const isolatedNodes = getOutermostMatchedNodes(matchedNodes).filter(Boolean);
-
-      if (!isolatedNodes.length) {
-        return {script, didMutate: false, transformationCode: null};
-      }
-
-      arb.markNode(programNode, {
-        type: 'Program',
-        sourceType: programNode.sourceType,
-        body: [{
-          type: 'BlockStatement',
-          body: isolatedNodes,
-        }],
-      });
-      arb.applyChanges();
-      return {script: arb.script, didMutate: true, transformationCode: null};
-    }
-
-    return {script, didMutate: false, transformationCode: null};
   },
   replayPipelineSteps(nextSteps, {
     selectedPipelineStepIndex = -1,
@@ -1892,22 +1718,36 @@ const store = reactive({
       ...this.normalizeStepEntry(step),
       sequenceIndex: index + 1,
     }));
-    let nextScript = baseScript;
-    let transformationCode = '';
+    const executor = createPipelineStepExecutor(this.templateDrafts);
+    const replay = replayPipeline({
+      baselineSource: baseScript,
+      steps: normalizedSteps,
+      executor,
+    });
 
-    try {
-      for (const step of normalizedSteps) {
-        const result = this.replayPipelineStepOnScript(nextScript, step);
-        nextScript = result.script;
-
-        if (typeof result.transformationCode === 'string') {
-          transformationCode = result.transformationCode;
-        }
-      }
-    } catch (error) {
-      this.logMessage(`Unable to rebuild pipeline: ${error.message}`, 'error');
+    if (!replay.ok) {
+      this.logMessage(`Unable to rebuild pipeline: ${replay.error.message}`, 'error');
       return false;
     }
+
+    let transformationCode = '';
+    for (const step of normalizedSteps) {
+      if (step?.enabled === false) {
+        continue;
+      }
+
+      const body = typeof step.transformationCode === 'string' ? step.transformationCode.trim() : '';
+      if (!body.length) {
+        continue;
+      }
+
+      const templateType = step.templateType ?? '';
+      if (templateType === 'advanced-js-step' || step.kind === 'custom') {
+        transformationCode = body;
+      }
+    }
+
+    const nextScript = replay.source;
 
     this.states = [];
     this.loadNewScript(nextScript);

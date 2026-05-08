@@ -19,7 +19,7 @@ import IconTransform from './icons/IconTransform.vue';
     <div class="step-list">
       <article
         v-for="(step, index) in store.steps"
-        :key="`${step.sequenceIndex || index}:${step.label}`"
+        :key="step.id ?? `${step.sequenceIndex || index}:${step.label}`"
         class="step-card"
         :class="{active: store.selectedPipelineStepIndex === index, disabled: step.enabled === false}"
         @click="store.setSelectedPipelineStep(index)"
