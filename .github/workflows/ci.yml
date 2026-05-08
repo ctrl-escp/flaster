@@ -1,0 +1,38 @@
+# Quality gates for pushes and pull requests (browser-only SPA; see vite.config.js base for Pages).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Vite 8 requires Node >=20.19; do not use 20.0–20.18 in the matrix.
+        node-version: ["20.19", "22"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks (boundaries, catalog, safety, tests, knip, todos)
+        run: npm run check
+
+      - name: Build production bundle
+        run: npm run build

@@ -1,4 +1,4 @@
-# Simple workflow for deploying static content to GitHub Pages
+# Deploy the Vite-built client SPA to GitHub Pages. Artifact is only `dist/` (no tests or fixtures).
 name: Deploy static content to Pages
 
 on:
@@ -34,13 +34,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          # Match engines (>=20.19) and CI matrix; Vite 8 is incompatible with Node 20.0–20.18.
+          node-version: "22"
           cache: npm
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Build site
+      - name: Install, verify, and build
         run: |
-          npm install
+          npm ci
+          npm run check
           npm run build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
