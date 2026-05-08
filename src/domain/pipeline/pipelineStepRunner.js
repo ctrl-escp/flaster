@@ -77,7 +77,7 @@ export function getOutermostMatchedNodes(matches = []) {
  * }} ctx
  * @returns {TransformResult}
  */
-export function replayPipelineStepToTransformResult(script, step, ctx = {}) {
+function replayPipelineStepToTransformResult(script, step, ctx = {}) {
   const templateDrafts = ctx.templateDrafts ?? {};
   const normalizedStep = normalizePipelineStepEntry(step);
   const templateType = normalizedStep.templateType ?? '';

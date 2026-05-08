@@ -63,18 +63,6 @@ export function getDefaultSelectedStructureIds(structures = knownStructures) {
 
 /**
  * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
- * @param {readonly string[]} [selectedStructureIds]
- * @returns {string|null}
- */
-export function getInitialActiveStructureId(
-  structures = knownStructures,
-  selectedStructureIds = getDefaultSelectedStructureIds(structures),
-) {
-  return selectedStructureIds[0] ?? structures[0]?.id ?? null;
-}
-
-/**
- * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
  */
 export function createKnownStructureState(structures = knownStructures) {
   const availableKnownStructures = [...structures];
@@ -198,7 +186,7 @@ export function getRequestedStructureIds(structureIds, structures = knownStructu
  * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
  * @returns {string[]}
  */
-export function getRunnableStructureIds(structureIds, structures = knownStructures) {
+function getRunnableStructureIds(structureIds, structures = knownStructures) {
   const structuresById = Object.fromEntries(structures.map((structure) => [structure.id, structure]));
 
   return getRequestedStructureIds(structureIds, structures).filter((structureId) => {

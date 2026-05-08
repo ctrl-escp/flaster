@@ -13,7 +13,7 @@ import {normalizeStructureMatch} from './normalizers.js';
  * @param {'match' | 'transform'} operation
  * @returns {Error}
  */
-export function createUnsupportedExecutionError(structure, operation) {
+function createUnsupportedExecutionError(structure, operation) {
   const modeLabel = structure.executionMode === 'iframe-sandbox'
     ? 'a future iframe-backed sandbox'
     : structure.executionMode === 'node-only'

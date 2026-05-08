@@ -12,7 +12,7 @@ const relationLabelMap = {
  * @param {import('flast/src/types.js').ASTNode | null | undefined} node
  * @param {'parent' | 'child' | 'elderSibling' | 'self' | 'youngerSibling'} relationKind
  */
-export function createRelatedNodeEntry(node, relationKind) {
+function createRelatedNodeEntry(node, relationKind) {
   if (!node) {
     return null;
   }
@@ -40,26 +40,6 @@ export function createNodeAttributeEntries(node) {
     )
     .slice(0, 16)
     .map(([key, value]) => ({key, value: String(value)}));
-}
-
-/**
- * @param {import('flast/src/types.js').ASTNode | null | undefined} node
- */
-export function createNodeSummary(node) {
-  if (!node) {
-    return 'No node selected';
-  }
-
-  const bits = [node.type];
-  if (typeof node.name === 'string' && node.name.length) {
-    bits.push(node.name);
-  } else if (typeof node.value === 'string' && node.value.length) {
-    bits.push(JSON.stringify(node.value));
-  } else if (typeof node.src === 'string' && node.src.length) {
-    bits.push(node.src.slice(0, 60));
-  }
-
-  return bits.join(' ');
 }
 
 /**

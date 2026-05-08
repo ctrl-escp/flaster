@@ -10,7 +10,7 @@ export const GENERATED_HEADER = '// Generated via flASTer (https://ctrl-escp.git
  * @param {readonly unknown[] | undefined} steps
  * @returns {unknown[]}
  */
-export function normalizeStepsForExport(steps) {
+function normalizeStepsForExport(steps) {
   return Array.isArray(steps) ? steps.filter((step) => step?.enabled !== false) : [];
 }
 
@@ -56,7 +56,7 @@ export function assertNoExportScriptPlaceholders(script, contextLabel = 'generat
 }
 
 /** Substrings that indicate accidental browser-environment leakage into Node output. */
-export const BROWSER_GLOBAL_MARKERS = ['window.', 'document.', 'navigator.', 'location.'];
+const BROWSER_GLOBAL_MARKERS = ['window.', 'document.', 'navigator.', 'location.'];
 
 /**
  * @param {string} script
@@ -76,7 +76,7 @@ export function assertNoBrowserOnlyGlobalsInExport(script) {
  * @param {string[]} filters
  * @returns {string}
  */
-export function createFallbackFilterCombiner(filters) {
+function createFallbackFilterCombiner(filters) {
   if (!filters.length) {
     return 'true';
   }

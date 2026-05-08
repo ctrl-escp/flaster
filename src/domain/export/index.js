@@ -5,5 +5,4 @@ export {composeTransformationScript, getGeneratedScriptFilename} from './scriptG
 export {
   assertNoBrowserOnlyGlobalsInExport,
   assertNoExportScriptPlaceholders,
-  BROWSER_GLOBAL_MARKERS,
 } from './exportModel.js';

@@ -24,7 +24,7 @@ export function getPipelineStepStructureId(step) {
  * @param {object} step
  * @returns {string | null}
  */
-export function getPipelineStepStructureName(step) {
+function getPipelineStepStructureName(step) {
   return getPipelineStepStructureId(step);
 }
 
@@ -32,7 +32,7 @@ export function getPipelineStepStructureName(step) {
  * @param {object} step
  * @returns {string | null}
  */
-export function getPipelineStepTransformName(step) {
+function getPipelineStepTransformName(step) {
   if (!step || typeof step !== 'object') {
     return null;
   }
@@ -49,7 +49,7 @@ export function getPipelineStepTransformName(step) {
  * @param {object} step
  * @returns {PipelineStepType}
  */
-export function inferPipelineStepType(step) {
+function inferPipelineStepType(step) {
   if (!step || typeof step !== 'object') {
     return 'manual';
   }
@@ -197,7 +197,7 @@ export function pipelineStepsReferenceStructureId(steps, structureId) {
  * @param {string} transformationCode
  * @returns {boolean}
  */
-export function pipelineStepsReferenceTransformationCode(steps, transformationCode) {
+function pipelineStepsReferenceTransformationCode(steps, transformationCode) {
   const needle = typeof transformationCode === 'string' ? transformationCode.trim() : '';
   if (!needle.length || !Array.isArray(steps)) {
     return false;
@@ -215,7 +215,7 @@ export function pipelineStepsReferenceTransformationCode(steps, transformationCo
  *
  * @returns {string}
  */
-export function getPipelineDefinitionChangeReplayExplanation() {
+function getPipelineDefinitionChangeReplayExplanation() {
   return (
     'The current transformed code will revert to the pipeline baseline, the full pipeline will replay ' +
     'with the latest structure and transform definitions, and the result will be re-parsed. Continue?'

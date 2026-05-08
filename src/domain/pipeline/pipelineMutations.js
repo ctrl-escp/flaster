@@ -24,29 +24,6 @@ export function removeStep(steps, stepId) {
 
 /**
  * @param {readonly object[]} steps
- * @param {string} stepId
- * @param {-1 | 1} direction
- * @returns {object[]}
- */
-export function moveStep(steps, stepId, direction) {
-  if (!Array.isArray(steps)) {
-    return [];
-  }
-
-  const index = steps.findIndex((s) => s?.id === stepId);
-  const nextIndex = index + direction;
-
-  if (index < 0 || nextIndex < 0 || nextIndex >= steps.length) {
-    return steps;
-  }
-
-  const base = [...steps];
-  [base[index], base[nextIndex]] = [base[nextIndex], base[index]];
-  return renumberSequenceIndices(base);
-}
-
-/**
- * @param {readonly object[]} steps
  * @param {number} index
  * @param {-1 | 1} direction
  * @returns {object[]}
@@ -65,17 +42,6 @@ export function moveStepAtIndex(steps, index, direction) {
   const base = [...steps];
   [base[index], base[nextIndex]] = [base[nextIndex], base[index]];
   return renumberSequenceIndices(base);
-}
-
-/**
- * @param {readonly object[]} steps
- * @param {string} stepId
- * @param {boolean} enabled
- * @returns {object[]}
- */
-export function setStepEnabled(steps, stepId, enabled) {
-  const base = Array.isArray(steps) ? steps : [];
-  return base.map((s) => (s?.id === stepId ? {...s, enabled} : s));
 }
 
 /**
@@ -100,7 +66,7 @@ export function setStepEnabledAtIndex(steps, index, enabled) {
  * @param {object[]} steps
  * @returns {object[]}
  */
-export function renumberSequenceIndices(steps) {
+function renumberSequenceIndices(steps) {
   return steps.map((step, sequenceIndex) => ({
     ...step,
     sequenceIndex: sequenceIndex + 1,

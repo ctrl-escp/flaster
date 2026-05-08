@@ -21,7 +21,7 @@
  */
 
 /** Keys allowed on raw rows in `knownStructureRegistry` (runtime catalog only). */
-export const KNOWN_STRUCTURE_CATALOG_ROW_KEYS = Object.freeze(
+const KNOWN_STRUCTURE_CATALOG_ROW_KEYS = Object.freeze(
   new Set([
     'id',
     'title',
@@ -44,7 +44,7 @@ const TEST_OR_FIXTURE_KEY = /^(fixture|fixtures|expects|expected|test|spec|snipp
  * @param {string} executionMode
  * @returns {'no-eval' | 'custom-runtime' | 'unknown'}
  */
-export function normalizeExecutionModeForContract(executionMode) {
+function normalizeExecutionModeForContract(executionMode) {
   if (executionMode === 'no-eval') {
     return 'no-eval';
   }

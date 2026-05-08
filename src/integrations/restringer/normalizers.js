@@ -22,7 +22,7 @@ function isNodeLike(value) {
  * @param {Set<object>} [seen]
  * @returns {ASTNode|null}
  */
-export function findNodeInMatch(match, seen = new Set()) {
+function findNodeInMatch(match, seen = new Set()) {
   if (!match || typeof match !== 'object' || seen.has(match)) {
     return null;
   }

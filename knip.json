@@ -1,5 +1,9 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": ["scripts/**/*.mjs", "tests/**/*.spec.js"],
-  "ignore": ["public/sample-scripts/**"]
+  "project": ["src/**/*.{js,vue}", "tests/**/*.js"],
+  "ignore": ["tests/fixtures/structure-sources/**"],
+  "ignoreIssues": {
+    "src/integrations/restringer/index.js": ["exports", "duplicates"]
+  }
 }

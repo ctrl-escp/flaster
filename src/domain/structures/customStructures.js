@@ -4,7 +4,7 @@ import {compileNodePredicate} from '../transforms/customTransformRuntime.js';
  * @param {string} title
  * @returns {string}
  */
-export function createCustomStructureId(title) {
+function createCustomStructureId(title) {
   const normalizedTitle = String(title || 'custom-structure')
     .trim()
     .toLowerCase()

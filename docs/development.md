@@ -28,7 +28,7 @@ Bundled samples live under `public/sample-scripts/` and are registered in `src/s
 
 Follow this order so metadata, runners, fixtures, and CI stay aligned:
 
-1. **Catalog row** — Add a frozen entry to `src/integrations/restringer/catalog.js` using only the allowed keys (see `KNOWN_STRUCTURE_CATALOG_ROW_KEYS` in `src/domain/structures/structureDefinition.js`). Do not add fixture paths, expected match counts, or other test-only fields to the catalog.
+1. **Catalog row** — Add a frozen entry to `src/integrations/restringer/catalog.js` using only the keys validated by `buildStructureDefinition` / `validateKnownStructureCatalogRegistry` in `src/domain/structures/structureDefinition.js`. Do not add fixture paths, expected match counts, or other test-only fields to the catalog.
 2. **REstringer safe module** — Wire the matcher/transform through `src/integrations/restringer/index.js` (`safeModules`) and `runners.js` / `normalizers.js` as needed so `knownStructures` exposes functions for the new id.
 3. **Contract metadata** — Ensure `matcherName`, `moduleName`, and `transformName` match the safe module exports; set `transformEnabled` and `executionMode` / `noEval` correctly.
 4. **Export** — Confirm `src/domain/export/` resolution can emit steps for this structure when `capabilities.export` should be true (`no-eval` + implementation ids).

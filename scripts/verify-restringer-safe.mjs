@@ -1,14 +1,15 @@
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
-import {fileURLToPath, pathToFileURL} from 'node:url';
+import {fileURLToPath} from 'node:url';
 import {Arborist} from 'flast/src/arborist.js';
+import * as adapterModule from '../src/integrations/restringer/index.js';
+import * as matchingEngineModule from '../src/integrations/restringer/matchingEngine.js';
+import * as scriptGeneratorModule from '../src/domain/export/scriptGenerator.js';
+import store from '../src/store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const adapterPath = path.resolve(projectRoot, 'src/integrations/restringer/index.js');
-const matchingEnginePath = path.resolve(projectRoot, 'src/integrations/restringer/matchingEngine.js');
-const scriptGeneratorPath = path.resolve(projectRoot, 'src/domain/export/scriptGenerator.js');
-const storePath = path.resolve(projectRoot, 'src/store.js');
 const sourceRoot = path.resolve(projectRoot, 'src');
 
 const disallowedImportPatterns = [
@@ -43,9 +44,6 @@ for (const pattern of disallowedImportPatterns) {
   }
 }
 
-const adapterModule = await import(pathToFileURL(adapterPath).href);
-const matchingEngineModule = await import(pathToFileURL(matchingEnginePath).href);
-const scriptGeneratorModule = await import(pathToFileURL(scriptGeneratorPath).href);
 const sampleScript = `
 function proxy(a, b) { return target(a, b); }
 const alias = original;
@@ -247,8 +245,6 @@ if (!(errorSession.errors['proxy-calls'] instanceof Error) ||
   !(errorSession.errors['proxy-variables'] instanceof Error)) {
   throw new Error('runKnownStructureMatchingSession did not isolate per-structure matcher errors');
 }
-
-const {default: store} = await import(pathToFileURL(storePath).href);
 
 store.arb = new Arborist(sampleScript);
 store.runKnownStructureMatching(['proxy-calls', 'computed-members']);
