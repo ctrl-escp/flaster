@@ -1,6 +1,7 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
+import {buildNodeInspectorOverviewRows} from '../ui/composables/nodeInspectorModel.js';
 import IconParse from './icons/IconParse.vue';
 import IconStructure from './icons/IconStructure.vue';
 import IconFilter from './icons/IconFilter.vue';
@@ -20,23 +21,14 @@ const sections = [
   {id: 'structures', label: 'Structures', icon: IconEye},
 ];
 
-const overviewRows = computed(() => {
-  if (!selectedNode.value) {
-    return [];
-  }
-
-  const node = selectedNode.value;
-
-  return [
-    {label: 'Type', value: node.type},
-    {label: 'Selection source', value: store.selectedNodeSource || 'direct'},
-    {label: 'Parent', value: node.parentNode?.type ?? 'Root'},
-    {label: 'Scope block', value: scopeChain.value[0]?.type ?? 'Program'},
-    {label: 'Children', value: String(children.value.length)},
-    {label: 'Related structures', value: String(nodeMatches.value.length)},
-    {label: 'Overlaps', value: String(overlaps.value.length)},
-  ];
-});
+const overviewRows = computed(() => buildNodeInspectorOverviewRows({
+  node: selectedNode.value,
+  selectedNodeSource: store.selectedNodeSource,
+  scopeBlockType: scopeChain.value[0]?.type,
+  childCount: children.value.length,
+  nodeMatchCount: nodeMatches.value.length,
+  overlapCount: overlaps.value.length,
+}));
 
 function jumpToNode(node, source = 'related') {
   store.inspectNode(node, source);

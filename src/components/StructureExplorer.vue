@@ -1,10 +1,5 @@
 <script setup>
-import {computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue';
-import {
-  advanceStructureMatchOrdinal,
-  structureMatchDisplayIndex,
-} from '../domain/selection/nodeSelection.js';
-import store from '../store';
+import {useStructureExplorer} from '../ui/composables/useStructureExplorer.js';
 import IconSearch from './icons/IconSearch.vue';
 import IconTrash from './icons/IconTrash.vue';
 import IconListChecks from './icons/IconListChecks.vue';
@@ -16,354 +11,47 @@ import IconClose from './icons/IconClose.vue';
 import IconPlus from './icons/IconPlus.vue';
 import FilterEditor from './FilterEditor.vue';
 
-const PAGE_SIZE = 100;
-
-const filters = reactive({
-  search: '',
-  categoryGroup: '',
-  category: '',
-});
-
-const expandedStructureId = ref(null);
-const currentPage = ref(0);
-const exampleStructureId = ref('');
-const showMatchesOnly = ref(false);
-const showDefineStructure = ref(false);
-const structureList = ref(null);
-
-function formatCategoryLabel(value) {
-  return String(value || '')
-    .split('-')
-    .filter(Boolean)
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(' ');
-}
-
-const categoryGroups = computed(() => [...new Set(
-  store.availableKnownStructures.map((structure) => structure.categoryGroup ?? 'obfuscation'),
-)]);
-
-const categoryGroupOptions = computed(() => categoryGroups.value
-  .map((categoryGroup) => {
-    const structuresInGroup = store.availableKnownStructures.filter((structure) =>
-      (structure.categoryGroup ?? 'obfuscation') === categoryGroup,
-    );
-    const subcategoryCount = new Set(structuresInGroup.map((structure) => structure.category)).size;
-
-    return {
-      value: categoryGroup,
-      label: `${formatCategoryLabel(categoryGroup)} (${subcategoryCount})`,
-    };
-  })
-  .sort((left, right) => left.label.localeCompare(right.label)));
-
-const categories = computed(() => {
-  const eligibleStructures = filters.categoryGroup
-    ? store.availableKnownStructures.filter((structure) =>
-      (structure.categoryGroup ?? 'obfuscation') === filters.categoryGroup,
-    )
-    : store.availableKnownStructures;
-
-  return [...new Set(eligibleStructures.map((structure) => structure.category))].sort();
-});
-
-const categoryOptions = computed(() => categories.value.map((category) => ({
-  value: category,
-  label: `${formatCategoryLabel(category)} (${store.availableKnownStructures.filter((structure) =>
-    structure.category === category &&
-    (!filters.categoryGroup || (structure.categoryGroup ?? 'obfuscation') === filters.categoryGroup)
-  ).length})`,
-})));
-
-const visibleStructures = computed(() => {
-  const search = filters.search.trim().toLowerCase();
-
-  return store.availableKnownStructures
-    .filter((structure) => {
-      if (showMatchesOnly.value && !hasStructureMatches(structure)) {
-        return false;
-      }
-
-      if (filters.categoryGroup &&
-        (structure.categoryGroup ?? 'obfuscation') !== filters.categoryGroup) {
-        return false;
-      }
-
-      if (filters.category && structure.category !== filters.category) {
-        return false;
-      }
-
-      if (!search) {
-        return true;
-      }
-
-      return structure.searchText.includes(search);
-    })
-    .sort((left, right) => left.title.localeCompare(right.title));
-});
-
-const totalStructures = computed(() => visibleStructures.value.length);
-const totalPages = computed(() => Math.max(1, Math.ceil(totalStructures.value / PAGE_SIZE)));
-const isPaged = computed(() => totalStructures.value > PAGE_SIZE);
-const pagedStructures = computed(() => {
-  const start = currentPage.value * PAGE_SIZE;
-  return visibleStructures.value.slice(start, start + PAGE_SIZE);
-});
-const pageRange = computed(() => {
-  if (!totalStructures.value) {
-    return '0 - 0';
-  }
-
-  const start = currentPage.value * PAGE_SIZE + 1;
-  const end = Math.min(totalStructures.value, start + PAGE_SIZE - 1);
-  return `${start} - ${end}`;
-});
-
-const selectedCount = computed(() => store.selectedKnownStructureIds.length);
-const activeStructure = computed(() => store.getKnownStructureById(store.activeKnownStructureId));
-const activePreview = computed(() => store.getKnownStructureTransformPreview(activeStructure.value?.id));
-const exampleStructure = computed(() => store.getKnownStructureById(exampleStructureId.value));
-const canFindMatches = computed(() => store.hasPendingKnownStructureScan());
-const canClearResults = computed(() => store.hasKnownStructureResultsToClear());
-const firstMatchedStructureId = computed(() =>
-  visibleStructures.value.find((structure) => hasStructureMatches(structure))?.id ?? null);
-
-function toggleSelection(structureId) {
-  const nextIds = store.selectedKnownStructureIds.includes(structureId)
-    ? store.selectedKnownStructureIds.filter((id) => id !== structureId)
-    : [...store.selectedKnownStructureIds, structureId];
-
-  store.setSelectedKnownStructureIds(nextIds);
-}
-
-function activateStructure(structureId) {
-  store.setActiveKnownStructure(structureId);
-  store.setActiveWorkspaceTab('explorer');
-}
-
-function findStructure(structureId) {
-  activateStructure(structureId);
-  store.runActiveKnownStructureMatching();
-}
-
-function canFindStructure(structure) {
-  if (structure?.executionMode !== 'no-eval' || !store.isCurrentInputParsed()) {
-    return false;
-  }
-
-  return store.activeKnownStructureId !== structure.id ||
-    store.activeWorkspaceTab !== 'explorer' ||
-    store.hasPendingKnownStructureScan([structure.id]);
-}
-
-function canInspectStructure(structure) {
-  return !!(
-    structure?.executionMode === 'no-eval' &&
-    store.isCurrentInputParsed() &&
-    store.getKnownStructureMatches(structure.id).length > 0
-  );
-}
-
-function getStructureMatchCount(structure) {
-  return store.knownStructureMatchCounts[structure?.id] ?? 0;
-}
-
-function hasStructureMatches(structure) {
-  return getStructureMatchCount(structure) > 0;
-}
-
-function stepStructureMatch(structureId, direction = 1) {
-  const matches = store.getKnownStructureMatches(structureId);
-
-  if (!matches.length) {
-    return;
-  }
-
-  store.setActiveKnownStructure(structureId);
-
-  const rememberedIndex = store.knownStructureSelectionById[structureId];
-  const nextOrdinal = advanceStructureMatchOrdinal(
-    matches,
-    structureId,
-    store.selectedKnownStructureMatch,
-    rememberedIndex,
-    direction,
-  );
-
-  if (!Number.isInteger(nextOrdinal)) {
-    return;
-  }
-
-  store.setSelectedKnownStructureMatch(structureId, nextOrdinal);
-}
-
-function getCurrentStructureMatchPosition(structureId) {
-  const matches = store.getKnownStructureMatches(structureId);
-
-  return structureMatchDisplayIndex(
-    matches,
-    structureId,
-    store.selectedKnownStructureMatch,
-    store.knownStructureSelectionById[structureId],
-  );
-}
-
-function canTransformStructure(structure) {
-  return Boolean(
-    structure?.executionMode === 'no-eval' &&
-    store.isCurrentInputParsed() &&
-    hasStructureMatches(structure),
-  );
-}
-
-function openStructureTransform(structureId) {
-  const defaultTemplate = store.canPreviewKnownStructureTransform(structureId)
-    ? 'apply-known-transform'
-    : 'advanced-js-step';
-
-  store.setInspectedKnownStructure(structureId);
-  activateStructure(structureId);
-  store.setActiveInspectorPanel('templates');
-  store.setActiveTemplate(defaultTemplate);
-
-  if (defaultTemplate === 'apply-known-transform') {
-    store.previewKnownStructureTransform(structureId);
-  } else {
-    store.clearKnownStructureTransformPreview(structureId);
-  }
-}
-
-function toggleExpandedStructure(structureId) {
-  expandedStructureId.value = expandedStructureId.value === structureId ? null : structureId;
-}
-
-function openExample(structureId) {
-  exampleStructureId.value = structureId;
-}
-
-function closeExample() {
-  exampleStructureId.value = '';
-}
-
-function handleStructureCreated() {
-  showDefineStructure.value = false;
-}
-
-async function copyExample() {
-  if (!exampleStructure.value?.codeExample) {
-    return;
-  }
-
-  try {
-    await navigator.clipboard.writeText(exampleStructure.value.codeExample);
-    store.logMessage(`Copied example for ${exampleStructure.value.title}`, 'success');
-  } catch (error) {
-    store.logMessage(`Unable to copy example: ${error.message}`, 'error');
-  }
-}
-
-function nextPage() {
-  currentPage.value = currentPage.value >= totalPages.value - 1 ? 0 : currentPage.value + 1;
-}
-
-function prevPage() {
-  currentPage.value = currentPage.value <= 0 ? totalPages.value - 1 : currentPage.value - 1;
-}
-
-async function scrollFirstMatchedStructureIntoView() {
-  const targetStructureId = firstMatchedStructureId.value;
-
-  if (!targetStructureId) {
-    return;
-  }
-
-  const targetIndex = visibleStructures.value.findIndex((structure) => structure.id === targetStructureId);
-
-  if (targetIndex === -1) {
-    return;
-  }
-
-  const targetPage = Math.floor(targetIndex / PAGE_SIZE);
-
-  if (currentPage.value !== targetPage) {
-    currentPage.value = targetPage;
-  }
-
-  await nextTick();
-
-  const container = structureList.value;
-  const targetCard = container?.querySelector(`[data-structure-id="${targetStructureId}"]`);
-
-  if (!container || !targetCard) {
-    return;
-  }
-
-  const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
-  const targetScrollTop = Math.min(
-    Math.max(0, targetCard.offsetTop - container.offsetTop),
-    maxScrollTop,
-  );
-
-  container.scrollTo({
-    top: targetScrollTop,
-    behavior: 'smooth',
-  });
-}
-
-watch(
-  [
-    () => filters.search,
-    () => filters.categoryGroup,
-    () => filters.category,
-    () => store.availableKnownStructures.length,
-  ],
-  () => {
-    currentPage.value = 0;
-    if (expandedStructureId.value && !pagedStructures.value.some((structure) => structure.id === expandedStructureId.value)) {
-      expandedStructureId.value = null;
-    }
-  },
-);
-
-watch(
-  [() => filters.categoryGroup, categories],
-  () => {
-    if (filters.category && !categories.value.includes(filters.category)) {
-      filters.category = '';
-    }
-  },
-);
-
-watch(totalPages, (nextTotalPages) => {
-  if (currentPage.value > nextTotalPages - 1) {
-    currentPage.value = Math.max(0, nextTotalPages - 1);
-  }
-});
-
-watch(
-  () => store.knownStructureExecutionStatus.lastRunAt,
-  async (lastRunAt, previousLastRunAt) => {
-    if (!lastRunAt || lastRunAt === previousLastRunAt) {
-      return;
-    }
-
-    await scrollFirstMatchedStructureIntoView();
-  },
-);
-
-function handleWindowKeydown(event) {
-  if (event.key === 'Escape' && exampleStructure.value) {
-    closeExample();
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleWindowKeydown);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleWindowKeydown);
-});
+const {
+  store,
+  filters,
+  expandedStructureId,
+  exampleStructureId,
+  showMatchesOnly,
+  showDefineStructure,
+  structureList,
+  formatCategoryLabel,
+  categoryGroupOptions,
+  categoryOptions,
+  visibleStructures,
+  totalStructures,
+  isPaged,
+  pagedStructures,
+  pageRange,
+  selectedCount,
+  activeStructure,
+  activePreview,
+  exampleStructure,
+  canFindMatches,
+  canClearResults,
+  toggleSelection,
+  activateStructure,
+  findStructure,
+  canFindStructure,
+  canInspectStructure,
+  getStructureMatchCount,
+  hasStructureMatches,
+  stepStructureMatch,
+  getCurrentStructureMatchPosition,
+  canTransformStructure,
+  openStructureTransform,
+  toggleExpandedStructure,
+  openExample,
+  closeExample,
+  handleStructureCreated,
+  copyExample,
+  nextPage,
+  prevPage,
+} = useStructureExplorer();
 </script>
 
 <template>

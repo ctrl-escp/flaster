@@ -1,66 +1,22 @@
 <script setup>
-import {computed} from 'vue';
-import store from '../store';
+import {useTransformEditor} from '../ui/composables/useTransformEditor.js';
 import CodeEditor from './CodeEditor.vue';
 import IconCheck from './icons/IconCheck.vue';
 import IconReset from './icons/IconReset.vue';
 import IconTrash from './icons/IconTrash.vue';
 import IconTransform from './icons/IconTransform.vue';
 
-const initialValue = `// Known structure mode:
-//   The body runs once per pass with \`matches\`, the raw array returned by the matcher.
-//   Example: for (const match of matches) { ... }
-//
-// Filter mode:
-//   The body runs once per matched node with \`n\`.
-//   Example: arb.markNode(n);
-`;
-
-const activeStructure = computed(() =>
-  store.getKnownStructureById(store.inspectedKnownStructureId ?? store.activeKnownStructureId));
-const activeMatchShape = computed(() =>
-  activeStructure.value ? store.getKnownStructureMatchShape(activeStructure.value.id) : null);
-const runSettings = computed(() => store.templateDrafts['advanced-js-step'] ?? {});
-const activeFilterCount = computed(() => store.filters.filter((filter) => filter?.enabled).length);
-const transformContext = computed(() =>
-  activeStructure.value
-    ? `Runs against the raw match array returned by ${activeStructure.value.title}`
-    : activeFilterCount.value
-      ? `Runs against nodes that match ${activeFilterCount.value} active filters`
-      : 'Runs against the current result set when no filters are active');
-
-function applyTransformation() {
-  const structureFilter = activeStructure.value
-    ? store.copyKnownStructureRuleSeed(activeStructure.value.id)
-    : '';
-
-  store.applyCustomTransformation(undefined, {
-    label: 'Advanced JS transform',
-    templateType: 'advanced-js-step',
-    previewSummary: activeStructure.value
-      ? `Custom transform for ${activeStructure.value.title}`
-      : 'Raw JS transformation using the active filter selection',
-    selectionSource: activeStructure.value
-      ? {
-        kind: 'known-structure',
-        structureId: activeStructure.value.id,
-      }
-      : {
-        kind: 'advanced-js',
-      },
-    filters: structureFilter ? [{src: structureFilter, enabled: true}] : undefined,
-    runMode: runSettings.value.runMode,
-    maxIterations: Number.parseInt(runSettings.value.maxIterations, 10) || 1,
-  });
-}
-
-function setTransformEditorContent(transformSrc) {
-  store.setContent(store.getEditor(store.editorIds.transformEditor), transformSrc);
-}
-
-function revertTransformation() {
-  store.revertState();
-}
+const {
+  store,
+  initialValue,
+  activeStructure,
+  activeMatchShape,
+  runSettings,
+  transformContext,
+  applyTransformation,
+  setTransformEditorContent,
+  revertTransformation,
+} = useTransformEditor();
 </script>
 
 <template>

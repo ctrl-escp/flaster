@@ -1,6 +1,7 @@
 <script setup>
 import {computed, ref} from 'vue';
 import store from '../store';
+import {findExistingStructureCategory, formatFilterSummary} from '../ui/composables/filterEditorModel.js';
 import CodeEditor from './CodeEditor.vue';
 import IconCheck from './icons/IconCheck.vue';
 import IconClose from './icons/IconClose.vue';
@@ -40,13 +41,8 @@ const existingStructureCategories = computed(() => [...new Set(
 )].sort());
 const structureCategory = ref('');
 const pendingStructureCreation = ref(null);
-const filterSummary = computed(() => {
-  if (!numOfAvailableFilters.value) {
-    return 'No saved filters';
-  }
-
-  return `${numOfEnabledFilters.value} of ${numOfAvailableFilters.value} active`;
-});
+const filterSummary = computed(() =>
+  formatFilterSummary(numOfEnabledFilters.value, numOfAvailableFilters.value));
 
 function findFilter(filterSrc) {
   return store.findFilter(filterSrc);
@@ -97,12 +93,8 @@ function addNewFilter() {
   }
 }
 
-function findExistingStructureCategory(category) {
-  const normalizedCategory = String(category || '').trim().toLowerCase();
-
-  return existingStructureCategories.value.find((existingCategory) =>
-    existingCategory.trim().toLowerCase() === normalizedCategory,
-  ) ?? null;
+function resolveExistingStructureCategory(category) {
+  return findExistingStructureCategory(existingStructureCategories.value, category);
 }
 
 function resetStructureForm() {
@@ -136,7 +128,7 @@ function addNewStructure() {
     return;
   }
 
-  const existingCategory = findExistingStructureCategory(requestedCategory);
+  const existingCategory = resolveExistingStructureCategory(requestedCategory);
 
   if (existingCategory) {
     finalizeNewStructure(filterSrc, existingCategory);
