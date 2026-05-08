@@ -63,7 +63,7 @@ const steps = computed(() => {
     },
     {
       id: 'automation',
-      label: '4. Generate Automation',
+      label: '4. Automate',
       description: 'Export your pipeline to a Node.js script.',
       icon: IconExport,
       hint: hasPipeline ? `${store.steps.length} pipeline steps ready to export` : 'Add pipeline steps first',
@@ -121,30 +121,75 @@ function openStage(stageId) {
     store.setActiveInspectorPanel('pipeline');
   }
 }
+
+function onStepActivate(step) {
+  if (!step.enabled || step.id === activeStage.value) {
+    return;
+  }
+  openStage(step.id);
+}
+
+/** Hide tooltip for one pointer gesture / key activation, then hover works again (including when active). */
+const suppressedBubbleStepId = ref(null);
+
+function clearBubbleSuppression() {
+  suppressedBubbleStepId.value = null;
+}
+
+function onStepPointerDown(step) {
+  suppressedBubbleStepId.value = step.id;
+  window.addEventListener('pointerup', clearBubbleSuppression, { once: true });
+  window.addEventListener('pointercancel', clearBubbleSuppression, { once: true });
+}
+
+function onStepKeydown(e, step) {
+  if (e.key !== 'Enter' && e.key !== ' ') {
+    return;
+  }
+  suppressedBubbleStepId.value = step.id;
+  const el = e.currentTarget;
+  const onKeyUp = (up) => {
+    if (up.key !== 'Enter' && up.key !== ' ') {
+      return;
+    }
+    el.removeEventListener('keyup', onKeyUp);
+    clearBubbleSuppression();
+  };
+  el.addEventListener('keyup', onKeyUp);
+}
 </script>
 
 <template>
   <section class="workflow-pane">
     <div class="flow-rail" aria-label="Workflow steps">
-      <button
+      <div
         v-for="step in steps"
         :key="step.id"
-        class="flow-step"
+        class="flow-step-wrap"
         :class="{
           active: step.id === activeStage,
           ready: step.ready,
+          'is-suppress-bubble': suppressedBubbleStepId === step.id,
         }"
-        type="button"
-        :disabled="!step.enabled || step.id === activeStage"
-        :title="step.description"
-        @click="openStage(step.id)"
       >
-        <component :is="step.icon" class="flow-step-icon" />
-        <span class="flow-step-copy">
-          <strong>{{ step.label }}</strong>
-          <small>{{ step.description }}</small>
-        </span>
-      </button>
+        <button
+          type="button"
+          class="flow-icon-btn"
+          :aria-current="step.id === activeStage ? 'step' : undefined"
+          :aria-disabled="!step.enabled || step.id === activeStage"
+          :aria-label="`${step.label}. ${step.description}`"
+          @pointerdown="onStepPointerDown(step)"
+          @keydown="onStepKeydown($event, step)"
+          @click="onStepActivate(step)"
+        >
+          <component :is="step.icon" class="flow-step-icon" />
+          <span class="flow-step-title">{{ step.label }}</span>
+        </button>
+        <div class="flow-bubble" aria-hidden="true">
+          <strong class="flow-bubble-title">{{ step.label }}</strong>
+          <span class="flow-bubble-desc">{{ step.description }}</span>
+        </div>
+      </div>
     </div>
     <div class="workflow-content">
       <component :is="activePanel" />
@@ -156,38 +201,139 @@ function openStage(stageId) {
 .workflow-pane {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.65rem;
   min-height: 0;
   min-width: 0;
   height: 100%;
 }
 
-.flow-step {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
-.flow-step-copy small {
-  color: var(--text-muted);
-}
-
 .flow-rail {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.55rem;
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: stretch;
+  flex-wrap: nowrap;
+  gap: 0.3rem;
+  min-width: 0;
+  width: 100%;
+  padding: 0.15rem 0 0.35rem;
 }
 
-.flow-step {
-  width: 100%;
+.flow-step-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.flow-bubble {
+  --flow-bubble-bg: rgba(22, 30, 42, 0.98);
+  --flow-bubble-edge: rgba(255, 255, 255, 0.1);
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+  min-width: 12rem;
+  max-width: min(22rem, calc(100vw - 2rem));
+  padding: 0.6rem 0.75rem 0.65rem;
+  border-radius: 14px;
+  border: 1px solid var(--panel-border);
+  background: var(--flow-bubble-bg);
+  color: var(--text-primary);
+  box-shadow:
+    0 6px 22px rgba(0, 0, 0, 0.42),
+    0 0 0 1px var(--flow-bubble-edge),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.08s ease-out, visibility 0.08s ease-out;
+}
+
+/* Speech-bubble tail pointing up toward the icon */
+.flow-bubble::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 0;
+  height: 0;
+  margin-bottom: -1px;
+  transform: translateX(-50%);
+  border-style: solid;
+  border-width: 0 10px 11px 10px;
+  border-color: transparent transparent var(--panel-border) transparent;
+}
+
+.flow-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 0;
+  height: 0;
+  margin-bottom: -1px;
+  transform: translateX(-50%);
+  border-style: solid;
+  border-width: 0 9px 10px 9px;
+  border-color: transparent transparent var(--flow-bubble-bg) transparent;
+}
+
+.flow-bubble-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.flow-bubble-desc {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* Hover: include active. :focus-within for inactive only — active button keeps focus
+   after click and would pin the bubble open. Active + :focus-visible still shows for keyboard. */
+.flow-step-wrap:not(.is-suppress-bubble):hover .flow-bubble,
+.flow-step-wrap:not(.is-suppress-bubble):not(.active):focus-within .flow-bubble,
+.flow-step-wrap:not(.is-suppress-bubble).active:has(.flow-icon-btn:focus-visible) .flow-bubble {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.flow-step-wrap.is-suppress-bubble .flow-bubble {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.flow-icon-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: flex-start;
-  text-align: left;
-  padding: 0.7rem 0.8rem;
-  border-radius: 12px;
+  gap: 0.35rem;
+  min-height: 2.35rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.35rem 0.45rem 0.35rem 0.4rem;
+  border-radius: 10px;
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.04);
   color: var(--text-primary);
   cursor: pointer;
+  text-align: left;
 }
 
 .flow-step-icon {
@@ -196,46 +342,47 @@ function openStage(stageId) {
   flex: 0 0 auto;
 }
 
-.flow-step-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 0.12rem;
+.flow-step-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.flow-step-copy strong,
-.flow-step-copy small {
-  overflow-wrap: anywhere;
-}
-
-.flow-step.ready:not(.active) {
+.flow-step-wrap.ready:not(.active) .flow-icon-btn {
   border-color: rgba(126, 202, 255, 0.28);
   background: rgba(126, 202, 255, 0.08);
 }
 
-.flow-step.active {
+.flow-step-wrap.active .flow-icon-btn {
   border-color: rgba(255, 191, 102, 0.45);
   background: rgba(255, 191, 102, 0.14);
   box-shadow: inset 0 0 0 1px rgba(255, 191, 102, 0.12);
 }
 
-.flow-step:hover:not(:disabled):not(.active),
-.flow-step:focus-visible:not(:disabled):not(.active) {
+.flow-icon-btn:hover:not([aria-disabled='true']):not(:disabled),
+.flow-icon-btn:focus-visible:not([aria-disabled='true']):not(:disabled) {
   background: rgba(126, 202, 255, 0.1);
   border-color: rgba(126, 202, 255, 0.26);
   outline: none;
 }
 
-.flow-step:disabled {
+.flow-icon-btn[aria-disabled='true'] {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-.flow-step.active:disabled {
+.flow-step-wrap.active .flow-icon-btn[aria-disabled='true'] {
   opacity: 1;
   cursor: default;
 }
+
 .workflow-content {
+  position: relative;
+  z-index: 0;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -264,16 +411,6 @@ function openStage(stageId) {
 
   .workflow-content :deep(.workspace-panel) {
     flex: 0 0 auto;
-  }
-
-  .flow-rail {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .flow-rail {
-    grid-template-columns: 1fr;
   }
 }
 </style>

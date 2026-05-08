@@ -9,7 +9,7 @@ const canExport = computed(() => store.steps.length > 0);
 <template>
   <section class="workspace-panel automation-panel">
     <div class="panel-header">
-      <h2>Generate Automation</h2>
+      <h2>Automate</h2>
       <div class="panel-meta">{{ store.steps.length }} steps ready</div>
     </div>
 
