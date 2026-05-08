@@ -55,4 +55,22 @@ describe('store facade integration', () => {
     expect(generatedScript).toContain("from 'flast'");
     expect(generatedScript).toContain('Generated via flASTer');
   });
+
+  it('selects a matched structure after matching when none was active (Transform UI stays usable)', () => {
+    const store = createAppStore();
+    store.setCurrentScriptSource({
+      baselineContent: computedMembersSample,
+      label: 'No prior active structure',
+    });
+    store.loadNewScript(computedMembersSample);
+
+    expect(store.getKnownStructureMatches('computed-members').length).toBeGreaterThan(0);
+    store.setActiveKnownStructure(null);
+    expect(store.activeKnownStructureId).toBeNull();
+
+    store.runKnownStructureMatching(['computed-members']);
+    expect(store.getKnownStructureMatches('computed-members').length).toBeGreaterThan(0);
+    expect(store.activeKnownStructureId).toBe('computed-members');
+    expect(store.inspectedKnownStructureId).toBe('computed-members');
+  });
 });

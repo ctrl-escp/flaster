@@ -248,6 +248,8 @@ function openStage(stageId) {
   min-height: 0;
   min-width: 0;
   width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 @media (max-width: 900px) {

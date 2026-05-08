@@ -1,4 +1,5 @@
 <script setup>
+import {computed} from 'vue';
 import {useTransformEditor} from '../ui/composables/useTransformEditor.js';
 import CodeEditor from './CodeEditor.vue';
 import IconCheck from './icons/IconCheck.vue';
@@ -17,10 +18,13 @@ const {
   setTransformEditorContent,
   revertTransformation,
 } = useTransformEditor();
+
+const hasParsedAst = computed(() => (store.arb?.ast?.length ?? 0) > 0);
 </script>
 
 <template>
-  <section v-if="store.arb?.ast?.length" class="advanced-section">
+  <section class="advanced-section">
+    <template v-if="hasParsedAst">
     <div class="section-header">
       <div class="section-intro">
         <h3>Define New Transformation</h3>
@@ -109,6 +113,17 @@ const {
         </label>
       </div>
     </article>
+    </template>
+
+    <div v-else class="advanced-unparsed-card">
+      <h3>Define New Transformation</h3>
+      <p class="section-copy">
+        The custom transform editor needs a parsed AST for your current script.
+      </p>
+      <p class="section-copy">
+        Choose <strong>Parse</strong> in the toolbar, fix any parse errors, then open this transform path again.
+      </p>
+    </div>
   </section>
 </template>
 
@@ -118,6 +133,21 @@ const {
   flex-direction: column;
   gap: 0.8rem;
   min-height: 0;
+}
+
+.advanced-unparsed-card {
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--panel-card);
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.advanced-unparsed-card h3 {
+  margin: 0;
+  font-size: 1rem;
 }
 
 .section-header,

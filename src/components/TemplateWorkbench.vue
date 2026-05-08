@@ -1,5 +1,5 @@
 <script setup>
-import {computed, ref} from 'vue';
+import {computed, nextTick, ref} from 'vue';
 import store from '../store';
 import {
   buildWorkbenchTransformOptions,
@@ -23,6 +23,7 @@ const hasBuiltInTransform = computed(() =>
 const activeTransformExample = computed(() =>
   activeStructure.value ? knownTransformExamples[activeStructure.value.id] ?? null : null);
 const exampleModalOpen = ref(false);
+const customTransformScrollRef = ref(null);
 
 const transformOptions = computed(() => buildWorkbenchTransformOptions(store.templateCatalog, {
   hasBuiltInTransform: hasBuiltInTransform.value,
@@ -54,6 +55,12 @@ function selectTemplate(template) {
 
   if (activeStructure.value) {
     store.clearKnownStructureTransformPreview(activeStructure.value.id);
+  }
+
+  if (template.type === 'advanced-js-step') {
+    void nextTick(() => {
+      customTransformScrollRef.value?.scrollIntoView({block: 'start', behavior: 'smooth'});
+    });
   }
 }
 
@@ -203,7 +210,13 @@ async function copyTransformExample() {
       </button>
     </div>
 
-    <transform-editor v-if="store.activeTemplateType === 'advanced-js-step'" />
+    <div
+      v-if="store.activeTemplateType === 'advanced-js-step'"
+      ref="customTransformScrollRef"
+      class="custom-transform-region"
+    >
+      <transform-editor />
+    </div>
 
     <div
       v-if="exampleModalOpen && activeTransformExample && activeStructure"
@@ -263,6 +276,10 @@ async function copyTransformExample() {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
+}
+
+.custom-transform-region {
+  scroll-margin-top: 0.5rem;
 }
 
 .panel-header,

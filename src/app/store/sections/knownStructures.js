@@ -478,6 +478,15 @@ export function createKnownStructuresSection(knownStructureState) {
         };
       }
 
+      if (!this.activeKnownStructureId && session.totalMatches > 0) {
+        const fallbackStructureId = session.structureIds.find(
+          (structureId) => (session.matchCounts[structureId] ?? 0) > 0,
+        );
+        if (fallbackStructureId) {
+          this.setActiveKnownStructure(fallbackStructureId);
+        }
+      }
+
       const restoredMatch = this.restoreKnownStructureSelection(this.activeKnownStructureId);
       this.clearKnownStructureTransformPreview();
 
