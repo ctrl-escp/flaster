@@ -134,14 +134,14 @@ function jumpToNode(node, source = 'related') {
           <div class="stack-list">
             <button
               v-for="match in nodeMatches"
-              :key="`${match.structureId}:${match.index}`"
+              :key="`${match.structureId}:${match.metadata.matchOrdinal}`"
               class="list-btn"
               type="button"
               title="Inspect this related structure match"
-              @click="store.setSelectedKnownStructureMatch(match.structureId, match.index)"
+              @click="store.setSelectedKnownStructureMatch(match.structureId, match.metadata.matchOrdinal)"
             >
-              <strong>{{ match.structureTitle }}</strong>
-              <span>{{ match.summary }}</span>
+              <strong>{{ store.getKnownStructureById(match.structureId)?.title ?? match.structureId }}</strong>
+              <span>{{ match.label }}</span>
             </button>
             <p v-if="!nodeMatches.length" class="empty-copy">No known-structure matches overlap this node.</p>
           </div>
@@ -152,14 +152,14 @@ function jumpToNode(node, source = 'related') {
           <div class="stack-list">
             <button
               v-for="match in overlaps"
-              :key="`${match.structureId}:${match.index}`"
+              :key="`${match.structureId}:${match.metadata.matchOrdinal}`"
               class="list-btn"
               type="button"
               title="Inspect this overlapping structure match"
-              @click="store.setSelectedKnownStructureMatch(match.structureId, match.index)"
+              @click="store.setSelectedKnownStructureMatch(match.structureId, match.metadata.matchOrdinal)"
             >
-              <strong>{{ match.structureTitle }}</strong>
-              <span>{{ match.summary }}</span>
+              <strong>{{ store.getKnownStructureById(match.structureId)?.title ?? match.structureId }}</strong>
+              <span>{{ match.label }}</span>
             </button>
             <p v-if="!overlaps.length" class="empty-copy">No overlapping structure conflicts were found.</p>
           </div>

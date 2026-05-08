@@ -13,7 +13,7 @@ import {Arborist} from 'flast/src/arborist.js';
  * @property {string} source
  * @property {import('flast/src/arborist.js').Arborist | null} arborist
  * @property {Error | null} error
- * @property {number} version
+ * @property {number} parseRunId
  * @property {ParseDiagnostic[]} diagnostics
  */
 
@@ -58,12 +58,12 @@ export function normalizeParseDiagnostics(raw) {
 }
 
 /**
- * Monotonic parse-attempt counter helper (caller stores the last value).
+ * Increments the caller-owned parse-run counter (every parse attempt, including failures).
  *
  * @param {number} current
  * @returns {number}
  */
-export function nextParseAttemptVersion(current) {
+export function nextParseRunId(current) {
   return current + 1;
 }
 
@@ -76,15 +76,15 @@ export function createArborist(script) {
 }
 
 /**
- * Parse JavaScript source into a flAST Arborist. `version` should increase on
+ * Parse JavaScript source into a flAST Arborist. `parseRunId` should increase on
  * every attempt (including failed parses) so consumers can invalidate stale UI.
  *
  * @param {string} source
- * @param {{ version?: number, ArboristClass?: typeof Arborist }} [options]
+ * @param {{ parseRunId?: number, ArboristClass?: typeof Arborist }} [options]
  * @returns {ParseResult}
  */
 export function parseSource(source, options = {}) {
-  const version = typeof options.version === 'number' ? options.version : 0;
+  const parseRunId = typeof options.parseRunId === 'number' ? options.parseRunId : 0;
   const ArboristCtor = options.ArboristClass ?? Arborist;
   const str = typeof source === 'string' ? source : String(source ?? '');
 
@@ -94,7 +94,7 @@ export function parseSource(source, options = {}) {
       source: str,
       arborist: null,
       error: null,
-      version,
+      parseRunId,
       diagnostics: [{severity: 'info', code: 'empty-input', message: 'No source text to parse'}],
     };
   }
@@ -108,7 +108,7 @@ export function parseSource(source, options = {}) {
         source: str,
         arborist,
         error: null,
-        version,
+        parseRunId,
         diagnostics: [
           {
             severity: 'error',
@@ -124,7 +124,7 @@ export function parseSource(source, options = {}) {
       source: str,
       arborist,
       error: null,
-      version,
+      parseRunId,
       diagnostics: [],
     };
   } catch (err) {
@@ -134,7 +134,7 @@ export function parseSource(source, options = {}) {
       source: str,
       arborist: null,
       error,
-      version,
+      parseRunId,
       diagnostics: normalizeParseDiagnostics([error]),
     };
   }

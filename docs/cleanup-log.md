@@ -42,7 +42,7 @@ Bundled under `public/sample-scripts/` and listed in `src/sampleScripts.js` for 
 | Item | Classification | Notes |
 | ---- | -------------- | ----- |
 | Named exports on `src/integrations/restringer/index.js` (`safeUtils`, `knownStructuresById`, `safeMatchers`, `safeTransforms`, `normalizeStructureMatch`, runners, `restringerSafe`) | keep | Public adapter surface for tooling, future domain extraction, and tests; not all consumers exist yet. |
-| `getInitialActiveStructureId`, `getRequestedStructureIds`, `getRunnableStructureIds` in `matchingEngine.js` | keep | Orchestration helpers; used by store/tests indirectly or reserved for upcoming splits. |
+| `getInitialActiveStructureId`, `getRequestedStructureIds`, `getRunnableStructureIds` in `src/integrations/restringer/matchingEngine.js` | keep | Orchestration helpers; used by store/tests; `detectStructures` entry point lives here. |
 | `knownStructureIds` in `registry.js` | keep | Stable id list for catalog work (later phases). |
 
 ### Duplicate exports

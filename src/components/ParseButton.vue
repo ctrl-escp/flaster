@@ -66,8 +66,8 @@ function parseContent({focusExploreNodes = false, pulseCodeStructures = false} =
 
     new Promise(() => {
       store.filteredNodes = [];
-      const parseVersion = store.bumpParseAttemptVersion();
-      const parseResult = parseSource(code, {version: parseVersion});
+      const parseRunId = store.bumpParseRunSequence();
+      const parseResult = parseSource(code, {parseRunId});
       store.arb = parseResult.arborist ?? {ast: [], script: code};
       store.markKnownStructureInputChanged();
       if (!parseResult.ok || !store.arb?.ast?.length) {

@@ -1,7 +1,5 @@
 import {
-  getKnownStructure,
   knownStructures,
-  listKnownStructures,
   runKnownStructureMatcher,
 } from './index.js';
 
@@ -10,7 +8,7 @@ import {
  */
 
 /**
- * @typedef {ReturnType<typeof listKnownStructures>[number]} KnownStructureDescriptor
+ * @typedef {typeof knownStructures[number]} KnownStructureDescriptor
  */
 
 /**
@@ -30,8 +28,30 @@ import {
  */
 
 /**
- * Returns the built-in structure IDs that should be selected by default.
+ * High-level detection entry point for the store and tests.
  *
+ * @param {{
+ *   source: string,
+ *   arborist: Arborist,
+ *   structureIds?: readonly string[],
+ *   catalog?: readonly KnownStructureDescriptor[],
+ * }} args
+ */
+export function detectStructures({source, arborist, structureIds, catalog}) {
+  const resolvedSource = typeof source === 'string' ? source : '';
+  const arbScript = typeof arborist?.script === 'string' ? arborist.script : null;
+  if (arbScript !== null && resolvedSource !== arbScript) {
+    throw new Error(
+      'detectStructures: `source` must be the same string used to construct `arborist` (arborist.script mismatch).',
+    );
+  }
+
+  return runKnownStructureMatchingSession(arborist, structureIds, {
+    structures: catalog,
+  });
+}
+
+/**
  * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
  * @returns {string[]}
  */
@@ -42,8 +62,6 @@ export function getDefaultSelectedStructureIds(structures = knownStructures) {
 }
 
 /**
- * Picks the initial active structure ID from the selected or available entries.
- *
  * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
  * @param {readonly string[]} [selectedStructureIds]
  * @returns {string|null}
@@ -56,29 +74,7 @@ export function getInitialActiveStructureId(
 }
 
 /**
- * Creates the default store state used for known structure matching.
- *
  * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
- * @returns {{
- *   availableKnownStructures: KnownStructureDescriptor[],
- *   selectedKnownStructureIds: string[],
- *   activeKnownStructureId: string | null,
- *   latestKnownStructureMatches: KnownStructureMatch[],
- *   knownStructureMatchesById: Record<string, KnownStructureMatch[]>,
- *   knownStructureMatchCounts: Record<string, number>,
- *   knownStructureExecutionErrors: Record<string, Error | null>,
- *   knownStructureGroupedMatches: KnownStructureMatchGroups,
- *   knownStructureExecutionStatus: {
- *     state: 'idle' | 'running' | 'complete',
- *     totalStructures: number,
- *     completedStructures: number,
- *     runnableStructures: number,
- *     blockedStructures: number,
- *     totalMatches: number,
- *     lastRunAt: string | null,
- *   },
- *   lastKnownStructureRunIds: string[],
- * }}
  */
 export function createKnownStructureState(structures = knownStructures) {
   const availableKnownStructures = [...structures];
@@ -99,8 +95,6 @@ export function createKnownStructureState(structures = knownStructures) {
 }
 
 /**
- * Creates the empty grouped structure used when no matches have been run yet.
- *
  * @returns {KnownStructureMatchGroups}
  */
 export function createEmptyMatchGroups() {
@@ -112,8 +106,6 @@ export function createEmptyMatchGroups() {
 }
 
 /**
- * Creates the default execution status object for store initialization and reset.
- *
  * @returns {{
  *   state: 'idle' | 'running' | 'complete',
  *   totalStructures: number,
@@ -137,41 +129,28 @@ export function createExecutionStatus() {
 }
 
 /**
- * Groups normalized matches by structure ID, node type, and parent type.
- *
  * @param {readonly KnownStructureMatch[]} matches
  * @returns {KnownStructureMatchGroups}
  */
 export function groupStructureMatches(matches) {
   return matches.reduce((groups, match) => {
+    const node = match.relevantNode;
+    const nodeType = node?.type ?? 'Unknown';
+    const parentType = node?.parentNode?.type ?? 'Unknown';
     pushGroupedMatch(groups.byStructureId, match.structureId, match);
-    pushGroupedMatch(groups.byNodeType, match.type ?? 'Unknown', match);
-    pushGroupedMatch(groups.byParentType, match.parentType ?? 'Unknown', match);
+    pushGroupedMatch(groups.byNodeType, nodeType, match);
+    pushGroupedMatch(groups.byParentType, parentType, match);
     return groups;
   }, createEmptyMatchGroups());
 }
 
 /**
- * Runs multiple known structure matchers against the same Arborist instance
- * without mutating the parsed script or AST.
- *
  * @param {Arborist} arb
  * @param {readonly string[]} [structureIds]
  * @param {{
- *   candidateFilter?: (node: KnownStructureMatch['node']) => boolean,
+ *   candidateFilter?: (node: KnownStructureMatch['relevantNode']) => boolean,
  *   structures?: readonly KnownStructureDescriptor[],
  * }} [options={}]
- * @returns {{
- *   structureIds: string[],
- *   skippedStructureIds: string[],
- *   runs: KnownStructureRun[],
- *   matches: KnownStructureMatch[],
- *   matchCounts: Record<string, number>,
- *   errors: Record<string, Error | null>,
- *   groupedMatches: KnownStructureMatchGroups,
- *   totalMatches: number,
- *   ranAt: string,
- * }}
  */
 export function runKnownStructureMatchingSession(arb, structureIds, options = {}) {
   const availableStructures = Array.isArray(options.structures) && options.structures.length
@@ -201,8 +180,6 @@ export function runKnownStructureMatchingSession(arb, structureIds, options = {}
 }
 
 /**
- * Normalizes a requested list of structure IDs into a de-duplicated runnable set.
- *
  * @param {readonly string[] | undefined} structureIds
  * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
  * @returns {string[]}
@@ -217,8 +194,6 @@ export function getRequestedStructureIds(structureIds, structures = knownStructu
 }
 
 /**
- * Filters a requested structure list down to the entries runnable in the current environment.
- *
  * @param {readonly string[] | undefined} structureIds
  * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
  * @returns {string[]}
@@ -233,12 +208,9 @@ export function getRunnableStructureIds(structureIds, structures = knownStructur
 }
 
 /**
- * Appends a match into a string-keyed grouping map.
- *
  * @param {Record<string, KnownStructureMatch[]>} groups
  * @param {string} key
  * @param {KnownStructureMatch} match
- * @returns {void}
  */
 function pushGroupedMatch(groups, key, match) {
   if (!groups[key]) {

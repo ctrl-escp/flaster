@@ -19,3 +19,7 @@ Manual debugging (console inspection) uses properties on `window`. They are **no
 * `import.meta.env.VITE_DEBUG_GLOBALS` is the string `'true'` (optional; set in `.env` / `.env.production.local` if you need globals in a preview or production build).
 
 Otherwise the function returns immediately and nothing is assigned to `window` for flASTer debug.
+
+## Public sample scripts
+
+Bundled samples live under `public/sample-scripts/` and are registered in `src/sampleScripts.js` as `sampleScripts` (each entry has `id`, `title`, `publicPath`, etc.). The **FileLoader** UI loads them by `publicPath`; **tests** read the same files via repo-relative paths (for example `public/sample-scripts/array_replacements.js`). Keeping new samples in that folder and adding a `sampleScripts` row keeps UI, docs, and tests aligned.

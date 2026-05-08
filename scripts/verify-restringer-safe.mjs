@@ -163,8 +163,11 @@ if (proxyCallMatches.error || proxyCallMatches.count < 1) {
 }
 
 const normalizedMatch = proxyCallMatches.matches[0];
-if (normalizedMatch.structureId !== 'proxy-calls' || !normalizedMatch.range) {
-  throw new Error('Normalized structure match is missing expected metadata');
+if (normalizedMatch.structureId !== 'proxy-calls' ||
+  !normalizedMatch.relevantNode ||
+  !Array.isArray(normalizedMatch.relevantNode.range) ||
+  normalizedMatch.relevantNode.range.length < 2) {
+  throw new Error('Normalized structure match is missing expected relevantNode.range');
 }
 
 const computedMembers = adapterModule.runKnownStructureMatcher(sampleArborist, 'computed-members');
@@ -212,7 +215,7 @@ if (!session.groupedMatches.byStructureId['proxy-calls']?.length) {
   throw new Error('runKnownStructureMatchingSession did not group matches by structure');
 }
 
-const groupedNodeType = session.matches.find((match) => match.type)?.type;
+const groupedNodeType = session.matches.find((match) => match.relevantNode?.type)?.relevantNode?.type;
 if (!groupedNodeType || !session.groupedMatches.byNodeType[groupedNodeType]?.length) {
   throw new Error('runKnownStructureMatchingSession did not group matches by node type');
 }
@@ -271,7 +274,8 @@ if (!store.knownStructureMatchesById['proxy-calls']?.length) {
   throw new Error('store.runKnownStructureMatching did not store matches by structure ID');
 }
 
-const groupedParentType = store.latestKnownStructureMatches.find((match) => match.parentType)?.parentType;
+const groupedParentType = store.latestKnownStructureMatches.find((match) =>
+  match.relevantNode?.parentNode?.type)?.relevantNode?.parentNode?.type;
 if (!groupedParentType || !store.knownStructureGroupedMatches.byParentType?.[groupedParentType]?.length) {
   throw new Error('store.runKnownStructureMatching did not store grouped parent-type matches');
 }
@@ -323,7 +327,7 @@ if (store.activeKnownStructureId !== 'proxy-calls') {
 const overlappingMatches = store.getKnownStructureOverlaps({
   structureId: 'proxy-calls',
   index: 0,
-  range: [0, sampleScript.length],
+  relevantNode: {range: [0, sampleScript.length]},
 });
 if (!overlappingMatches.length) {
   throw new Error('store.getKnownStructureOverlaps did not report overlapping structure matches');

@@ -182,13 +182,13 @@ function stepStructureMatch(structureId, direction = 1) {
     : null;
   const rememberedIndex = store.knownStructureSelectionById[structureId];
   const currentIndex = currentSelection
-    ? matches.findIndex((match) => match.index === currentSelection.index)
-    : matches.findIndex((match) => match.index === rememberedIndex);
+    ? matches.findIndex((match) => match.metadata?.matchOrdinal === currentSelection.index)
+    : matches.findIndex((match) => match.metadata?.matchOrdinal === rememberedIndex);
   const nextIndex = currentIndex === -1
     ? direction > 0 ? 0 : matches.length - 1
     : (currentIndex + direction + matches.length) % matches.length;
 
-  store.setSelectedKnownStructureMatch(structureId, matches[nextIndex].index);
+  store.setSelectedKnownStructureMatch(structureId, matches[nextIndex].metadata.matchOrdinal);
 }
 
 function getCurrentStructureMatchPosition(structureId) {
@@ -203,7 +203,7 @@ function getCurrentStructureMatchPosition(structureId) {
     : null;
   const rememberedIndex = store.knownStructureSelectionById[structureId];
   const activeIndex = currentSelection?.index ?? rememberedIndex;
-  const matchedIndex = matches.findIndex((match) => match.index === activeIndex);
+  const matchedIndex = matches.findIndex((match) => match.metadata?.matchOrdinal === activeIndex);
 
   return matchedIndex === -1 ? 1 : matchedIndex + 1;
 }

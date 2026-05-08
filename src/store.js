@@ -1,11 +1,12 @@
 import {reactive} from 'vue';
 import {createArborist, parseSource} from './domain/parse/parseSource.js';
+import {sourceRangesOverlap} from './domain/structures/matchNormalization.js';
 import {
   createEmptyMatchGroups,
   createExecutionStatus,
   createKnownStructureState,
+  detectStructures,
   groupStructureMatches,
-  runKnownStructureMatchingSession,
 } from './integrations/restringer/matchingEngine.js';
 import {
   collectKnownStructureMatchNodes,
@@ -81,22 +82,6 @@ import {getSampleScript, sampleScripts} from './sampleScripts.js';
  */
 
 /**
- * Checks whether two normalized match ranges overlap in source space.
- *
- * @param {readonly [number, number] | number[] | null | undefined} leftRange
- * @param {readonly [number, number] | number[] | null | undefined} rightRange
- * @returns {boolean}
- */
-function doRangesOverlap(leftRange, rightRange) {
-  return Array.isArray(leftRange) &&
-    Array.isArray(rightRange) &&
-    leftRange.length >= 2 &&
-    rightRange.length >= 2 &&
-    leftRange[0] < rightRange[1] &&
-    rightRange[0] < leftRange[1];
-}
-
-/**
  *
  * @param {string} editorId
  * @returns {EditorView}
@@ -136,19 +121,20 @@ function createKnownStructureHighlightState(matches, selectedMatch) {
   let activeRange = null;
 
   for (const match of matches) {
-    if (!Array.isArray(match?.range) || match.range.length < 2) {
+    const span = match?.relevantNode?.range;
+    if (!Array.isArray(span) || span.length < 2) {
       continue;
     }
 
     const range = {
-      from: match.range[0],
-      to: match.range[1],
+      from: span[0],
+      to: span[1],
       className: 'known-structure-highlight',
     };
 
     const isSelected = Boolean(selectedMatch) &&
       match.structureId === selectedMatch.structureId &&
-      match.index === selectedMatch.index;
+      match.metadata?.matchOrdinal === selectedMatch.index;
 
     if (isSelected) {
       range.className = 'known-structure-highlight-active';
@@ -345,7 +331,7 @@ function hasMatchedAncestor(node, matchedNodes) {
 
 function getOutermostMatchedNodes(matches = []) {
   const nodes = matches
-    .map((match) => (match && typeof match === 'object' && 'node' in match ? match.node : match))
+    .map((match) => (match && typeof match === 'object' && 'relevantNode' in match ? match.relevantNode : match))
     .filter(Boolean);
   const matchedNodes = new Set(nodes);
 
@@ -485,8 +471,8 @@ const store = reactive({
       this.setContent(inputEditor, script);
     }
 
-    const parseVersion = this.bumpParseAttemptVersion();
-    const parseResult = parseSource(script, {version: parseVersion});
+    const parseRunId = this.bumpParseRunSequence();
+    const parseResult = parseSource(script, {parseRunId});
     this.arb = parseResult.arborist ?? {ast: [], script: typeof script === 'string' ? script : String(script ?? '')};
     this.markKnownStructureInputChanged();
     store.page = 0;
@@ -514,10 +500,10 @@ const store = reactive({
   isCurrentScriptModified: true,
   inputContentVersion: 0,
   parsedContentVersion: -1,
-  parseAttemptVersion: 0,
-  bumpParseAttemptVersion() {
-    this.parseAttemptVersion += 1;
-    return this.parseAttemptVersion;
+  parseRunSequence: 0,
+  bumpParseRunSequence() {
+    this.parseRunSequence += 1;
+    return this.parseRunSequence;
   },
   shouldAutoParseInitialInput: true,
   // eslint-disable-next-line no-unused-vars
@@ -743,7 +729,7 @@ const store = reactive({
     }
 
     return this.latestKnownStructureMatches.filter((match) =>
-      doRangesOverlap(match.range, node.range),
+      sourceRangesOverlap(match.relevantNode?.range, node.range),
     );
   },
   getRelatedNodeEntries(node = this.getSelectedNode()) {
@@ -903,14 +889,14 @@ const store = reactive({
     }
 
     return this.getKnownStructureMatches(selection.structureId)
-      .find((match) => match.index === selection.index) ?? null;
+      .find((match) => match.metadata?.matchOrdinal === selection.index) ?? null;
   },
   getKnownStructureMatchNodes(structureId = this.activeKnownStructureId) {
     return collectKnownStructureMatchNodes(this.getKnownStructureMatches(structureId));
   },
   getKnownStructureMatchShape(structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId) {
     const matches = this.getKnownStructureMatches(structureId)
-      ?.map((match) => match?.match)
+      ?.map((match) => match?.metadata?.runnerMatch)
       .filter((match) => match !== undefined) ?? [];
     return matches.length ? describeKnownStructureMatchShape(matches) : null;
   },
@@ -1062,7 +1048,8 @@ const store = reactive({
     }
   },
   setSelectedKnownStructureMatch(structureId, matchIndex, revealInInspector = true) {
-    const match = this.getKnownStructureMatches(structureId).find((candidate) => candidate.index === matchIndex);
+    const match = this.getKnownStructureMatches(structureId)
+      .find((candidate) => candidate.metadata?.matchOrdinal === matchIndex);
 
     if (!match) {
       this.selectedKnownStructureMatch = null;
@@ -1071,17 +1058,18 @@ const store = reactive({
       return;
     }
 
+    const ord = match.metadata.matchOrdinal;
     this.activeKnownStructureId = structureId;
     this.setInspectedKnownStructure(structureId);
     this.selectedKnownStructureMatch = {
       structureId: match.structureId,
-      index: match.index,
+      index: ord,
     };
     this.knownStructureSelectionById = {
       ...this.knownStructureSelectionById,
-      [match.structureId]: match.index,
+      [match.structureId]: ord,
     };
-    this.setSelectedNode(match.node, 'match');
+    this.setSelectedNode(match.relevantNode, 'match');
     if (revealInInspector) {
       this.activeInspectorPanel = 'inspector';
     }
@@ -1099,7 +1087,7 @@ const store = reactive({
     const currentIndex = this.selectedKnownStructureMatch
       ? matches.findIndex((match) =>
         match.structureId === this.selectedKnownStructureMatch.structureId &&
-        match.index === this.selectedKnownStructureMatch.index,
+        match.metadata?.matchOrdinal === this.selectedKnownStructureMatch.index,
       )
       : -1;
 
@@ -1108,7 +1096,7 @@ const store = reactive({
       : (currentIndex + direction + matches.length) % matches.length;
 
     const nextMatch = matches[nextIndex];
-    this.setSelectedKnownStructureMatch(nextMatch.structureId, nextMatch.index);
+    this.setSelectedKnownStructureMatch(nextMatch.structureId, nextMatch.metadata.matchOrdinal);
     return nextMatch;
   },
   restoreKnownStructureSelection(structureId = this.activeKnownStructureId) {
@@ -1121,17 +1109,18 @@ const store = reactive({
 
     const rememberedIndex = this.knownStructureSelectionById[structureId];
     const rememberedMatch = Number.isInteger(rememberedIndex)
-      ? matches.find((match) => match.index === rememberedIndex) ?? null
+      ? matches.find((match) => match.metadata?.matchOrdinal === rememberedIndex) ?? null
       : null;
     const nextMatch = rememberedMatch ?? matches[0];
 
+    const ord = nextMatch.metadata.matchOrdinal;
     this.selectedKnownStructureMatch = {
       structureId: nextMatch.structureId,
-      index: nextMatch.index,
+      index: ord,
     };
     this.knownStructureSelectionById = {
       ...this.knownStructureSelectionById,
-      [nextMatch.structureId]: nextMatch.index,
+      [nextMatch.structureId]: ord,
     };
 
     return nextMatch;
@@ -1193,13 +1182,15 @@ const store = reactive({
       this.knownStructureSelectionVersion !== this.lastKnownStructureRunSelectionVersion;
   },
   getKnownStructureOverlaps(match = this.getSelectedKnownStructureMatch()) {
-    if (!match?.range) {
+    const probeRange = match?.relevantNode?.range ??
+      (Array.isArray(match?.range) ? match.range : null);
+    if (!probeRange) {
       return [];
     }
 
     return this.latestKnownStructureMatches.filter((candidate) =>
       candidate.structureId !== match.structureId &&
-      doRangesOverlap(candidate.range, match.range),
+      sourceRangesOverlap(candidate.relevantNode?.range, probeRange),
     );
   },
   copyKnownStructureRuleSeed(structureId = this.activeKnownStructureId) {
@@ -2188,8 +2179,11 @@ const store = reactive({
       return this.knownStructureExecutionStatus;
     }
 
-    const session = runKnownStructureMatchingSession(this.arb, requestedIds, {
-      structures: this.availableKnownStructures,
+    const session = detectStructures({
+      source: typeof this.arb?.script === 'string' ? this.arb.script : '',
+      arborist: this.arb,
+      structureIds: requestedIds,
+      catalog: this.availableKnownStructures,
     });
 
     this.latestKnownStructureMatches = session.matches;
@@ -2225,12 +2219,12 @@ const store = reactive({
       }
 
       const matchingSelection = Number.isInteger(rememberedIndex)
-        ? nextMatches.find((match) => match.index === rememberedIndex) ?? null
+        ? nextMatches.find((match) => match.metadata?.matchOrdinal === rememberedIndex) ?? null
         : null;
 
       this.knownStructureSelectionById = {
         ...this.knownStructureSelectionById,
-        [structureId]: (matchingSelection ?? nextMatches[0]).index,
+        [structureId]: (matchingSelection ?? nextMatches[0]).metadata.matchOrdinal,
       };
     }
 
@@ -2241,7 +2235,7 @@ const store = reactive({
       this.setInspectedKnownStructure(this.activeKnownStructureId);
     }
 
-    this.setSelectedNode(restoredMatch?.node ?? null, restoredMatch ? 'match' : null);
+    this.setSelectedNode(restoredMatch?.relevantNode ?? null, restoredMatch ? 'match' : null);
 
     this.refreshKnownStructureHighlights();
 

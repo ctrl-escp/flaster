@@ -6,24 +6,23 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 const srcRoot = path.resolve(projectRoot, 'src');
 const integrationRoot = path.resolve(srcRoot, 'integrations/restringer');
+const matchingEngineEntry = path.normalize(path.join(integrationRoot, 'matchingEngine.js'));
+const storeEntry = path.resolve(srcRoot, 'store.js');
 
 /**
  * Layering checks for `src/`:
  *
  * 1. Application/UI code must not import REstringer integration internals
- *    (anything under `integrations/restringer/` other than `index.js`) without
- *    going through the narrow allowlist. Only `src/store.js` may import the
- *    matching engine directly; all other consumers must use `index.js`.
+ *    (anything under `integrations/restringer/` other than `index.js` or the
+ *    allowlisted `matchingEngine.js`) without going through the public adapter
+ *    (`index.js`). `store.js` may import `matchingEngine.js` for `detectStructures`
+ *    and session grouping (Phase 3 target layout).
  *
  * 2. Root-level `src/*.vue` is limited to the app shell (`App.vue`) and an
  *    explicit allowlist so feature SFCs stay under `src/components/`.
  */
 const importPattern =
   /(?:import|export)\s+[^;]*?from\s+['"]([^'"]+)['"]|import\s*\(\s*['"]([^'"]+)['"]\s*\)/gs;
-
-const allowDeepMatchingEngineImporters = new Set([
-  path.resolve(srcRoot, 'store.js'),
-]);
 
 /** App shell only at src/*.vue; add names here only for intentional exceptions. */
 const ROOT_SRC_VUE_ALLOWLIST = new Set(['App.vue']);
@@ -125,10 +124,7 @@ for (const filePath of sourceFiles) {
       continue;
     }
 
-    if (
-      target.endsWith(`${path.sep}matchingEngine.js`) &&
-      allowDeepMatchingEngineImporters.has(path.normalize(filePath))
-    ) {
+    if (path.normalize(filePath) === storeEntry && target === matchingEngineEntry) {
       continue;
     }
 

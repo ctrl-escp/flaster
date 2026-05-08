@@ -38,15 +38,20 @@ const visibleItems = computed(() => {
     }));
   }
 
-  return store.getKnownStructureMatches().map((match) => ({
-    key: `match:${match.structureId}:${match.index}`,
-    label: match.structureTitle,
-    summary: match.summary,
-    meta: `${match.type ?? 'Unknown'} in ${match.parentType ?? 'Root'}`,
-    match,
-    node: match.node,
-    kind: 'match',
-  }));
+  return store.getKnownStructureMatches().map((match) => {
+    const ord = match.metadata?.matchOrdinal ?? 0;
+    const title = store.getKnownStructureById(match.structureId)?.title ?? match.structureId;
+    const node = match.relevantNode;
+    return {
+      key: `match:${match.structureId}:${ord}`,
+      label: title,
+      summary: match.label,
+      meta: `${node?.type ?? 'Unknown'} in ${node?.parentNode?.type ?? 'Root'}`,
+      match,
+      node,
+      kind: 'match',
+    };
+  });
 });
 
 const totalItems = computed(() => visibleItems.value.length);
@@ -95,7 +100,7 @@ function selectItem(item) {
   store.setActiveInspectorPanel('browser');
 
   if (item.kind === 'match') {
-    store.setSelectedKnownStructureMatch(item.match.structureId, item.match.index, false);
+    store.setSelectedKnownStructureMatch(item.match.structureId, item.match.metadata.matchOrdinal, false);
     return;
   }
 
@@ -104,7 +109,7 @@ function selectItem(item) {
 
 function openItemDetails(item) {
   if (item.kind === 'match') {
-    store.setSelectedKnownStructureMatch(item.match.structureId, item.match.index);
+    store.setSelectedKnownStructureMatch(item.match.structureId, item.match.metadata.matchOrdinal);
     return;
   }
 
@@ -114,7 +119,7 @@ function openItemDetails(item) {
 function isActive(item) {
   if (item.kind === 'match') {
     return store.selectedKnownStructureMatch?.structureId === item.match.structureId &&
-      store.selectedKnownStructureMatch?.index === item.match.index;
+      store.selectedKnownStructureMatch?.index === item.match.metadata?.matchOrdinal;
   }
 
   return store.selectedNodeId === item.node?.nodeId;
