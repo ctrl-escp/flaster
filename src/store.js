@@ -1,5 +1,5 @@
 import {reactive} from 'vue';
-import {Arborist} from 'flast/src/arborist.js';
+import {createArborist, parseSource} from './domain/parse/parseSource.js';
 import {
   createEmptyMatchGroups,
   createExecutionStatus,
@@ -175,16 +175,6 @@ function createKnownStructureRuleSeed(structure) {
 //
 // Replace this placeholder with a custom flAST filter predicate.
 n.type === '${structure.category === 'calls' ? 'CallExpression' : 'Identifier'}'`;
-}
-
-/**
- * Creates an Arborist instance for preview or reparse flows.
- *
- * @param {string} script
- * @returns {import('flast/src/arborist.js').Arborist}
- */
-function createArborist(script) {
-  return new Arborist(script);
 }
 
 const templateCatalog = Object.freeze([
@@ -495,7 +485,9 @@ const store = reactive({
       this.setContent(inputEditor, script);
     }
 
-    this.arb = createArborist(script);
+    const parseVersion = this.bumpParseAttemptVersion();
+    const parseResult = parseSource(script, {version: parseVersion});
+    this.arb = parseResult.arborist ?? {ast: [], script: typeof script === 'string' ? script : String(script ?? '')};
     this.markKnownStructureInputChanged();
     store.page = 0;
     this.filteredNodes = this.arb.ast;
@@ -522,6 +514,11 @@ const store = reactive({
   isCurrentScriptModified: true,
   inputContentVersion: 0,
   parsedContentVersion: -1,
+  parseAttemptVersion: 0,
+  bumpParseAttemptVersion() {
+    this.parseAttemptVersion += 1;
+    return this.parseAttemptVersion;
+  },
   shouldAutoParseInitialInput: true,
   // eslint-disable-next-line no-unused-vars
   logMessage(text, level) {},

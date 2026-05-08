@@ -1,6 +1,6 @@
 <script setup>
 import store from '../store';
-import {Arborist} from 'flast/src/arborist.js';
+import {parseSource} from '../domain/parse/parseSource.js';
 import {computed, onMounted, ref} from 'vue';
 import IconParse from './icons/IconParse.vue';
 
@@ -66,9 +66,11 @@ function parseContent({focusExploreNodes = false, pulseCodeStructures = false} =
 
     new Promise(() => {
       store.filteredNodes = [];
-      store.arb = new Arborist(code);
+      const parseVersion = store.bumpParseAttemptVersion();
+      const parseResult = parseSource(code, {version: parseVersion});
+      store.arb = parseResult.arborist ?? {ast: [], script: code};
       store.markKnownStructureInputChanged();
-      if (!store.arb?.ast?.length) {
+      if (!parseResult.ok || !store.arb?.ast?.length) {
         store.logMessage(messages.astParseFail, 'error');
       } else {
         store.rerunKnownStructureMatching();
