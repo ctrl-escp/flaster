@@ -8,6 +8,11 @@
 		"dev": "vite",
 		"build": "npm run check:restringer-safe && vite build",
 		"check:restringer-safe": "node scripts/verify-restringer-safe.mjs",
+		"check:boundaries": "node scripts/check-boundaries.mjs",
+		"check:unused": "knip --no-progress",
+		"check": "npm run check:restringer-safe && npm run check:boundaries && npm test",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"preview": "vite preview"
 	},
 	"dependencies": {
@@ -28,9 +33,16 @@
 	},
 	"devDependencies": {
 		"@vitejs/plugin-vue": "^6.0.2",
-		"vite": "^8.0.0"
+		"@vue/test-utils": "^2.4.10",
+		"happy-dom": "^20.9.0",
+		"knip": "^5.88.1",
+		"vite": "^8.0.0",
+		"vitest": "^4.1.5"
 	},
 	"bugs": {
 		"url": "https://github.com/ctrl-escp/flaster/issues"
+	},
+	"engines": {
+		"node": ">=20.19"
 	}
 }
