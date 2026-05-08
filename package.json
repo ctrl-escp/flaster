@@ -9,8 +9,9 @@
 		"build": "npm run check:restringer-safe && vite build",
 		"check:restringer-safe": "node scripts/verify-restringer-safe.mjs",
 		"check:boundaries": "node scripts/check-boundaries.mjs",
+		"check:catalog": "node scripts/verify-structure-catalog.mjs",
 		"check:unused": "knip --no-progress",
-		"check": "npm run check:restringer-safe && npm run check:boundaries && npm test",
+		"check": "npm run check:restringer-safe && npm run check:boundaries && npm run check:catalog && npm test",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"preview": "vite preview"

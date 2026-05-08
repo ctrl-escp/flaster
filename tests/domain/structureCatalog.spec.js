@@ -1,10 +1,12 @@
 import {describe, it, expect} from 'vitest';
 import {Arborist} from 'flast/src/arborist.js';
-import {knownStructureRegistry} from '../../src/integrations/restringer/catalog.js';
+import {buildStructureDefinition} from '../../src/domain/structures/structureDefinition.js';
+import {knownStructureIds, knownStructureRegistry} from '../../src/integrations/restringer/catalog.js';
 import {
   knownStructuresById,
   runKnownStructureMatcher,
 } from '../../src/integrations/restringer/index.js';
+import {STRUCTURE_FIXTURE_MANIFEST} from '../fixtures/structure-fixtures.js';
 import {STRUCTURE_FIXTURE_ENTRIES} from '../fixtures/structure-match-snippets.js';
 
 describe('structure catalog integrity', () => {
@@ -53,6 +55,36 @@ describe('structure catalog integrity', () => {
       } else {
         expect(entry.source.length).toBeGreaterThan(0);
       }
+    }
+  });
+
+  it('fixture manifest lists exactly the built-in catalog ids', () => {
+    const manifestIds = STRUCTURE_FIXTURE_MANIFEST.map((e) => e.structureName).sort();
+    const catalogIds = [...knownStructureIds].sort();
+    expect(manifestIds).toEqual(catalogIds);
+    for (const block of STRUCTURE_FIXTURE_MANIFEST) {
+      if (block.fixtureCoverageExemption) {
+        expect(block.fixtureCoverageExemption.reason.trim().length).toBeGreaterThan(0);
+        continue;
+      }
+
+      expect(block.fixtures?.length ?? 0).toBeGreaterThan(0);
+      const first = block.fixtures[0];
+      expect(first.path?.length ?? 0).toBeGreaterThan(0);
+      if (first.expectedMinMatches != null) {
+        expect(first.expectedMinMatches).toBeGreaterThanOrEqual(1);
+      }
+    }
+  });
+
+  it('buildStructureDefinition matches catalog invariants', () => {
+    for (const row of knownStructureRegistry) {
+      const def = buildStructureDefinition(row);
+      expect(def.name).toBe(row.id);
+      expect(def.label).toBe(row.title);
+      expect(def.capabilities.export).toBe(row.executionMode === 'no-eval');
+      expect(def.implementation.moduleName).toBe(row.moduleName);
+      expect(def.implementation.matcherName).toBe(row.matcherName);
     }
   });
 });
