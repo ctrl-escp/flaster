@@ -1,11 +1,11 @@
 <script setup>
 import {computed} from 'vue';
-import store from './store';
-import CodeEditor from './components/CodeEditor.vue';
-import IconCheck from './components/icons/IconCheck.vue';
-import IconReset from './components/icons/IconReset.vue';
-import IconTrash from './components/icons/IconTrash.vue';
-import IconTransform from './components/icons/IconTransform.vue';
+import store from '../store';
+import CodeEditor from './CodeEditor.vue';
+import IconCheck from './icons/IconCheck.vue';
+import IconReset from './icons/IconReset.vue';
+import IconTrash from './icons/IconTrash.vue';
+import IconTransform from './icons/IconTransform.vue';
 
 const initialValue = `// Known structure mode:
 //   The body runs once per pass with \`matches\`, the raw array returned by the matcher.

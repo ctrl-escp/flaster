@@ -1,6 +1,6 @@
 <script setup>
-import FilterEditor from '../FilterEditor.vue';
-import TransformEditor from '../TransformEditor.vue';
+import FilterEditor from './FilterEditor.vue';
+import TransformEditor from './TransformEditor.vue';
 </script>
 
 <template>

@@ -4,7 +4,7 @@ import store from '../store';
 import IconCheck from './icons/IconCheck.vue';
 import IconClose from './icons/IconClose.vue';
 import IconCopy from './icons/IconCopy.vue';
-import TransformEditor from '../TransformEditor.vue';
+import TransformEditor from './TransformEditor.vue';
 
 const knownTransformExamples = Object.freeze({
   'proxy-calls': {

@@ -10,7 +10,7 @@ import IconArrowRight from './icons/IconArrowRight.vue';
 import IconCopy from './icons/IconCopy.vue';
 import IconClose from './icons/IconClose.vue';
 import IconPlus from './icons/IconPlus.vue';
-import FilterEditor from '../FilterEditor.vue';
+import FilterEditor from './FilterEditor.vue';
 
 const PAGE_SIZE = 100;
 

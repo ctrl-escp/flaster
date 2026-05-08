@@ -1,4 +1,4 @@
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -8,10 +8,15 @@ const srcRoot = path.resolve(projectRoot, 'src');
 const integrationRoot = path.resolve(srcRoot, 'integrations/restringer');
 
 /**
- * Fails when application/UI code imports REstringer integration internals
- * (anything under `integrations/restringer/` other than `index.js`) without
- * going through the narrow allowlist. Only `src/store.js` may import the
- * matching engine directly; all other consumers must use `index.js`.
+ * Layering checks for `src/`:
+ *
+ * 1. Application/UI code must not import REstringer integration internals
+ *    (anything under `integrations/restringer/` other than `index.js`) without
+ *    going through the narrow allowlist. Only `src/store.js` may import the
+ *    matching engine directly; all other consumers must use `index.js`.
+ *
+ * 2. Root-level `src/*.vue` is limited to the app shell (`App.vue`) and an
+ *    explicit allowlist so feature SFCs stay under `src/components/`.
  */
 const importPattern =
   /(?:import|export)\s+[^;]*?from\s+['"]([^'"]+)['"]|import\s*\(\s*['"]([^'"]+)['"]\s*\)/gs;
@@ -19,6 +24,33 @@ const importPattern =
 const allowDeepMatchingEngineImporters = new Set([
   path.resolve(srcRoot, 'store.js'),
 ]);
+
+/** App shell only at src/*.vue; add names here only for intentional exceptions. */
+const ROOT_SRC_VUE_ALLOWLIST = new Set(['App.vue']);
+
+async function assertRootSrcVuePolicy() {
+  const entries = await readdir(srcRoot, {withFileTypes: true});
+  const offenders = [];
+
+  for (const ent of entries) {
+    if (!ent.isFile() || !ent.name.endsWith('.vue')) {
+      continue;
+    }
+
+    if (ROOT_SRC_VUE_ALLOWLIST.has(ent.name)) {
+      continue;
+    }
+
+    offenders.push(ent.name);
+  }
+
+  if (offenders.length) {
+    throw new Error(
+      `Disallowed root-level Vue in src/ (feature components belong under src/components/; ` +
+        `allowlist in scripts/check-boundaries.mjs only if intentional): ${offenders.sort().join(', ')}`,
+    );
+  }
+}
 
 function isIntegrationFile(filePath) {
   const normalized = path.normalize(filePath);
@@ -68,6 +100,8 @@ async function readSourceFiles(rootDir) {
   await walk(rootDir);
   return files;
 }
+
+await assertRootSrcVuePolicy();
 
 const sourceFiles = await readSourceFiles(srcRoot);
 

@@ -1,14 +1,14 @@
 <script setup>
 import {computed, ref} from 'vue';
-import store from './store';
-import CodeEditor from './components/CodeEditor.vue';
-import IconCheck from './components/icons/IconCheck.vue';
-import IconClose from './components/icons/IconClose.vue';
-import IconEye from './components/icons/IconEye.vue';
-import IconFilter from './components/icons/IconFilter.vue';
-import IconPlus from './components/icons/IconPlus.vue';
-import IconStructure from './components/icons/IconStructure.vue';
-import IconTrash from './components/icons/IconTrash.vue';
+import store from '../store';
+import CodeEditor from './CodeEditor.vue';
+import IconCheck from './icons/IconCheck.vue';
+import IconClose from './icons/IconClose.vue';
+import IconEye from './icons/IconEye.vue';
+import IconFilter from './icons/IconFilter.vue';
+import IconPlus from './icons/IconPlus.vue';
+import IconStructure from './icons/IconStructure.vue';
+import IconTrash from './icons/IconTrash.vue';
 
 const props = defineProps({
   createStructure: {
