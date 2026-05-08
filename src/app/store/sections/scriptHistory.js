@@ -1,0 +1,129 @@
+import {parseSource} from '../../../domain/parse/parseSource.js';
+import {cloneValue, normalizeScriptLabel} from '../storeUtils.js';
+
+/**
+ * Parsed source, undo stack, and script metadata shared across the workbench.
+ * @returns {Record<string, unknown>}
+ */
+export function createScriptHistorySection() {
+  return {
+    ast: [],
+    arb: {ast: []},
+    states: [],
+    saveState() {
+      // noinspection JSUnresolvedReference
+      this.states.push({
+        script: this.arb.script,
+        filters: cloneValue(this.filters),
+        steps: cloneValue(this.steps),
+        transformationCode: this.transformationCode,
+      });
+    },
+    revertState() {
+      if (this.states.length) {
+        const state = this.states.pop();
+        // noinspection JSValidateTypes
+        this.loadNewScript(state.script);
+        this.filters = state.filters;
+        this.steps = state.steps;
+        this.transformationCode = state.transformationCode;
+        this.clearKnownStructureTransformPreview();
+        this.selectedPipelineStepIndex = this.steps.length ? this.steps.length - 1 : -1;
+        this.logMessage('Reverted the last applied change', 'info');
+      }
+    },
+    loadNewScript(script) {
+      const inputEditor = this.getEditor(this.editorIds.inputCodeEditor);
+
+      if (inputEditor) {
+        this.setContent(inputEditor, script);
+      }
+
+      const parseRunId = this.bumpParseRunSequence();
+      const parseResult = parseSource(script, {parseRunId});
+      this.arb = parseResult.arborist ?? {ast: [], script: typeof script === 'string' ? script : String(script ?? '')};
+      this.markKnownStructureInputChanged();
+      this.page = 0;
+      this.filteredNodes = this.arb.ast;
+      this.filters.length = 0;
+      this.setSelectedNode(null);
+      this.activeResultMode = 'ast';
+      this.markCurrentInputParsed();
+      this.runKnownStructureMatching();
+    },
+    currentScriptLabel: 'Custom script',
+    currentScriptKind: 'custom',
+    currentScriptBaseline: '',
+    isCurrentScriptModified: true,
+    inputContentVersion: 0,
+    parsedContentVersion: -1,
+    parseRunSequence: 0,
+    bumpParseRunSequence() {
+      this.parseRunSequence += 1;
+      return this.parseRunSequence;
+    },
+    shouldAutoParseInitialInput: true,
+    // eslint-disable-next-line no-unused-vars
+    logMessage(text, level) {},
+    tryAutoParseInitialInput() {
+      return false;
+    },
+    getCurrentScriptContent() {
+      const editorContent = this.getEditor(this.editorIds.inputCodeEditor)?.state?.doc?.toString();
+
+      if (typeof editorContent === 'string') {
+        return editorContent;
+      }
+
+      if (typeof this.arb?.script === 'string') {
+        return this.arb.script;
+      }
+
+      return '';
+    },
+    updateCurrentScriptDirtyState(content = this.getCurrentScriptContent()) {
+      this.isCurrentScriptModified = content !== this.currentScriptBaseline;
+    },
+    handleInputEditorChange() {
+      this.inputContentVersion += 1;
+
+      if (this.parsedContentVersion !== -1 || this.arb?.ast?.length) {
+        this.resetParsedState();
+      }
+    },
+    markCurrentInputParsed() {
+      this.parsedContentVersion = this.inputContentVersion;
+    },
+    hasParsableInput() {
+      return this.getCurrentScriptContent().trim().length > 0;
+    },
+    isCurrentInputParsed() {
+      return this.hasParsableInput() && this.parsedContentVersion === this.inputContentVersion;
+    },
+    canParseCurrentInput() {
+      return this.hasParsableInput() && !this.isCurrentInputParsed();
+    },
+    setCurrentScriptSource({
+      kind = 'custom',
+      label = 'Custom script',
+      baselineContent = this.getCurrentScriptContent(),
+    } = {}) {
+      this.currentScriptKind = kind;
+      this.currentScriptLabel = normalizeScriptLabel(label);
+      this.currentScriptBaseline = typeof baselineContent === 'string' ? baselineContent : '';
+      this.isCurrentScriptModified = false;
+    },
+    markCurrentScriptAsCustom(content = this.getCurrentScriptContent()) {
+      this.currentScriptKind = 'custom';
+      this.currentScriptLabel = 'Custom script';
+      this.updateCurrentScriptDirtyState(content);
+    },
+    getCurrentScriptDisplayName() {
+      return this.isCurrentScriptModified
+        ? `${this.currentScriptLabel}*`
+        : this.currentScriptLabel;
+    },
+    resetParsedState() {},
+    parseContent() {},
+  };
+}

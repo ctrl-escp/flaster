@@ -11,6 +11,7 @@ const matchingEngineConsumerAllowlist = new Set([
   path.normalize(path.resolve(srcRoot, 'store.js')),
   path.normalize(path.resolve(srcRoot, 'app/createAppStore.js')),
   path.normalize(path.resolve(srcRoot, 'app/store/storeBlueprint.js')),
+  path.normalize(path.resolve(srcRoot, 'app/store/sections/knownStructures.js')),
 ]);
 
 /**
@@ -19,8 +20,9 @@ const matchingEngineConsumerAllowlist = new Set([
  * 1. Application/UI code must not import REstringer integration internals
  *    (anything under `integrations/restringer/` other than `index.js` or the
  *    allowlisted `matchingEngine.js`) without going through the public adapter
- *    (`index.js`). The app store facade may import `matchingEngine.js` for
- *    `detectStructures`, `createKnownStructureState`, and session grouping.
+ *    (`index.js`). The app store facade and its `app/store/sections/knownStructures.js`
+ *    module may import `matchingEngine.js` for `detectStructures`, `createKnownStructureState`,
+ *    and session grouping.
  *
  * 2. Root-level `src/*.vue` is limited to the app shell (`App.vue`) and an
  *    explicit allowlist so feature SFCs stay under `src/components/`.
