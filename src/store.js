@@ -9,6 +9,12 @@ import {
 } from './domain/selection/nodeSelection.js';
 import {sourceRangesOverlap} from './domain/structures/matchNormalization.js';
 import {
+  compileNodePredicate,
+  normalizeCustomTransformRunSettings,
+  runCustomTransformExecution,
+} from './domain/transforms/customTransformRuntime.js';
+import {executeKnownStructureTransformApply} from './domain/transforms/transformExecutor.js';
+import {
   createEmptyMatchGroups,
   createExecutionStatus,
   createKnownStructureState,
@@ -240,7 +246,7 @@ function createCustomStructureDescriptor(title, filterSrc, category = 'custom') 
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '') || 'custom';
-  const predicate = eval(`n => ${normalizedFilter}`);
+  const predicate = compileNodePredicate(normalizedFilter);
 
   return {
     id: createCustomStructureId(normalizedTitle),
@@ -1164,7 +1170,8 @@ const store = reactive({
 
     try {
       const normalizedFilter = filterSrc.trim();
-      this.filteredNodes = this.filteredNodes.filter(eval(`n => ${normalizedFilter}`));
+      const predicate = compileNodePredicate(normalizedFilter);
+      this.filteredNodes = this.filteredNodes.filter((node) => predicate(node));
       if (!this.findFilter(normalizedFilter)) {
         this.filters.push({
           src: normalizedFilter,
@@ -1238,25 +1245,6 @@ const store = reactive({
       });
     }
   },
-  normalizeCustomTransformRunSettings(metadata = {}) {
-    const draft = this.templateDrafts['advanced-js-step'] ?? {};
-    const requestedMode = metadata.runMode ?? draft.runMode ?? 'until-stable';
-    const runMode = ['once', 'count', 'until-stable'].includes(requestedMode)
-      ? requestedMode
-      : 'until-stable';
-    const requestedIterations = Number.parseInt(
-      metadata.maxIterations ?? draft.maxIterations ?? 3,
-      10,
-    );
-    const maxIterations = runMode === 'count'
-      ? Math.max(1, Number.isFinite(requestedIterations) ? requestedIterations : 1)
-      : 1;
-
-    return {
-      runMode,
-      maxIterations,
-    };
-  },
   normalizeDeleteStructureRunSettings(metadata = {}) {
     const draft = this.templateDrafts['delete-structure-matches'] ?? {};
     const requestedMode = metadata.runMode ?? draft.runMode ?? 'until-stable';
@@ -1293,49 +1281,25 @@ const store = reactive({
       const structureId = metadata?.selectionSource?.kind === 'known-structure'
         ? metadata.selectionSource.structureId
         : metadata?.params?.structureId;
-      const runSettings = this.normalizeCustomTransformRunSettings(metadata);
-      const firstPassNodes = candidateFilters.length ? null : [...this.filteredNodes];
-      let totalChanges = 0;
-      let iterationCount = 0;
-      const shouldContinue = () => runSettings.runMode === 'until-stable' ||
-        (runSettings.runMode === 'count' && iterationCount < runSettings.maxIterations) ||
-        (runSettings.runMode === 'once' && iterationCount < 1);
+      const runSettings = normalizeCustomTransformRunSettings(
+        metadata,
+        this.templateDrafts['advanced-js-step'] ?? {},
+      );
+      const result = runCustomTransformExecution(this.arb, {
+        body: normalizedSource,
+        structureId: structureId ?? null,
+        candidateFilters,
+        runSettings,
+      });
 
-      while (shouldContinue()) {
-        if (structureId) {
-          const matchRun = runKnownStructureMatcher(this.arb, structureId, {
-            candidateFilter: candidateFilters.length
-              ? (node) => candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node))
-              : () => true,
-          });
-
-          if (matchRun.error) {
-            throw matchRun.error;
-          }
-
-          const matches = matchRun.rawMatches;
-          eval(normalizedSource);
-        } else {
-          const candidateNodes = candidateFilters.length
-            ? this.arb.ast.filter((node) =>
-              candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node)))
-            : iterationCount === 0
-              ? firstPassNodes
-              : this.arb.ast;
-
-          for (const n of candidateNodes) {
-            eval(normalizedSource);
-          }
-        }
-
-        const changes = this.arb.applyChanges();
-        if (changes < 1) {
-          break;
-        }
-
-        totalChanges += changes;
-        iterationCount += 1;
+      if (!result.isDone) {
+        this.states.pop();
+        this.logMessage(`Invalid transformer code: ${result.error?.message ?? 'Unknown error'}`, 'error');
+        return false;
       }
+
+      const totalChanges = result.changesCount;
+      const iterationCount = result.executedIterations ?? 0;
 
       const stepEntry = this.normalizeStepEntry({
         kind: 'custom',
@@ -1482,12 +1446,12 @@ const store = reactive({
     this.saveState();
 
     try {
-      const transformSession = runKnownStructureTransformSession(this.arb, structure.id);
+      const transformResult = executeKnownStructureTransformApply(this.arb, structure.id);
 
-      if (transformSession.error || (transformSession.pendingChanges ?? 0) < 1) {
+      if (!transformResult.isDone || transformResult.changesCount < 1) {
         this.states.pop();
         this.logMessage(
-          transformSession.error?.message ?? `${structure.title} did not produce any pending changes`,
+          transformResult.error?.message ?? `${structure.title} did not produce any pending changes`,
           'error',
         );
         return false;
@@ -1499,25 +1463,29 @@ const store = reactive({
         structureTitle: structure.title,
         moduleName: structure.implementation.moduleName,
         matcherName: structure.implementation.matcherName,
-        transformName: transformSession.transformName,
-        affectedMatchCount: transformSession.targetedMatchCount,
-        appliedChanges: transformSession.pendingChanges ?? 0,
+        transformName: transformResult.transformName,
+        affectedMatchCount: transformResult.targetedMatchCount ?? 0,
+        appliedChanges: transformResult.changesCount,
         appliedAt: new Date().toISOString(),
         sequenceIndex: this.steps.length + 1,
         label: `Apply ${structure.title}`,
         templateType: 'apply-known-transform',
         params: {
           structureId: structure.id,
-          transformName: transformSession.transformName,
+          transformName: transformResult.transformName,
         },
-        previewSummary: `${transformSession.pendingChanges ?? 0} changes across ${transformSession.targetedMatchCount} matches`,
+        previewSummary: `${transformResult.changesCount} changes across ${transformResult.targetedMatchCount ?? 0} matches`,
         selectionSource: {
           kind: 'known-structure',
           structureId: structure.id,
         },
       };
 
-      const applied = this.applyAndUpdateTransformation(null, stepEntry);
+      const applied = this.applyAndUpdateTransformation(
+        null,
+        stepEntry,
+        transformResult.changesCount,
+      );
 
       if (!applied) {
         this.states.pop();
@@ -1784,53 +1752,24 @@ const store = reactive({
       ? step.filters.filter((filter) => filter?.enabled !== false && filter?.src)
       : [];
     const structureId = this.getPipelineStepStructureId(step);
-    const runSettings = this.normalizeCustomTransformRunSettings(step);
-    const firstPassNodes = candidateFilters.length ? null : [...arb.ast];
-    let totalChanges = 0;
-    let iterationCount = 0;
-    const shouldContinue = () => runSettings.runMode === 'until-stable' ||
-      (runSettings.runMode === 'count' && iterationCount < runSettings.maxIterations) ||
-      (runSettings.runMode === 'once' && iterationCount < 1);
+    const runSettings = normalizeCustomTransformRunSettings(
+      step,
+      this.templateDrafts['advanced-js-step'] ?? {},
+    );
+    const result = runCustomTransformExecution(arb, {
+      body: source,
+      structureId: structureId ?? null,
+      candidateFilters,
+      runSettings,
+    });
 
-    while (shouldContinue()) {
-      if (structureId) {
-        const matchRun = runKnownStructureMatcher(arb, structureId, {
-          candidateFilter: candidateFilters.length
-            ? (node) => candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node))
-            : () => true,
-        });
-
-        if (matchRun.error) {
-          throw matchRun.error;
-        }
-
-        const matches = matchRun.rawMatches;
-        eval(source);
-      } else {
-        const candidateNodes = candidateFilters.length
-          ? arb.ast.filter((node) =>
-            candidateFilters.every((filter) => eval(`n => ${filter.src}`)(node)))
-          : iterationCount === 0
-            ? firstPassNodes
-            : arb.ast;
-
-        for (const n of candidateNodes) {
-          eval(source);
-        }
-      }
-
-      const changes = arb.applyChanges();
-      if (changes < 1) {
-        break;
-      }
-
-      totalChanges += changes;
-      iterationCount += 1;
+    if (!result.isDone) {
+      throw result.error;
     }
 
     return {
-      script: arb.script,
-      didMutate: totalChanges > 0,
+      script: result.source,
+      didMutate: result.changesCount > 0,
       transformationCode: source,
     };
   },
@@ -1857,18 +1796,17 @@ const store = reactive({
     if (templateType === 'apply-known-transform' ||
       normalizedStep.kind === 'known-structure-transform') {
       const arb = createArborist(script);
-      const transformSession = runKnownStructureTransformSession(arb, structureId);
+      const transformResult = executeKnownStructureTransformApply(arb, structureId);
 
-      if (transformSession.error) {
-        throw transformSession.error;
+      if (!transformResult.isDone) {
+        throw transformResult.error;
       }
 
-      if ((transformSession.pendingChanges ?? 0) < 1) {
+      if (transformResult.changesCount < 1) {
         return {script, didMutate: false, transformationCode: null};
       }
 
-      arb.applyChanges();
-      return {script: arb.script, didMutate: true, transformationCode: null};
+      return {script: transformResult.source, didMutate: true, transformationCode: null};
     }
 
     if (templateType === 'delete-structure-matches') {
