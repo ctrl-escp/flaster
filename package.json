@@ -14,7 +14,7 @@
 		"check:catalog": "node scripts/verify-structure-catalog.mjs",
 		"check:todos": "node scripts/check-todos.mjs",
 		"check:unused": "knip --no-progress",
-		"check": "npm run check:restringer-safe && npm run check:boundaries && npm run check:catalog && npm run check:todos && npm run check:unused && npm test",
+		"check": "npm run check:restringer-safe && npm run check:boundaries && npm run check:catalog && npm run check:todos && npm run check:unused && npm run lint && npm test",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"preview": "vite preview"
