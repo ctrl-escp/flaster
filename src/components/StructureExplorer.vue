@@ -15,6 +15,7 @@ const {
   store,
   filters,
   expandedStructureId,
+  structureNextNavHintId,
   exampleStructureId,
   showMatchesOnly,
   showDefineStructure,
@@ -233,6 +234,7 @@ const {
           </div>
           <button
             class="structure-nav-btn"
+            :class="{'structure-nav-btn-next-hint': structure.id === structureNextNavHintId}"
             type="button"
             title="Jump to the next match for this structure"
             aria-label="Next structure match"
@@ -875,6 +877,31 @@ h2 {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
   outline: none;
+}
+
+@keyframes structure-nav-next-glow {
+  0%,
+  100% {
+    border-color: rgba(126, 202, 255, 0.38);
+    box-shadow: 0 0 0 0 rgba(126, 202, 255, 0.18);
+  }
+
+  50% {
+    border-color: rgba(126, 202, 255, 0.62);
+    box-shadow: 0 0 14px 3px rgba(126, 202, 255, 0.28);
+  }
+}
+
+.structure-nav-btn.structure-nav-btn-next-hint {
+  animation: structure-nav-next-glow 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .structure-nav-btn.structure-nav-btn-next-hint {
+    animation: none;
+    border-color: rgba(126, 202, 255, 0.48);
+    box-shadow: 0 0 10px rgba(126, 202, 255, 0.22);
+  }
 }
 
 .card-match-status {

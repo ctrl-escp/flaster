@@ -34,6 +34,8 @@ export function useStructureExplorer() {
   });
 
   const expandedStructureId = ref(null);
+  /** Shown on the inline Next match control until the user steps through matches (encourages review before transform/edit). */
+  const structureNextNavHintId = ref(null);
   const currentPage = ref(0);
   const exampleStructureId = ref('');
   const showMatchesOnly = ref(false);
@@ -150,6 +152,9 @@ export function useStructureExplorer() {
     }
 
     store.setSelectedKnownStructureMatch(structureId, nextOrdinal);
+    if (structureNextNavHintId.value === structureId) {
+      structureNextNavHintId.value = null;
+    }
   }
 
   function getCurrentStructureMatchPosition(structureId) {
@@ -337,6 +342,15 @@ export function useStructureExplorer() {
     });
   }
 
+  watch(expandedStructureId, (structureId) => {
+    if (!structureId) {
+      structureNextNavHintId.value = null;
+      return;
+    }
+    const count = store.knownStructureMatchCounts[structureId] ?? 0;
+    structureNextNavHintId.value = count > 0 ? structureId : null;
+  });
+
   watch(
     [
       () => filters.search,
@@ -397,6 +411,7 @@ export function useStructureExplorer() {
     store,
     filters,
     expandedStructureId,
+    structureNextNavHintId,
     currentPage,
     exampleStructureId,
     showMatchesOnly,
