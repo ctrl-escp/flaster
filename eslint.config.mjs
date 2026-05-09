@@ -11,6 +11,8 @@ export default [
       'tmp/',
       'tests/fixtures/**',
       'public/sample-scripts/**',
+      '.claude/**',
+      '.cursor/**',
     ],
   },
   {
