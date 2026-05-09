@@ -8,7 +8,7 @@ import {
 
 describe('customTransformRuntime', () => {
   it('compileNodePredicate matches expression-style filters', () => {
-    const pred = compileNodePredicate(`n.type === 'Identifier' && n.name === 'x'`);
+    const pred = compileNodePredicate('n.type === \'Identifier\' && n.name === \'x\'');
     const arb = new Arborist('const x = 1;');
     const id = arb.ast.find((node) => node.type === 'Identifier' && node.name === 'x');
     expect(pred(id)).toBe(true);

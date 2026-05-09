@@ -106,7 +106,7 @@ export const knownStructureRegistry = Object.freeze([
     category: 'literals',
     description: 'Matches template literals made entirely from static literal content.',
     codeExample: [
-      "const label = `debug mode enabled`;",
+      'const label = `debug mode enabled`;',
       'console.log(label);',
     ].join('\n'),
     noEval: true,
@@ -145,9 +145,9 @@ export const knownStructureRegistry = Object.freeze([
     description: 'Matches `if` statements whose branch outcome is statically determined.',
     codeExample: [
       'if (true) {',
-      "  runVisibleBranch();",
+      '  runVisibleBranch();',
       '} else {',
-      "  runDeadBranch();",
+      '  runDeadBranch();',
       '}',
     ].join('\n'),
     noEval: true,

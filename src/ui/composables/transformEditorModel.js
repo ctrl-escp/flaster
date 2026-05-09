@@ -45,12 +45,12 @@ export function buildApplyCustomTransformationOptions({
       : 'Raw JS transformation using the active filter selection',
     selectionSource: activeStructure
       ? {
-          kind: 'known-structure',
-          structureId: activeStructure.id,
-        }
+        kind: 'known-structure',
+        structureId: activeStructure.id,
+      }
       : {
-          kind: 'advanced-js',
-        },
+        kind: 'advanced-js',
+      },
     filters: structureFilter ? [{src: structureFilter, enabled: true}] : undefined,
     runMode: runSettings.runMode,
     maxIterations: Number.parseInt(String(runSettings.maxIterations ?? ''), 10) || 1,

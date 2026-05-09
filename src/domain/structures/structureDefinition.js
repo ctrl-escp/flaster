@@ -123,7 +123,7 @@ export function validateKnownStructureCatalogRegistry(registry) {
       if (!KNOWN_STRUCTURE_CATALOG_ROW_KEYS.has(key)) {
         throw new Error(
           `Catalog row "${row.id ?? '<unknown>'}" has disallowed key "${key}" ` +
-            `(fixtures and test policy belong in tests/fixtures only).`,
+            '(fixtures and test policy belong in tests/fixtures only).',
         );
       }
 

@@ -25,7 +25,6 @@ export function compileNodePredicate(filterSrc) {
     throw new Error('Empty filter predicate');
   }
 
-  // eslint-disable-next-line no-new-func
   return new Function('n', `return Boolean(${trimmed});`);
 }
 
@@ -63,11 +62,10 @@ function compileTransformBody(body, mode) {
   }
 
   if (mode === 'structure') {
-    // eslint-disable-next-line no-new-func
+
     return new Function('matches', 'arb', `"use strict";\n${trimmed}`);
   }
 
-  // eslint-disable-next-line no-new-func
   return new Function('n', 'arb', `"use strict";\n${trimmed}`);
 }
 

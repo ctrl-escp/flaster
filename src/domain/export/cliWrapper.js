@@ -8,7 +8,7 @@
  */
 export function createPipelinePreamble(importPlan) {
   const lines = [
-    "const inputFilename = process.argv[2];",
+    'const inputFilename = process.argv[2];',
     '',
     'if (!inputFilename) {',
     "  throw new Error('Pass an input filename as the first argument');",
