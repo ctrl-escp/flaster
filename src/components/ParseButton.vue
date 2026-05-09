@@ -103,7 +103,6 @@ onMounted(() => {
 
     store.shouldAutoParseInitialInput = false;
     parseContent({
-      focusExploreNodes: true,
       pulseCodeStructures: true,
     });
     return true;
