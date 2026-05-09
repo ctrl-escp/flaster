@@ -174,7 +174,7 @@ if ([] && logStep('short-circuit-fold')) {
   render();
 }
 
-// Comma Sequences in Returns and If Tests
+// Rearrange Sequences
 function sequenceReturnDemo() {
   {
     {
@@ -204,7 +204,7 @@ function sequenceIfDemo() {
 
 5, 6, 7;
 
-// Switch Statements With Literal Discriminants
+// Rearrange Switches
 let flowStage = 'init';
 
 switch (flowStage) {
@@ -248,7 +248,7 @@ function memberLiteralDemo() {
   return o.x;
 }
 
-// Call and Apply With This Receiver
+// Simplify Calls
 function demoCallApplyHost() {
   function noopForCallApply() {}
 

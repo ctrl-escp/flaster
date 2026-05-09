@@ -4,7 +4,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Proxy Calls',
     categoryGroup: 'obfuscation',
     category: 'calls',
-    description: 'Matches wrapper functions that only forward arguments into another call.',
+    description: 'Matches function declarations whose only statement returns a call, the callee is an identifier, and every parameter is passed through as the same-named argument in order.',
     codeExample: [
       'function proxyCall(a, b) {',
       '  return sum(a, b);',
@@ -25,7 +25,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Proxy Variables',
     categoryGroup: 'obfuscation',
     category: 'variables',
-    description: 'Matches identifier aliases that point directly at another identifier.',
+    description: 'Matches variable declarators whose initializer is another identifier (simple alias), subject to modification and scope checks.',
     codeExample: [
       'const originalValue = computeScore(input);',
       'const aliasedValue = originalValue;',
@@ -44,7 +44,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Proxy References',
     categoryGroup: 'obfuscation',
     category: 'variables',
-    description: 'Matches proxy declarations that redirect reads to another identifier or member expression.',
+    description: 'Matches variable declarators whose initializer is an identifier or member expression (indirection), subject to replacement-safety and modification checks.',
     codeExample: [
       'const state = {',
       "  token: 'abc123',",
@@ -65,7 +65,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Wrapped Value Shells',
     categoryGroup: 'obfuscation',
     category: 'wrappers',
-    description: 'Matches function shells whose only job is to return a wrapped value.',
+    description: 'Matches function declarations whose body is a single `return` whose argument is a literal or an identifier.',
     codeExample: [
       'function revealValue() {',
       "  return 'decoded';",
@@ -85,7 +85,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'IIFE Wrappers',
     categoryGroup: 'obfuscation',
     category: 'wrappers',
-    description: 'Matches immediately invoked wrapper functions that can be unwrapped structurally.',
+    description: 'Matches zero-argument immediately invoked function expressions (or similar call sites) that the unwrapper recognizes as structurally unwrappable.',
     codeExample: [
       'const config = (function () {',
       '  return {retries: 3};',
@@ -103,7 +103,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Template Literal Strings',
     categoryGroup: 'obfuscation',
     category: 'literals',
-    description: 'Matches template literals made entirely from static literal content.',
+    description: 'Matches template literals whose interpolated expressions are all literals (including templates with no interpolations).',
     codeExample: [
       'const label = `debug mode enabled`;',
       'console.log(label);',
@@ -120,7 +120,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Fixed Assigned Values',
     categoryGroup: 'obfuscation',
     category: 'variables',
-    description: 'Matches identifiers assigned a fixed value that can be propagated safely.',
+    description: 'Matches identifier references whose binding is declared with a literal initializer and is not treated as modified by the AST.',
     codeExample: [
       'const statusCode = 200;',
       '',
@@ -140,7 +140,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Deterministic If Statements',
     categoryGroup: 'obfuscation',
     category: 'conditionals',
-    description: 'Matches `if` statements whose branch outcome is statically determined.',
+    description: 'Matches `if` statements whose test is a literal or a unary operator applied to a literal (e.g. `true`, `0`, `-1`).',
     codeExample: [
       'if (true) {',
       '  runVisibleBranch();',
@@ -157,10 +157,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'sequence-rearrangement',
-    title: 'Comma Sequences in Returns and If Tests',
+    title: 'Rearrange Sequences',
     categoryGroup: 'obfuscation',
     category: 'sequences',
-    description: 'Matches return statements and `if` tests whose expression is a comma (sequence) expression.',
+    description: 'Matches `return` statements whose argument is a comma (`SequenceExpression`) with multiple operands, and `if` statements whose test is a comma expression with multiple operands.',
     codeExample: [
       'function viaReturn() {',
       '  return (1, 2, 3);',
@@ -179,10 +179,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'switch-rearrangement',
-    title: 'Switch Statements With Literal Discriminants',
+    title: 'Rearrange Switches',
     categoryGroup: 'obfuscation',
     category: 'control-flow',
-    description: 'Matches `switch` statements on an identifier initialized to a literal, with deterministic case-to-case flow.',
+    description: 'Matches `switch` statements whose discriminant is an identifier declared with a literal initializer (REstringer uses this shape for switch linearization).',
     codeExample: [
       "let mode = 'init';",
       'switch (mode) {',
@@ -206,7 +206,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Computed Members',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
-    description: 'Matches computed member access and property keys that can be normalized to identifier syntax.',
+    description: 'Matches computed `obj[\'prop\']` member reads with a string literal key, computed method names with literal keys, and object literal properties whose key is a string literal that forms a valid identifier.',
     codeExample: [
       'const user = {name: "Ada"};',
       '',
@@ -221,10 +221,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'simplify-calls',
-    title: 'Call and Apply With This Receiver',
+    title: 'Simplify Calls',
     categoryGroup: 'obfuscation',
     category: 'calls',
-    description: 'Matches `.call(this, …)` or `.apply(this, …)` where the first argument is `this` (or an allowed literal), eligible to fold into a direct call.',
+    description: 'Matches member calls where the property is `call` or `apply`, the first argument is `this` or an allowed literal, and the callee is not a function expression (per REstringer’s simplify-calls rules).',
     codeExample: [
       'function host() {',
       '  function f() {}',
@@ -244,7 +244,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Empty Statements',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
-    description: 'Matches stray empty statements (`;`) that are not required for control-flow syntax.',
+    description: 'Matches empty statements (`;`) except those that are the required body of `if`/`for`/`while`/`do` constructs.',
     codeExample: [
       'function example() {',
       '  ;',
@@ -263,7 +263,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Dead Declarations',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
-    description: 'Matches declarations that appear unused in the AST (may miss external definitions or dynamic reads such as eval or bracket access).',
+    description: 'Matches binding identifiers (e.g. in `const`/`let`/`var`, functions, or classes) under a non-program parent that have no recorded references (may miss dynamic use such as `eval` or bracketed property access).',
     codeExample: [
       'function outer() {',
       '  const neverRead = 1;',
@@ -282,7 +282,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Redundant Block Statements',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
-    description: 'Matches block statements nested directly inside another block or the program body where flattening is possible.',
+    description: 'Matches block statements that are direct children of another block or of the program body (nested `{` … `}` wrappers).',
     codeExample: [
       '(function () {',
       '  {',
@@ -301,10 +301,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'logical-expressions-as-if',
-    title: 'Short-Circuit Logical Expression Statements',
+    title: 'Logical Expressions as If',
     categoryGroup: 'obfuscation',
     category: 'conditionals',
-    description: 'Matches expression statements whose top-level expression is `&&` or `||`.',
+    description: 'Matches expression statements whose expression is a logical `&&` or `||` at the top level (candidates for rewriting to explicit `if`).',
     codeExample: [
       'const ready = true;',
       'ready && launch();',
@@ -318,10 +318,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'call-unwrapped-identifier',
-    title: 'Identifier-Only Return Wrapper Calls',
+    title: 'Call Unwrapped Identifier',
     categoryGroup: 'obfuscation',
     category: 'calls',
-    description: 'Matches calls to small functions that only return another identifier or trivial expression, eligible for inlining.',
+    description: 'Matches call expressions whose callee is a function declaration or a `const`/`let`/`var` function expression; the transform only applies when that function’s body is a single `return` of an identifier or a zero-argument call.',
     codeExample: [
       'const value = 1;',
       'function id() {',
@@ -341,7 +341,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Eval String Literals',
     categoryGroup: 'obfuscation',
     category: 'literals',
-    description: 'Matches `eval` calls whose argument is a string literal; replaces them with parsed AST (no execution of eval).',
+    description: 'Matches `eval(...)` call expressions whose first argument is a string literal (the transform parses that string into AST nodes without running `eval`).',
     codeExample: [
       "const n = eval('40 + 2');",
     ].join('\n'),
@@ -357,7 +357,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'IIFE Literal Shells',
     categoryGroup: 'obfuscation',
     category: 'wrappers',
-    description: 'Matches zero-argument IIFEs that only return a literal or identifier, replaceable with that value.',
+    description: 'Matches anonymous function expressions used as the callee of a zero-argument call, with a single `return` of a literal or identifier.',
     codeExample: [
       'const boxed = (function () {',
       '  return 7;',
@@ -372,10 +372,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'fixed-value-after-declaration',
-    title: 'Declarations With Later Literal Assignment',
+    title: 'Fixed Value After Declaration',
     categoryGroup: 'obfuscation',
     category: 'variables',
-    description: 'Matches identifiers declared without an initializer and later assigned exactly one literal value.',
+    description: 'Matches the binding identifier of a `let`/`var`/`const` declarator with no initializer when it has exactly one assignment from a literal and passes safety checks.',
     codeExample: [
       'function f() {',
       '  let v;',
@@ -395,7 +395,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'New Function String Body',
     categoryGroup: 'obfuscation',
     category: 'wrappers',
-    description: 'Matches `new Function(\"…\")()` with a single string body argument and no call arguments, replaceable with parsed code.',
+    description: 'Matches `new Function(<string>)()` patterns: `Function` callee, exactly one string-literal argument, used as the callee of an immediately invoked call with no further arguments.',
     codeExample: [
       "const n = new Function('return 1')();",
     ].join('\n'),
@@ -408,10 +408,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'sequence-expression-split',
-    title: 'Comma Sequence Expression Statements',
+    title: 'Replace Sequences With Expressions',
     categoryGroup: 'obfuscation',
     category: 'sequences',
-    description: 'Matches expression statements whose expression is a comma sequence with multiple operands.',
+    description: 'Matches expression statements whose expression is a `SequenceExpression` (comma operator) with more than one operand.',
     codeExample: [
       '1, 2, 3;',
     ].join('\n'),
@@ -440,10 +440,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'array-index-member-resolution',
-    title: 'Large Array Literal Index Reads',
+    title: 'Array Index Member Resolution',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
-    description: 'Matches large array table initializers (length threshold) whose numeric index reads can be resolved to elements.',
+    description: 'Matches variable declarators initialized to an array literal longer than REstringer’s threshold (numeric index reads on that binding are handled by the transform).',
     codeExample: [
       'const t = [',
       '  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,',
@@ -463,10 +463,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'member-direct-literal-assignment',
-    title: 'Literal Member Assignments',
+    title: 'Member Direct Literal Assignment',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
-    description: 'Matches member assignments to literals where other reads of the same property can be replaced safely.',
+    description: 'Matches member expressions on the left of an assignment to a literal when the object binding has other reads of the same property that the transform can fold (subject to modification checks).',
     codeExample: [
       'function f() {',
       '  const o = {};',
@@ -483,10 +483,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'if-redundant-logical',
-    title: 'If Tests With Redundant Logical Operands',
+    title: 'If Redundant Logical',
     categoryGroup: 'obfuscation',
     category: 'conditionals',
-    description: 'Matches `if` tests that are logical expressions with a deterministically truthy or falsy operand.',
+    description: 'Matches `if` statements whose test is a logical `&&` or `||` where at least one operand has statically known truthiness so the test can be simplified.',
     codeExample: [
       'if ([] && sideEffect()) {',
       '  run();',
@@ -504,7 +504,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Chained Declarators',
     categoryGroup: 'obfuscation',
     category: 'variables',
-    description: 'Matches `var`/`let`/`const` declarations with multiple declarators that can be split into separate declarations.',
+    description: 'Matches `var`/`let`/`const` declarations that declare more than one binding in a single statement.',
     codeExample: [
       'const a = 1, b = 2;',
     ].join('\n'),
@@ -520,7 +520,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Empty If Statements',
     categoryGroup: 'obfuscation',
     category: 'conditionals',
-    description: 'Matches `if` statements with empty consequent, empty alternate, or both, eligible for structural simplification.',
+    description: 'Matches `if` statements with an empty consequent, an empty `else`, or both (empty block or empty statement counts as empty).',
     codeExample: [
       'if (cond) {',
       '  work();',
@@ -536,10 +536,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'function-apply-shells',
-    title: 'Inner Function Apply Wrappers',
+    title: 'Function Apply Shells',
     categoryGroup: 'obfuscation',
     category: 'wrappers',
-    description: 'Matches functions that only return an inner function invoked with `.apply(this, arguments)`.',
+    description: 'Matches function declarations or expressions whose body is a single `return` of a call to `.apply` on an inner *function expression*, with exactly two arguments (`this` and `arguments`).',
     codeExample: [
       'function outer() {',
       '  return function inner() {',
@@ -556,10 +556,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'simple-op-wrapper-calls',
-    title: 'Single-Return Operation Wrappers',
+    title: 'Simple Operation Wrapper Calls',
     categoryGroup: 'obfuscation',
     category: 'calls',
-    description: 'Matches trivial wrappers around binary, logical, unary, or update operations that can be expressed as direct operations on call arguments.',
+    description: 'Matches binary, logical, unary, or update expressions that are the only `return` in a function and use parameters as operands (call sites of that function are updated by the transform).',
     codeExample: [
       'function add(a, b) {',
       '  return a + b;',
