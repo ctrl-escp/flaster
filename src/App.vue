@@ -1,6 +1,7 @@
 <script setup>
 import store from './store';
 import {useAppWorkspaceLayout} from './ui/composables/useAppWorkspaceLayout.js';
+import {useHelpOverlay} from './ui/composables/useHelpOverlay.js';
 import InputCodeEditor from './components/InputCodeEditor.vue';
 import ToasterView from './components/ToasterView.vue';
 import WorkspaceHeader from './components/WorkspaceHeader.vue';
@@ -14,13 +15,19 @@ const {
   startResize,
   setMobileActivePane,
 } = useAppWorkspaceLayout();
+
+const {helpOpen, open: openHelp, close: closeHelp} = useHelpOverlay();
 </script>
 
 <template>
-  <main class="app-shell">
+  <main
+    class="app-shell"
+    :data-help-open="String(helpOpen)"
+    :data-help-close-handler="closeHelp.name"
+  >
     <div ref="workspaceGrid" class="workspace-grid" :style="workspaceGridStyle">
       <section class="header-strip">
-        <workspace-header />
+        <workspace-header @open-help="openHelp" />
       </section>
 
       <aside
