@@ -503,6 +503,122 @@ export function createKnownStructuresSection(knownStructureState) {
 
       return this.knownStructureExecutionStatus;
     },
+    /**
+     * Re-run matching only for the given structure ids and merge into existing results
+     * (keeps match data for other structures).
+     *
+     * @param {string[]} structureIds
+     * @returns {object | null}
+     */
+    refreshKnownStructureMatchingForIds(structureIds = []) {
+      const requestedIds = [...new Set(Array.isArray(structureIds) ? structureIds.filter(Boolean) : [])];
+
+      if (!requestedIds.length) {
+        return null;
+      }
+
+      const hasParsedAst = Array.isArray(this.arb?.ast);
+
+      if (!hasParsedAst) {
+        return null;
+      }
+
+      const runnableIds = requestedIds.filter((structureId) =>
+        this.isKnownStructureRunnable(structureId),
+      );
+
+      if (!runnableIds.length) {
+        return null;
+      }
+
+      const session = detectStructures({
+        source: typeof this.arb?.script === 'string' ? this.arb.script : '',
+        arborist: this.arb,
+        structureIds: runnableIds,
+        catalog: this.availableKnownStructures,
+      });
+
+      const idSet = new Set(runnableIds);
+      const mergedMatches = [
+        ...this.latestKnownStructureMatches.filter((match) => !idSet.has(match.structureId)),
+        ...session.matches,
+      ];
+
+      const mergedMatchesById = {...this.knownStructureMatchesById};
+      for (const run of session.runs) {
+        mergedMatchesById[run.structureId] = [...run.matches];
+      }
+
+      const mergedCounts = {...this.knownStructureMatchCounts};
+      for (const structureId of runnableIds) {
+        mergedCounts[structureId] = session.matchCounts[structureId] ?? 0;
+      }
+
+      const mergedErrors = {...this.knownStructureExecutionErrors};
+      for (const structureId of runnableIds) {
+        const err = session.errors[structureId];
+
+        if (err) {
+          mergedErrors[structureId] = err;
+        } else {
+          delete mergedErrors[structureId];
+        }
+      }
+
+      this.latestKnownStructureMatches = mergedMatches;
+      this.knownStructureMatchesById = mergedMatchesById;
+      this.knownStructureMatchCounts = mergedCounts;
+      this.knownStructureExecutionErrors = mergedErrors;
+      this.knownStructureGroupedMatches = groupStructureMatches(mergedMatches);
+
+      this.knownStructureExecutionStatus = {
+        state: 'complete',
+        totalStructures: runnableIds.length,
+        completedStructures: session.runs.length,
+        runnableStructures: session.structureIds.length,
+        blockedStructures: runnableIds.length - session.structureIds.length,
+        totalMatches: mergedMatches.length,
+        lastRunAt: session.ranAt,
+      };
+
+      this.lastKnownStructureRunIds = [...new Set([...this.lastKnownStructureRunIds, ...session.structureIds])];
+      this.lastKnownStructureRunInputVersion = this.knownStructureInputVersion;
+      this.lastKnownStructureRunSelectionVersion = this.knownStructureSelectionVersion;
+
+      for (const structureId of session.structureIds) {
+        const rememberedIndex = this.knownStructureSelectionById[structureId];
+        const nextMatches = this.getKnownStructureMatches(structureId);
+
+        if (!nextMatches.length) {
+          continue;
+        }
+
+        const matchingSelection = Number.isInteger(rememberedIndex)
+          ? nextMatches.find((match) => match.metadata?.matchOrdinal === rememberedIndex) ?? null
+          : null;
+
+        this.knownStructureSelectionById = {
+          ...this.knownStructureSelectionById,
+          [structureId]: (matchingSelection ?? nextMatches[0]).metadata.matchOrdinal,
+        };
+      }
+
+      const restoredMatch = this.restoreKnownStructureSelection(this.activeKnownStructureId);
+      this.clearKnownStructureTransformPreview();
+
+      if (!this.inspectedKnownStructureId) {
+        this.setInspectedKnownStructure(this.activeKnownStructureId);
+      }
+
+      this.setSelectedNode(
+        restoredMatch ? nodeForMatchSelection(restoredMatch) : null,
+        restoredMatch ? 'match' : null,
+      );
+
+      this.refreshKnownStructureHighlights();
+
+      return this.knownStructureExecutionStatus;
+    },
     runActiveKnownStructureMatching() {
       if (!this.activeKnownStructureId || !this.isKnownStructureRunnable(this.activeKnownStructureId)) {
         return this.runKnownStructureMatching([]);

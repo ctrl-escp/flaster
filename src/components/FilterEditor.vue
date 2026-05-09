@@ -26,7 +26,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['complete']);
+const emit = defineEmits(['complete', 'cancel']);
 
 const initialValue = `// write content for the filter function \`(n) => {<your code>}\`, like:
 n.type === 'Literal' &&
@@ -238,8 +238,17 @@ function finalizeEditStructure(filterSrc, selectedCategory) {
     return;
   }
 
+  if (store.isCurrentInputParsed()) {
+    store.refreshKnownStructureMatchingForIds([structureId]);
+  }
+
   resetStructureForm();
   emit('complete', nextStructure);
+}
+
+function cancelStructureEdit() {
+  pendingStructureCreation.value = null;
+  emit('cancel');
 }
 
 function addNewStructure() {
@@ -319,11 +328,35 @@ watch(
         <div class="card-header">
           <h4>Structure rule</h4>
           <div class="card-actions">
+            <template v-if="createStructure && editStructureId">
+              <div class="structure-editor-primary-actions">
+                <button
+                  class="mini-btn emphasis structure-save-btn"
+                  type="button"
+                  :title="structureSaveActionTitle"
+                  aria-label="Save structure changes"
+                  @click="addNewStructure()"
+                >
+                  <icon-check />
+                  <span>Save</span>
+                </button>
+                <button
+                  class="mini-btn structure-cancel-btn"
+                  type="button"
+                  title="Discard changes and close the editor"
+                  aria-label="Cancel editing structure"
+                  @click="cancelStructureEdit()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </template>
             <button
+              v-else
               class="mini-btn icon-btn icon-btn-sm emphasis"
               type="button"
               :title="createStructure ? structureSaveActionTitle : 'Save the current filter editor code as a reusable filter'"
-              :aria-label="createStructure ? (editStructureId ? 'Save structure changes' : 'Add new structure') : 'Add filter'"
+              :aria-label="createStructure ? 'Add new structure' : 'Add filter'"
               @click="createStructure ? addNewStructure() : addNewFilter()"
             >
               <icon-plus />
@@ -753,6 +786,30 @@ watch(
 .mini-btn.emphasis:focus-visible:not(:disabled) {
   background: linear-gradient(135deg, #ffc778 0%, #ff9c60 100%);
   border-color: transparent;
+}
+
+.structure-editor-primary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.structure-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.75rem;
+}
+
+.structure-save-btn svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.structure-cancel-btn {
+  padding: 0.42rem 0.75rem;
 }
 
 .editor-shell :deep(.code-editor) {

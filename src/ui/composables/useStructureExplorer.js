@@ -271,6 +271,11 @@ export function useStructureExplorer() {
     void revealNewStructureInList(created);
   }
 
+  function cancelStructureEditor() {
+    showDefineStructure.value = false;
+    structureEditorSession.value = null;
+  }
+
   async function copyExample() {
     if (!exampleStructure.value?.codeExample) {
       return;
@@ -429,6 +434,7 @@ export function useStructureExplorer() {
     openExample,
     closeExample,
     handleStructureCreated,
+    cancelStructureEditor,
     toggleDefineStructurePanel,
     openStructureEditorForEdit,
     openStructureEditorForFork,

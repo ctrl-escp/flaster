@@ -49,6 +49,7 @@ const {
   openExample,
   closeExample,
   handleStructureCreated,
+  cancelStructureEditor,
   toggleDefineStructurePanel,
   openStructureEditorForEdit,
   openStructureEditorForFork,
@@ -166,6 +167,7 @@ const {
       create-structure
       :editor-session="structureEditorSession"
       @complete="handleStructureCreated"
+      @cancel="cancelStructureEditor"
     />
 
     <div v-else ref="structureList" class="structure-list">
