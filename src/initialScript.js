@@ -140,7 +140,7 @@ if (false) {
   runVisibleBranch();
 }
 
-// Sequence Rearrangement
+// Comma Sequences in Returns and If Tests
 const result = (
   logStep('first'),
   logStep('second'),
@@ -154,7 +154,7 @@ const pipelineResult = (
   finalizeStep()
 );
 
-// Switch Rearrangement
+// Switch Statements With Literal Discriminants
 switch (state.mode) {
   case 'init':
     state.mode = 'ready';
@@ -184,15 +184,9 @@ const roleKey = 'role';
 console.log(user[propertyName]);
 console.log(profile[roleKey]);
 
-// Simplify Calls
-const math = {
-  add(left, right) {
-    return left + right;
-  },
-  subtract(left, right) {
-    return left - right;
-  },
-};
+// Call and Apply With This Receiver
+function demoCallApplyHost() {
+  function noopForCallApply() {}
 
-const value = math['add'](4, 5);
-const difference = math['subtract'](9, 4);
+  noopForCallApply.call(this, 1);
+}

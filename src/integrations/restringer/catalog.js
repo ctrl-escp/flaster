@@ -159,10 +159,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'sequence-rearrangement',
-    title: 'Sequence Rearrangement',
+    title: 'Comma Sequences in Returns and If Tests',
     categoryGroup: 'obfuscation',
     category: 'sequences',
-    description: 'Matches sequence expressions that can be expanded into a clearer execution order.',
+    description: 'Matches return statements and `if` tests whose expression is a comma (sequence) expression.',
     codeExample: [
       'const result = (',
       "  logStep('first'),",
@@ -179,10 +179,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'switch-rearrangement',
-    title: 'Switch Rearrangement',
+    title: 'Switch Statements With Literal Discriminants',
     categoryGroup: 'obfuscation',
     category: 'control-flow',
-    description: 'Matches switch statements whose case order can be rearranged into a more direct flow.',
+    description: 'Matches `switch` statements on an identifier initialized to a literal, with deterministic case-to-case flow.',
     codeExample: [
       'switch (state) {',
       "  case 'init':",
@@ -221,18 +221,14 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'simplify-calls',
-    title: 'Simplify Calls',
+    title: 'Call and Apply With This Receiver',
     categoryGroup: 'obfuscation',
     category: 'calls',
-    description: 'Matches call expressions that can be simplified without executing code.',
+    description: 'Matches `.call(this, …)` or `.apply(this, …)` where the first argument is `this` (or an allowed literal), eligible to fold into a direct call.',
     codeExample: [
-      'const math = {',
-      '  add(left, right) {',
-      '    return left + right;',
-      '  },',
-      '};',
+      'function f() {}',
       '',
-      "const value = math['add'](4, 5);",
+      'f.call(this, 1);',
     ].join('\n'),
     noEval: true,
     executionMode: 'no-eval',
@@ -303,10 +299,10 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'logical-expressions-as-if',
-    title: 'Logical Expressions as If',
+    title: 'Short-Circuit Logical Expression Statements',
     categoryGroup: 'obfuscation',
     category: 'conditionals',
-    description: 'Matches expression statements whose top-level expression is `&&` or `||`, convertible to explicit `if` form.',
+    description: 'Matches expression statements whose top-level expression is `&&` or `||`.',
     codeExample: [
       'const ready = true;',
       'ready && launch();',
@@ -320,7 +316,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'call-unwrapped-identifier',
-    title: 'Call Unwrapped Identifier',
+    title: 'Identifier-Only Return Wrapper Calls',
     categoryGroup: 'obfuscation',
     category: 'calls',
     description: 'Matches calls to small functions that only return another identifier or trivial expression, eligible for inlining.',
@@ -374,7 +370,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'fixed-value-after-declaration',
-    title: 'Fixed Value After Declaration',
+    title: 'Declarations With Later Literal Assignment',
     categoryGroup: 'obfuscation',
     category: 'variables',
     description: 'Matches identifiers declared without an initializer and later assigned exactly one literal value.',
@@ -410,7 +406,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'sequence-expression-split',
-    title: 'Sequence Expression Split',
+    title: 'Comma Sequence Expression Statements',
     categoryGroup: 'obfuscation',
     category: 'sequences',
     description: 'Matches expression statements whose expression is a comma sequence with multiple operands.',
@@ -442,7 +438,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'array-index-member-resolution',
-    title: 'Array Index Member Resolution',
+    title: 'Large Array Literal Index Reads',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
     description: 'Matches large array table initializers (length threshold) whose numeric index reads can be resolved to elements.',
@@ -460,7 +456,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'member-direct-literal-assignment',
-    title: 'Member Direct Literal Assignment',
+    title: 'Literal Member Assignments',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
     description: 'Matches member assignments to literals where other reads of the same property can be replaced safely.',
@@ -480,7 +476,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'if-redundant-logical',
-    title: 'If Redundant Logical',
+    title: 'If Tests With Redundant Logical Operands',
     categoryGroup: 'obfuscation',
     category: 'conditionals',
     description: 'Matches `if` tests that are logical expressions with a deterministically truthy or falsy operand.',
@@ -514,7 +510,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'if-empty-branch-prune',
-    title: 'If Empty Branch Prune',
+    title: 'Empty If Statements',
     categoryGroup: 'obfuscation',
     category: 'conditionals',
     description: 'Matches `if` statements with empty consequent, empty alternate, or both, eligible for structural simplification.',
@@ -533,7 +529,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'function-apply-shells',
-    title: 'Function Apply Shells',
+    title: 'Inner Function Apply Wrappers',
     categoryGroup: 'obfuscation',
     category: 'wrappers',
     description: 'Matches functions that only return an inner function invoked with `.apply(this, arguments)`.',
@@ -553,7 +549,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'simple-op-wrapper-calls',
-    title: 'Simple Operation Wrapper Calls',
+    title: 'Single-Return Operation Wrappers',
     categoryGroup: 'obfuscation',
     category: 'calls',
     description: 'Matches trivial wrappers around binary, logical, unary, or update operations that can be expressed as direct operations on call arguments.',
