@@ -23,14 +23,14 @@ import {Arborist} from 'flast/src/arborist.js';
  */
 export function normalizeParseDiagnostics(raw) {
   const out = /** @type {ParseDiagnostic[]} */ ([]);
-  if (raw == null) {
+  if (raw === null || raw === undefined) {
     return out;
   }
 
   const list = Array.isArray(raw) ? raw : [raw];
 
   for (const item of list) {
-    if (item == null) {
+    if (item === null || item === undefined) {
       continue;
     }
 

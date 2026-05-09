@@ -71,7 +71,7 @@ describe('structure catalog integrity', () => {
       expect(block.fixtures?.length ?? 0).toBeGreaterThan(0);
       const first = block.fixtures[0];
       expect(first.path?.length ?? 0).toBeGreaterThan(0);
-      if (first.expectedMinMatches != null) {
+      if (first.expectedMinMatches !== null && first.expectedMinMatches !== undefined) {
         expect(first.expectedMinMatches).toBeGreaterThanOrEqual(1);
       }
     }
