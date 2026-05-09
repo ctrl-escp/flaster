@@ -6,6 +6,7 @@ import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
 import IconBandaid from './icons/IconBandaid.vue';
+import IconBeautify from './icons/IconBeautify.vue';
 import IconGithub from './icons/IconGithub.vue';
 import IconReset from './icons/IconReset.vue';
 
@@ -25,6 +26,7 @@ const dependencyVersions = computed(() => ([
   },
 ]));
 const canUndo = computed(() => store.states.length > 0);
+const canBeautify = computed(() => store.hasParsableInput());
 const bandaidAnimationStyle = ref(createBandaidAnimationStyle());
 
 let bandaidAnimationTimer = null;
@@ -68,6 +70,17 @@ onBeforeUnmount(() => {
     <div class="header-actions">
       <file-loader />
       <parse-button />
+      <button
+        class="header-btn header-btn-secondary header-btn-text"
+        type="button"
+        :disabled="!canBeautify"
+        :title="canBeautify ? 'Reformat the script using flAST parse and generate (once)' : 'Add or load a script before beautifying'"
+        aria-label="Beautify script"
+        @click="store.beautifyInputScript()"
+      >
+        <icon-beautify class="header-icon" />
+        <span>Beautify</span>
+      </button>
       <button
         class="header-btn header-btn-secondary header-btn-text"
         type="button"

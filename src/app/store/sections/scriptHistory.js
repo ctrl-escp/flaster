@@ -1,3 +1,4 @@
+import {generateCode, generateRootNode} from 'flast';
 import {parseSource} from '../../../domain/parse/parseSource.js';
 import {cloneValue, normalizeScriptLabel} from '../storeUtils.js';
 
@@ -10,10 +11,15 @@ export function createScriptHistorySection() {
     ast: [],
     arb: {ast: []},
     states: [],
-    saveState() {
+    /**
+     * @param {{script?: string}} [overrides] When `script` is set, that snapshot is used for revert instead of `arb.script`.
+     */
+    saveState(overrides = {}) {
+      const scriptSnapshot =
+        typeof overrides.script === 'string' ? overrides.script : this.arb.script;
       // noinspection JSUnresolvedReference
       this.states.push({
-        script: this.arb.script,
+        script: scriptSnapshot,
         filters: cloneValue(this.filters),
         steps: cloneValue(this.steps),
         transformationCode: this.transformationCode,
@@ -31,6 +37,48 @@ export function createScriptHistorySection() {
         this.selectedPipelineStepIndex = this.steps.length ? this.steps.length - 1 : -1;
         this.logMessage('Reverted the last applied change', 'info');
       }
+    },
+    beautifyInputScript() {
+      const code = this.getCurrentScriptContent();
+      if (!code.trim()) {
+        return false;
+      }
+
+      const filtersSnapshot = cloneValue(this.filters);
+      const stepsSnapshot = cloneValue(this.steps);
+      const transformationSnapshot = this.transformationCode;
+
+      this.saveState({script: code});
+
+      const rootNode = generateRootNode(code);
+      if (!rootNode) {
+        this.states.pop();
+        this.logMessage('Unable to beautify: script could not be parsed', 'error');
+        return false;
+      }
+
+      let beautified;
+      try {
+        beautified = generateCode(rootNode);
+      } catch (error) {
+        this.states.pop();
+        this.logMessage(`Unable to beautify: ${error.message}`, 'error');
+        return false;
+      }
+
+      if (beautified === code) {
+        this.states.pop();
+        this.logMessage('Script is already formatted', 'info');
+        return true;
+      }
+
+      this.loadNewScript(beautified);
+      this.filters = filtersSnapshot;
+      this.steps = stepsSnapshot;
+      this.transformationCode = transformationSnapshot;
+      this.selectedPipelineStepIndex = this.steps.length ? this.steps.length - 1 : -1;
+      this.logMessage('Script beautified', 'info');
+      return true;
     },
     loadNewScript(script) {
       const inputEditor = this.getEditor(this.editorIds.inputCodeEditor);
