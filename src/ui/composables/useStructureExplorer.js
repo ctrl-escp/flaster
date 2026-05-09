@@ -199,8 +199,49 @@ export function useStructureExplorer() {
     exampleStructureId.value = '';
   }
 
-  function handleStructureCreated() {
+  async function revealNewStructureInList(created) {
+    if (!created?.id) {
+      return;
+    }
+
+    showMatchesOnly.value = false;
+    filters.search = '';
+    filters.categoryGroup = created.categoryGroup ?? 'user-defined';
+    filters.category = created.category ?? '';
+
+    expandedStructureId.value = created.id;
     showDefineStructure.value = false;
+
+    await nextTick();
+
+    const targetIndex = visibleStructures.value.findIndex((structure) => structure.id === created.id);
+    if (targetIndex >= 0) {
+      currentPage.value = Math.floor(targetIndex / PAGE_SIZE);
+    }
+
+    await nextTick();
+
+    const container = structureList.value;
+    const targetCard = container?.querySelector(`[data-structure-id="${created.id}"]`);
+
+    if (!container || !targetCard) {
+      return;
+    }
+
+    const maxScrollTop = Math.max(0, container.scrollHeight - container.clientHeight);
+    const targetScrollTop = Math.min(
+      Math.max(0, targetCard.offsetTop - container.offsetTop),
+      maxScrollTop,
+    );
+
+    container.scrollTo({
+      top: targetScrollTop,
+      behavior: 'smooth',
+    });
+  }
+
+  function handleStructureCreated(created) {
+    revealNewStructureInList(created);
   }
 
   async function copyExample() {
