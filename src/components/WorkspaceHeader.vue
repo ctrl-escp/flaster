@@ -10,6 +10,8 @@ import IconBeautify from './icons/IconBeautify.vue';
 import IconGithub from './icons/IconGithub.vue';
 import IconReset from './icons/IconReset.vue';
 
+const emit = defineEmits(['open-help']);
+
 const BANDAID_ROTATIONS = [90, 180, 270];
 const BANDAID_ANIMATION_MS = 30000;
 
@@ -122,6 +124,15 @@ onBeforeUnmount(() => {
             {{ dependency.label }} v{{ dependency.version }}
           </a>
         </div>
+        <button
+          class="header-btn icon-btn"
+          type="button"
+          title="Open help (F1)"
+          aria-label="Open help"
+          @click="emit('open-help')"
+        >
+          <span class="header-help-mark" aria-hidden="true">?</span>
+        </button>
         <div class="github-link-wrap" title="View project on GitHub">
           <a
             class="github-link"
@@ -294,6 +305,11 @@ h1 {
   align-items: center;
 }
 
+/* Help control: typographic ? in a fixed-size .icon-btn box — center on both axes */
+.header-btn.icon-btn {
+  justify-content: center;
+}
+
 .header-btn-secondary {
   background: rgba(255, 255, 255, 0.04);
 }
@@ -318,6 +334,12 @@ h1 {
 .header-icon {
   width: 1rem;
   height: 1rem;
+}
+
+.header-help-mark {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .github-link-wrap {
