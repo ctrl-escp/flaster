@@ -103,14 +103,10 @@ const luckyNumber = revealNumber();
 
 // IIFE Wrappers
 const config = (function () {
-  const retries = 3;
-  return {retries};
+  return {retries: 3};
 }());
 
-const featureFlags = (() => {
-  const beta = true;
-  return {beta};
-})();
+const featureFlags = (() => ({beta: true}))();
 
 // Template Literal Strings
 const label = `debug mode enabled`;
@@ -120,10 +116,8 @@ console.log(banner);
 
 // Fixed Assigned Values
 const statusCode = 200;
-const responseCode = statusCode;
-const okCode = responseCode;
 
-if (okCode === 200) {
+if (statusCode === 200) {
   console.log('ok');
 }
 
@@ -141,23 +135,32 @@ if (false) {
 }
 
 // Comma Sequences in Returns and If Tests
-const result = (
-  logStep('first'),
-  logStep('second'),
-  finalizeStep()
-);
+function sequenceReturnDemo() {
+  return (
+    logStep('first'),
+    logStep('second'),
+    finalizeStep()
+  );
+}
 
-const pipelineResult = (
-  logStep('prepare'),
-  logStep('execute'),
-  logStep('finish'),
-  finalizeStep()
-);
+function sequenceIfDemo() {
+  if (
+    (
+      logStep('prepare'),
+      logStep('execute'),
+      true
+    )
+  ) {
+    render();
+  }
+}
 
 // Switch Statements With Literal Discriminants
-switch (state.mode) {
+let flowStage = 'init';
+
+switch (flowStage) {
   case 'init':
-    state.mode = 'ready';
+    flowStage = 'ready';
     break;
   case 'ready':
     render();
@@ -177,12 +180,9 @@ switch (lifecycleStage) {
 
 // Computed Members
 const user = {name: 'Ada'};
-const propertyName = 'name';
-const profile = {role: 'analyst'};
-const roleKey = 'role';
 
-console.log(user[propertyName]);
-console.log(profile[roleKey]);
+console.log(user['name']);
+console['log'](user.name);
 
 // Call and Apply With This Receiver
 function demoCallApplyHost() {
