@@ -1,15 +1,33 @@
 import * as normalizeComputedModule from 'restringer/src/modules/safe/normalizeComputed.js';
+import * as normalizeEmptyStatementsModule from 'restringer/src/modules/safe/normalizeEmptyStatements.js';
 import * as parseTemplateLiteralsIntoStringLiteralsModule from 'restringer/src/modules/safe/parseTemplateLiteralsIntoStringLiterals.js';
 import * as rearrangeSequencesModule from 'restringer/src/modules/safe/rearrangeSequences.js';
 import * as rearrangeSwitchesModule from 'restringer/src/modules/safe/rearrangeSwitches.js';
+import * as removeDeadNodesModule from 'restringer/src/modules/safe/removeDeadNodes.js';
+import * as removeRedundantBlockStatementsModule from 'restringer/src/modules/safe/removeRedundantBlockStatements.js';
+import * as replaceBooleanExpressionsWithIfModule from 'restringer/src/modules/safe/replaceBooleanExpressionsWithIf.js';
+import * as replaceCallExpressionsWithUnwrappedIdentifierModule from 'restringer/src/modules/safe/replaceCallExpressionsWithUnwrappedIdentifier.js';
+import * as replaceEvalCallsWithLiteralContentModule from 'restringer/src/modules/safe/replaceEvalCallsWithLiteralContent.js';
 import * as replaceFunctionShellsWithWrappedValueModule from 'restringer/src/modules/safe/replaceFunctionShellsWithWrappedValue.js';
+import * as replaceFunctionShellsWithWrappedValueIIFEModule from 'restringer/src/modules/safe/replaceFunctionShellsWithWrappedValueIIFE.js';
 import * as replaceIdentifierWithFixedAssignedValueModule from 'restringer/src/modules/safe/replaceIdentifierWithFixedAssignedValue.js';
+import * as replaceIdentifierWithFixedValueNotAssignedAtDeclarationModule from 'restringer/src/modules/safe/replaceIdentifierWithFixedValueNotAssignedAtDeclaration.js';
+import * as replaceNewFuncCallsWithLiteralContentModule from 'restringer/src/modules/safe/replaceNewFuncCallsWithLiteralContent.js';
+import * as replaceSequencesWithExpressionsModule from 'restringer/src/modules/safe/replaceSequencesWithExpressions.js';
 import * as resolveDeterministicIfStatementsModule from 'restringer/src/modules/safe/resolveDeterministicIfStatements.js';
+import * as resolveFunctionConstructorCallsModule from 'restringer/src/modules/safe/resolveFunctionConstructorCalls.js';
+import * as resolveMemberExpressionReferencesToArrayIndexModule from 'restringer/src/modules/safe/resolveMemberExpressionReferencesToArrayIndex.js';
+import * as resolveMemberExpressionsWithDirectAssignmentModule from 'restringer/src/modules/safe/resolveMemberExpressionsWithDirectAssignment.js';
 import * as resolveProxyCallsModule from 'restringer/src/modules/safe/resolveProxyCalls.js';
 import * as resolveProxyReferencesModule from 'restringer/src/modules/safe/resolveProxyReferences.js';
 import * as resolveProxyVariablesModule from 'restringer/src/modules/safe/resolveProxyVariables.js';
+import * as resolveRedundantLogicalExpressionsModule from 'restringer/src/modules/safe/resolveRedundantLogicalExpressions.js';
+import * as separateChainedDeclaratorsModule from 'restringer/src/modules/safe/separateChainedDeclarators.js';
 import * as simplifyCallsModule from 'restringer/src/modules/safe/simplifyCalls.js';
+import * as simplifyIfStatementsModule from 'restringer/src/modules/safe/simplifyIfStatements.js';
+import * as unwrapFunctionShellsModule from 'restringer/src/modules/safe/unwrapFunctionShells.js';
 import * as unwrapIIFEsModule from 'restringer/src/modules/safe/unwrapIIFEs.js';
+import * as unwrapSimpleOperationsModule from 'restringer/src/modules/safe/unwrapSimpleOperations.js';
 import {areReferencesModified} from 'restringer/src/modules/utils/areReferencesModified.js';
 import {createNewNode} from 'restringer/src/modules/utils/createNewNode.js';
 import {createOrderedSrc} from 'restringer/src/modules/utils/createOrderedSrc.js';
@@ -58,17 +76,35 @@ import {
 
 const safeModules = Object.freeze({
   normalizeComputed: normalizeComputedModule,
+  normalizeEmptyStatements: normalizeEmptyStatementsModule,
   parseTemplateLiteralsIntoStringLiterals: parseTemplateLiteralsIntoStringLiteralsModule,
   rearrangeSequences: rearrangeSequencesModule,
   rearrangeSwitches: rearrangeSwitchesModule,
+  removeDeadNodes: removeDeadNodesModule,
+  removeRedundantBlockStatements: removeRedundantBlockStatementsModule,
+  replaceBooleanExpressionsWithIf: replaceBooleanExpressionsWithIfModule,
+  replaceCallExpressionsWithUnwrappedIdentifier: replaceCallExpressionsWithUnwrappedIdentifierModule,
+  replaceEvalCallsWithLiteralContent: replaceEvalCallsWithLiteralContentModule,
   replaceFunctionShellsWithWrappedValue: replaceFunctionShellsWithWrappedValueModule,
+  replaceFunctionShellsWithWrappedValueIIFE: replaceFunctionShellsWithWrappedValueIIFEModule,
   replaceIdentifierWithFixedAssignedValue: replaceIdentifierWithFixedAssignedValueModule,
+  replaceIdentifierWithFixedValueNotAssignedAtDeclaration: replaceIdentifierWithFixedValueNotAssignedAtDeclarationModule,
+  replaceNewFuncCallsWithLiteralContent: replaceNewFuncCallsWithLiteralContentModule,
+  replaceSequencesWithExpressions: replaceSequencesWithExpressionsModule,
   resolveDeterministicIfStatements: resolveDeterministicIfStatementsModule,
+  resolveFunctionConstructorCalls: resolveFunctionConstructorCallsModule,
+  resolveMemberExpressionReferencesToArrayIndex: resolveMemberExpressionReferencesToArrayIndexModule,
+  resolveMemberExpressionsWithDirectAssignment: resolveMemberExpressionsWithDirectAssignmentModule,
   resolveProxyCalls: resolveProxyCallsModule,
   resolveProxyReferences: resolveProxyReferencesModule,
   resolveProxyVariables: resolveProxyVariablesModule,
+  resolveRedundantLogicalExpressions: resolveRedundantLogicalExpressionsModule,
+  separateChainedDeclarators: separateChainedDeclaratorsModule,
   simplifyCalls: simplifyCallsModule,
+  simplifyIfStatements: simplifyIfStatementsModule,
+  unwrapFunctionShells: unwrapFunctionShellsModule,
   unwrapIIFEs: unwrapIIFEsModule,
+  unwrapSimpleOperations: unwrapSimpleOperationsModule,
 });
 
 const structureRegistryDefinitions = Object.freeze(

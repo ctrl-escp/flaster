@@ -132,4 +132,184 @@ export const STRUCTURE_FIXTURE_MANIFEST = Object.freeze([
       },
     ],
   },
+  {
+    structureName: 'empty-statements',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/empty-statements.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'dead-node-declarations',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/dead-node-declarations.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'redundant-block-statements',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/redundant-block-statements.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'logical-expressions-as-if',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/logical-expressions-as-if.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'call-unwrapped-identifier',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/call-unwrapped-identifier.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'eval-string-literals',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/eval-string-literals.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'iife-literal-shells',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/iife-literal-shells.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'fixed-value-after-declaration',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/fixed-value-after-declaration.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'new-function-string-body',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/new-function-string-body.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'sequence-expression-split',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/sequence-expression-split.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'function-constructor-literals',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/function-constructor-literals.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'array-index-member-resolution',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/array-index-member-resolution.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'member-direct-literal-assignment',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/member-direct-literal-assignment.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'if-redundant-logical',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/if-redundant-logical.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'chained-declarators',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/chained-declarators.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'if-empty-branch-prune',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/if-empty-branch-prune.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'function-apply-shells',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/function-apply-shells.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'simple-op-wrapper-calls',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/simple-op-wrapper-calls.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
 ]);
