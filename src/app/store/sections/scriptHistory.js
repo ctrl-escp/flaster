@@ -11,6 +11,8 @@ export function createScriptHistorySection() {
     ast: [],
     arb: {ast: []},
     states: [],
+    /** @type {string | null} When set, Beautify stays disabled until the input differs from this string. */
+    lastBeautifiedContent: null,
     /**
      * @param {{script?: string}} [overrides] When `script` is set, that snapshot is used for revert instead of `arb.script`.
      */
@@ -68,6 +70,7 @@ export function createScriptHistorySection() {
 
       if (beautified === code) {
         this.states.pop();
+        this.lastBeautifiedContent = code;
         this.logMessage('Script is already formatted', 'info');
         return true;
       }
@@ -77,10 +80,12 @@ export function createScriptHistorySection() {
       this.steps = stepsSnapshot;
       this.transformationCode = transformationSnapshot;
       this.selectedPipelineStepIndex = this.steps.length ? this.steps.length - 1 : -1;
+      this.lastBeautifiedContent = beautified;
       this.logMessage('Script beautified', 'info');
       return true;
     },
     loadNewScript(script) {
+      this.lastBeautifiedContent = null;
       const inputEditor = this.getEditor(this.editorIds.inputCodeEditor);
 
       if (inputEditor) {
@@ -145,6 +150,17 @@ export function createScriptHistorySection() {
     hasParsableInput() {
       return this.getCurrentScriptContent().trim().length > 0;
     },
+    canBeautifyInput() {
+      if (!this.hasParsableInput()) {
+        return false;
+      }
+
+      if (this.lastBeautifiedContent === null) {
+        return true;
+      }
+
+      return this.getCurrentScriptContent() !== this.lastBeautifiedContent;
+    },
     isCurrentInputParsed() {
       return this.hasParsableInput() && this.parsedContentVersion === this.inputContentVersion;
     },
@@ -156,6 +172,7 @@ export function createScriptHistorySection() {
       label = 'Custom script',
       baselineContent = this.getCurrentScriptContent(),
     } = {}) {
+      this.lastBeautifiedContent = null;
       this.currentScriptKind = kind;
       this.currentScriptLabel = normalizeScriptLabel(label);
       this.currentScriptBaseline = typeof baselineContent === 'string' ? baselineContent : '';

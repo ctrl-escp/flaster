@@ -26,7 +26,22 @@ const dependencyVersions = computed(() => ([
   },
 ]));
 const canUndo = computed(() => store.states.length > 0);
-const canBeautify = computed(() => store.hasParsableInput());
+const canBeautify = computed(() => {
+  void store.inputContentVersion;
+  return store.canBeautifyInput();
+});
+const beautifyTitle = computed(() => {
+  void store.inputContentVersion;
+  if (!store.hasParsableInput()) {
+    return 'Add or load a script before beautifying';
+  }
+
+  if (!store.canBeautifyInput()) {
+    return 'Script matches the last beautified output; edit the code to enable beautify again';
+  }
+
+  return 'Reformat the script using flAST parse and generate (once)';
+});
 const bandaidAnimationStyle = ref(createBandaidAnimationStyle());
 
 let bandaidAnimationTimer = null;
@@ -74,7 +89,7 @@ onBeforeUnmount(() => {
         class="header-btn header-btn-secondary header-btn-text"
         type="button"
         :disabled="!canBeautify"
-        :title="canBeautify ? 'Reformat the script using flAST parse and generate (once)' : 'Add or load a script before beautifying'"
+        :title="beautifyTitle"
         aria-label="Beautify script"
         @click="store.beautifyInputScript()"
       >
