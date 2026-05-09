@@ -155,6 +155,10 @@ const {
   flex: 1;
 }
 
+.mobile-pane-hint {
+  display: none;
+}
+
 @media (max-width: 1280px) {
   .workspace-grid {
     grid-template-columns: minmax(18rem, 1fr) minmax(18rem, 1fr);
@@ -201,6 +205,7 @@ const {
   }
 
   .mobile-pane-hint {
+    display: block;
     position: sticky;
     top: 0.35rem;
     align-self: flex-end;
