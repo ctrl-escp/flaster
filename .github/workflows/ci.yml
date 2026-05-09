@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         # Vite 8 requires Node >=20.19; do not use 20.0–20.18 in the matrix.
-        node-version: ["20.19", "22"]
+        node-version: ["24"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
