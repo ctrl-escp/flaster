@@ -38,6 +38,7 @@ export function useStructureExplorer() {
   const exampleStructureId = ref('');
   const showMatchesOnly = ref(false);
   const showDefineStructure = ref(false);
+  const structureEditorSession = ref(null);
   const structureList = ref(null);
 
   const categoryGroupOptions = computed(() =>
@@ -210,7 +211,6 @@ export function useStructureExplorer() {
     filters.category = created.category ?? '';
 
     expandedStructureId.value = created.id;
-    showDefineStructure.value = false;
 
     await nextTick();
 
@@ -240,8 +240,35 @@ export function useStructureExplorer() {
     });
   }
 
+  function toggleDefineStructurePanel() {
+    if (showDefineStructure.value) {
+      showDefineStructure.value = false;
+      structureEditorSession.value = null;
+      return;
+    }
+
+    structureEditorSession.value = {type: 'new'};
+    showDefineStructure.value = true;
+  }
+
+  function openStructureEditorForEdit(structureId) {
+    structureEditorSession.value = {type: 'edit', structureId};
+    showDefineStructure.value = true;
+  }
+
+  function openStructureEditorForFork(structureId) {
+    structureEditorSession.value = {type: 'fork', structureId};
+    showDefineStructure.value = true;
+  }
+
+  function isUserDefinedStructure(structure) {
+    return (structure?.categoryGroup ?? '') === 'user-defined';
+  }
+
   function handleStructureCreated(created) {
-    revealNewStructureInList(created);
+    showDefineStructure.value = false;
+    structureEditorSession.value = null;
+    void revealNewStructureInList(created);
   }
 
   async function copyExample() {
@@ -369,6 +396,7 @@ export function useStructureExplorer() {
     exampleStructureId,
     showMatchesOnly,
     showDefineStructure,
+    structureEditorSession,
     structureList,
     formatCategoryLabel,
     categoryGroupOptions,
@@ -401,6 +429,10 @@ export function useStructureExplorer() {
     openExample,
     closeExample,
     handleStructureCreated,
+    toggleDefineStructurePanel,
+    openStructureEditorForEdit,
+    openStructureEditorForFork,
+    isUserDefinedStructure,
     copyExample,
     nextPage,
     prevPage,

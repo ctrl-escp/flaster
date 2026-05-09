@@ -18,8 +18,9 @@ function createCustomStructureId(title) {
  * @param {string} title
  * @param {string} filterSrc
  * @param {string} [category='custom']
+ * @param {string | null} [existingId] When set, reuse this id (in-place edit of a user-defined structure).
  */
-export function createCustomStructureDescriptor(title, filterSrc, category = 'custom') {
+export function createCustomStructureDescriptor(title, filterSrc, category = 'custom', existingId = null) {
   const normalizedTitle = String(title || 'Custom Structure').trim() || 'Custom Structure';
   const normalizedFilter = String(filterSrc || '').trim();
   const normalizedCategory = String(category || 'custom')
@@ -28,9 +29,10 @@ export function createCustomStructureDescriptor(title, filterSrc, category = 'cu
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '') || 'custom';
   const predicate = compileNodePredicate(normalizedFilter);
+  const id = existingId ?? createCustomStructureId(normalizedTitle);
 
   return {
-    id: createCustomStructureId(normalizedTitle),
+    id,
     title: normalizedTitle,
     categoryGroup: 'user-defined',
     category: normalizedCategory,

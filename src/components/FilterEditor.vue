@@ -1,7 +1,11 @@
 <script setup>
-import {computed, ref} from 'vue';
+import {computed, nextTick, ref, watch} from 'vue';
 import store from '../store';
-import {findExistingStructureCategory, formatFilterSummary} from '../ui/composables/filterEditorModel.js';
+import {
+  findExistingStructureCategory,
+  formatFilterSummary,
+  getKnownStructureFilterSource,
+} from '../ui/composables/filterEditorModel.js';
 import CodeEditor from './CodeEditor.vue';
 import IconCheck from './icons/IconCheck.vue';
 import IconClose from './icons/IconClose.vue';
@@ -15,6 +19,10 @@ const props = defineProps({
   createStructure: {
     type: Boolean,
     default: false,
+  },
+  editorSession: {
+    type: Object,
+    default: null,
   },
 });
 
@@ -52,6 +60,40 @@ const structureCategory = ref(DEFAULT_STRUCTURE_SUBCATEGORY);
 const pendingStructureCreation = ref(null);
 const filterSummary = computed(() =>
   formatFilterSummary(numOfEnabledFilters.value, numOfAvailableFilters.value));
+
+const editStructureId = computed(() =>
+  props.editorSession?.type === 'edit' ? props.editorSession.structureId : null,
+);
+
+const structurePanelTitle = computed(() => {
+  if (props.editorSession?.type === 'edit') {
+    return 'Edit structure';
+  }
+
+  if (props.editorSession?.type === 'fork') {
+    return 'Save custom copy';
+  }
+
+  return 'Define New Structure';
+});
+
+const structurePanelDescription = computed(() => {
+  if (props.editorSession?.type === 'edit') {
+    return 'Update the rule, name, or subcategory for this user-defined structure.';
+  }
+
+  if (props.editorSession?.type === 'fork') {
+    return 'Adjust the seeded rule and save it as a new user-defined structure; built-in entries stay unchanged.';
+  }
+
+  return 'Write a reusable structure rule as a filter and save it alongside the built-in structures.';
+});
+
+const structureSaveActionTitle = computed(() =>
+  editStructureId.value
+    ? 'Save changes to this user-defined structure'
+    : 'Add this rule as a new structure',
+);
 
 function findFilter(filterSrc) {
   return store.findFilter(filterSrc);
@@ -110,11 +152,83 @@ function resetStructureForm() {
   structureName.value = '';
   structureCategory.value = DEFAULT_STRUCTURE_SUBCATEGORY;
   pendingStructureCreation.value = null;
-  store.setContent(store.getEditor(store.editorIds.filterEditor), initialValue);
+  const editor = store.getEditor(store.editorIds.filterEditor);
+  if (editor) {
+    store.setContent(editor, initialValue);
+  }
+}
+
+async function hydrateFromSession() {
+  /**
+   * Parent `onMounted` can run before the nested CodeMirror registers in `store.editors`,
+   * so we wait until the filter editor exists (or bail after a bounded wait).
+   */
+  let editor = store.getEditor(store.editorIds.filterEditor);
+  let attempts = 0;
+  while (!editor && attempts < 40) {
+    await nextTick();
+    editor = store.getEditor(store.editorIds.filterEditor);
+    attempts += 1;
+  }
+
+  if (!editor) {
+    return;
+  }
+
+  pendingStructureCreation.value = null;
+
+  const session = props.editorSession;
+  if (!session || session.type === 'new' || !props.createStructure) {
+    resetStructureForm();
+    return;
+  }
+
+  const structure = store.getKnownStructureById(session.structureId);
+  if (!structure) {
+    resetStructureForm();
+    return;
+  }
+
+  const source = getKnownStructureFilterSource(structure) || initialValue;
+
+  if (session.type === 'fork') {
+    structureName.value = `${structure.title} (modified)`;
+    structureCategory.value = DEFAULT_STRUCTURE_SUBCATEGORY;
+  } else {
+    structureName.value = structure.title;
+    const rawCat = structure.category ?? '';
+    structureCategory.value = rawCat
+      ? findExistingStructureCategory(existingStructureCategories.value, rawCat) ?? rawCat
+      : DEFAULT_STRUCTURE_SUBCATEGORY;
+  }
+
+  store.setContent(editor, source);
 }
 
 function finalizeNewStructure(filterSrc, selectedCategory) {
   const nextStructure = store.addCustomKnownStructure(
+    structureName.value,
+    filterSrc,
+    selectedCategory,
+  );
+
+  if (!nextStructure) {
+    return;
+  }
+
+  resetStructureForm();
+  emit('complete', nextStructure);
+}
+
+function finalizeEditStructure(filterSrc, selectedCategory) {
+  const structureId = editStructureId.value;
+
+  if (!structureId) {
+    return;
+  }
+
+  const nextStructure = store.updateCustomKnownStructure(
+    structureId,
     structureName.value,
     filterSrc,
     selectedCategory,
@@ -140,13 +254,19 @@ function addNewStructure() {
   const existingCategory = resolveExistingStructureCategory(requestedCategory);
 
   if (existingCategory) {
-    finalizeNewStructure(filterSrc, existingCategory);
+    if (editStructureId.value) {
+      finalizeEditStructure(filterSrc, existingCategory);
+    } else {
+      finalizeNewStructure(filterSrc, existingCategory);
+    }
+
     return;
   }
 
   pendingStructureCreation.value = {
     filterSrc,
     selectedCategory: requestedCategory,
+    isEdit: Boolean(editStructureId.value),
   };
 }
 
@@ -155,23 +275,38 @@ function confirmNewStructureCategory() {
     return;
   }
 
-  finalizeNewStructure(
-    pendingStructureCreation.value.filterSrc,
-    pendingStructureCreation.value.selectedCategory,
-  );
+  const {filterSrc, selectedCategory, isEdit} = pendingStructureCreation.value;
+
+  if (isEdit) {
+    finalizeEditStructure(filterSrc, selectedCategory);
+  } else {
+    finalizeNewStructure(filterSrc, selectedCategory);
+  }
 }
 
 function cancelNewStructureCategory() {
   pendingStructureCreation.value = null;
 }
+
+watch(
+  () => ({
+    session: props.editorSession,
+    /** Bump when any editor mounts/unmounts so we re-run after CodeMirror registers */
+    editorRegistrySize: store.editors.length,
+  }),
+  () => {
+    void hydrateFromSession();
+  },
+  {deep: true, flush: 'post', immediate: true},
+);
 </script>
 
 <template>
   <section class="advanced-section">
     <div class="section-header">
       <div class="section-intro">
-        <h3>Define New Structure</h3>
-        <p class="section-copy">Write a reusable structure rule as a filter and save it alongside the built-in structures.</p>
+        <h3>{{ structurePanelTitle }}</h3>
+        <p class="section-copy">{{ structurePanelDescription }}</p>
       </div>
       <div class="panel-meta">
         <icon-filter class="meta-icon" />
@@ -187,8 +322,8 @@ function cancelNewStructureCategory() {
             <button
               class="mini-btn icon-btn icon-btn-sm emphasis"
               type="button"
-              :title="createStructure ? 'Add this rule as a new structure' : 'Save the current filter editor code as a reusable filter'"
-              :aria-label="createStructure ? 'Add new structure' : 'Add filter'"
+              :title="createStructure ? structureSaveActionTitle : 'Save the current filter editor code as a reusable filter'"
+              :aria-label="createStructure ? (editStructureId ? 'Save structure changes' : 'Add new structure') : 'Add filter'"
               @click="createStructure ? addNewStructure() : addNewFilter()"
             >
               <icon-plus />

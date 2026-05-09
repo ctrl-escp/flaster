@@ -1,6 +1,6 @@
 <script setup>
 import store from '../store';
-import {ref, onMounted} from 'vue';
+import {ref, onMounted, onBeforeUnmount} from 'vue';
 import {lintKeymap} from '@codemirror/lint';
 import {EditorState} from '@codemirror/state';
 import {javascript} from '@codemirror/lang-javascript';
@@ -148,6 +148,8 @@ function highlightRanges(ranges, activeRange = null, options = {}) {
   });
 }
 
+let mountedEditor = null;
+
 onMounted(() => {
   // noinspection JSCheckFunctionSignatures
   const editor = new EditorView({
@@ -207,6 +209,7 @@ onMounted(() => {
   editor.highlightRange = highlightRange;
   editor.highlightRanges = highlightRanges;
   store.editors.push(editor);
+  mountedEditor = editor;
 
   if (props.editorId === store.editorIds.inputCodeEditor && store.currentScriptKind === 'custom') {
     store.setCurrentScriptSource({
@@ -217,6 +220,20 @@ onMounted(() => {
 
     store.tryAutoParseInitialInput();
   }
+});
+
+onBeforeUnmount(() => {
+  if (!mountedEditor) {
+    return;
+  }
+
+  const idx = store.editors.indexOf(mountedEditor);
+  if (idx !== -1) {
+    store.editors.splice(idx, 1);
+  }
+
+  mountedEditor.destroy();
+  mountedEditor = null;
 });
 </script>
 

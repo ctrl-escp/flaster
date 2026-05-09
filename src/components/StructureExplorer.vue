@@ -18,6 +18,7 @@ const {
   exampleStructureId,
   showMatchesOnly,
   showDefineStructure,
+  structureEditorSession,
   structureList,
   formatCategoryLabel,
   categoryGroupOptions,
@@ -48,6 +49,10 @@ const {
   openExample,
   closeExample,
   handleStructureCreated,
+  toggleDefineStructurePanel,
+  openStructureEditorForEdit,
+  openStructureEditorForFork,
+  isUserDefinedStructure,
   copyExample,
   nextPage,
   prevPage,
@@ -144,7 +149,7 @@ const {
         type="button"
         :title="showDefineStructure ? 'Hide the new structure editor' : 'Define a new structure rule'"
         :aria-label="showDefineStructure ? 'Hide define new structure editor' : 'Show define new structure editor'"
-        @click="showDefineStructure = !showDefineStructure"
+        @click="toggleDefineStructurePanel"
       >
         <icon-close v-if="showDefineStructure" />
         <icon-plus v-else />
@@ -159,6 +164,7 @@ const {
     <filter-editor
       v-if="showDefineStructure"
       create-structure
+      :editor-session="structureEditorSession"
       @complete="handleStructureCreated"
     />
 
@@ -298,6 +304,26 @@ const {
               >
                 <icon-copy />
                 <span>Example</span>
+              </button>
+              <button
+                v-if="isUserDefinedStructure(structure)"
+                class="structure-action structure-action-subtle"
+                type="button"
+                title="Edit this user-defined structure rule"
+                aria-label="Edit user-defined structure"
+                @click="openStructureEditorForEdit(structure.id)"
+              >
+                <span>Edit</span>
+              </button>
+              <button
+                v-else
+                class="structure-action structure-action-subtle"
+                type="button"
+                title="Save a new user-defined structure starting from this rule"
+                aria-label="Modify structure as new custom rule"
+                @click="openStructureEditorForFork(structure.id)"
+              >
+                <span>Modify</span>
               </button>
             </div>
           </div>

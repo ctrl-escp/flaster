@@ -511,5 +511,53 @@ export function createTemplateApplySection() {
         return false;
       }
     },
+    updateCustomKnownStructure(structureId, title, filterSrc, category = 'custom') {
+      const prev = this.getKnownStructureById(structureId);
+
+      if (!prev) {
+        this.logMessage('Structure not found', 'error');
+        return null;
+      }
+
+      if ((prev.categoryGroup ?? '') !== 'user-defined') {
+        this.logMessage('Only user-defined structures can be edited in place', 'error');
+        return null;
+      }
+
+      const normalizedTitle = String(title || '').trim() || 'Custom Structure';
+      const normalizedFilter = String(filterSrc || '').trim();
+      const normalizedCategory = String(category || '').trim() || 'custom';
+
+      if (!normalizedFilter) {
+        this.logMessage('Missing structure rule', 'error');
+        return null;
+      }
+
+      try {
+        const nextStructure = createCustomStructureDescriptor(
+          normalizedTitle,
+          normalizedFilter,
+          normalizedCategory,
+          structureId,
+        );
+        const idx = this.availableKnownStructures.findIndex((structure) => structure.id === structureId);
+
+        if (idx === -1) {
+          this.logMessage('Structure not found', 'error');
+          return null;
+        }
+
+        const nextCatalog = [...this.availableKnownStructures];
+        nextCatalog[idx] = nextStructure;
+        this.availableKnownStructures = nextCatalog;
+        this.markKnownStructureInputChanged();
+        this.knownStructureSelectionVersion += 1;
+        this.logMessage(`Updated custom structure: "${nextStructure.title}"`, 'success');
+        return nextStructure;
+      } catch (error) {
+        this.logMessage(`Invalid structure rule: ${error.message}`, 'error');
+        return null;
+      }
+    },
   };
 }
