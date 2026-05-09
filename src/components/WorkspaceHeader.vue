@@ -79,56 +79,60 @@ onBeforeUnmount(() => {
       <icon-bandaid class="brand-icon" :style="bandaidAnimationStyle" />
       <h1>flASTer</h1>
     </div>
-    <div class="header-script-name" :title="store.currentScriptLabel">
-      {{ store.getCurrentScriptDisplayName() }}
-    </div>
     <div class="header-actions">
-      <file-loader />
-      <parse-button />
-      <button
-        class="header-btn header-btn-secondary header-btn-text"
-        type="button"
-        :disabled="!canBeautify"
-        :title="beautifyTitle"
-        aria-label="Beautify script"
-        @click="store.beautifyInputScript()"
-      >
-        <icon-beautify class="header-icon" />
-        <span>Beautify</span>
-      </button>
-      <button
-        class="header-btn header-btn-secondary header-btn-text"
-        type="button"
-        :disabled="!canUndo"
-        :title="canUndo ? 'Undo the last applied transformation. Click again to keep rolling back changes.' : 'There are no applied changes to undo'"
-        aria-label="Undo last transformation"
-        @click="store.revertState()"
-      >
-        <icon-reset class="header-icon" />
-        <span>Undo</span>
-      </button>
-      <div class="version-chips" aria-label="Tool dependency versions">
-        <a
-          v-for="dependency in dependencyVersions"
-          :key="dependency.label"
-          class="version-chip"
-          :href="dependency.href"
-          target="_blank"
-          :title="`Open ${dependency.label} repository`"
+      <div class="header-actions-leading">
+        <file-loader />
+        <parse-button />
+        <button
+          class="header-btn header-btn-secondary header-btn-text"
+          type="button"
+          :disabled="!canBeautify"
+          :title="beautifyTitle"
+          aria-label="Beautify script"
+          @click="store.beautifyInputScript()"
         >
-          {{ dependency.label }} v{{ dependency.version }}
-        </a>
+          <icon-beautify class="header-icon" />
+          <span>Beautify</span>
+        </button>
+        <button
+          class="header-btn header-btn-secondary header-btn-text"
+          type="button"
+          :disabled="!canUndo"
+          :title="canUndo ? 'Undo the last applied transformation. Click again to keep rolling back changes.' : 'There are no applied changes to undo'"
+          aria-label="Undo last transformation"
+          @click="store.revertState()"
+        >
+          <icon-reset class="header-icon" />
+          <span>Undo</span>
+        </button>
       </div>
-      <div class="github-link-wrap" title="View project on GitHub">
-        <a
-          class="github-link"
-          href="https://github.com/ctrl-escp/flaster"
-          title="flASTer on GitHub"
-          target="_blank"
-          aria-label="View project on GitHub"
-        >
-          <icon-github class="header-icon github-icon" />
-        </a>
+      <div class="header-script-name" :title="store.currentScriptLabel">
+        {{ store.getCurrentScriptDisplayName() }}
+      </div>
+      <div class="header-actions-trailing">
+        <div class="version-chips" aria-label="Tool dependency versions">
+          <a
+            v-for="dependency in dependencyVersions"
+            :key="dependency.label"
+            class="version-chip"
+            :href="dependency.href"
+            target="_blank"
+            :title="`Open ${dependency.label} repository`"
+          >
+            {{ dependency.label }} v{{ dependency.version }}
+          </a>
+        </div>
+        <div class="github-link-wrap" title="View project on GitHub">
+          <a
+            class="github-link"
+            href="https://github.com/ctrl-escp/flaster"
+            title="flASTer on GitHub"
+            target="_blank"
+            aria-label="View project on GitHub"
+          >
+            <icon-github class="header-icon github-icon" />
+          </a>
+        </div>
       </div>
     </div>
   </section>
@@ -204,12 +208,21 @@ h1 {
   white-space: nowrap;
 }
 
+.header-actions-leading,
+.header-actions-trailing {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.6rem;
+}
+
+.header-actions-trailing {
+  gap: 0.5rem;
+}
+
 .header-script-name {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 1 1 0;
   min-width: 0;
-  max-width: min(22rem, calc(100% - 28rem));
   text-align: center;
   font-size: 1rem;
   font-weight: 600;
@@ -224,7 +237,6 @@ h1 {
   display: flex;
   flex-wrap: nowrap;
   gap: 0.5rem;
-  margin-left: auto;
   justify-content: flex-end;
   flex: 0 1 auto;
   min-width: 0;
@@ -359,11 +371,19 @@ h1 {
 
   .header-script-name {
     font-size: 0.92rem;
-    max-width: min(14rem, calc(100% - 18rem));
   }
 
   .header-actions {
     gap: 0.4rem;
+  }
+
+  .header-actions-leading,
+  .header-actions-trailing {
+    gap: 0.4rem;
+  }
+
+  .header-actions-trailing {
+    gap: 0.35rem;
   }
 
   .version-chips {
@@ -385,12 +405,6 @@ h1 {
 
 @media (max-width: 700px) {
   .version-chips {
-    display: none;
-  }
-}
-
-@media (max-width: 560px) {
-  .header-script-name {
     display: none;
   }
 }
