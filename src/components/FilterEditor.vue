@@ -28,6 +28,7 @@ const messages = {
   disableFilters: 'Disable all active filters',
   enableFilters: 'Enable all saved filters',
 };
+const DEFAULT_STRUCTURE_SUBCATEGORY = 'User-Defined';
 
 const enabledFilters = computed(() => (Array.isArray(store.filters)
   ? store.filters.filter((filter) => filter?.enabled)
@@ -39,12 +40,15 @@ const availableKnownStructures = computed(() => (Array.isArray(store.availableKn
   ? store.availableKnownStructures
   : []));
 const existingStructureCategories = computed(() => [...new Set(
-  availableKnownStructures.value
-    .filter((structure) => (structure.categoryGroup ?? 'obfuscation') === 'user-defined')
-    .map((structure) => structure.category)
-    .filter(Boolean),
+  [
+    DEFAULT_STRUCTURE_SUBCATEGORY,
+    ...availableKnownStructures.value
+      .filter((structure) => (structure.categoryGroup ?? 'obfuscation') === 'user-defined')
+      .map((structure) => structure.category)
+      .filter(Boolean),
+  ]
 )].sort());
-const structureCategory = ref('');
+const structureCategory = ref(DEFAULT_STRUCTURE_SUBCATEGORY);
 const pendingStructureCreation = ref(null);
 const filterSummary = computed(() =>
   formatFilterSummary(numOfEnabledFilters.value, numOfAvailableFilters.value));
@@ -104,7 +108,7 @@ function resolveExistingStructureCategory(category) {
 
 function resetStructureForm() {
   structureName.value = '';
-  structureCategory.value = '';
+  structureCategory.value = DEFAULT_STRUCTURE_SUBCATEGORY;
   pendingStructureCreation.value = null;
   store.setContent(store.getEditor(store.editorIds.filterEditor), initialValue);
 }
@@ -248,7 +252,7 @@ function cancelNewStructureCategory() {
             list="structure-subcategory-options"
             class="name-input"
             type="text"
-            placeholder="custom"
+            :placeholder="DEFAULT_STRUCTURE_SUBCATEGORY"
             title="Choose an existing subcategory or type a new one"
           >
           <datalist id="structure-subcategory-options">
