@@ -52,26 +52,40 @@ function render() {
   return 'rendered';
 }
 
-// Proxy Calls
-function proxyCall(handler, a, b) {
-  return handler(a, b);
+// Proxy Calls (inner call arguments must be the parameter identifiers in order)
+function starterProxyCall(a, b) {
+  return sum(a, b);
 }
 
 const sum = (left, right) => left + right;
-const total = proxyCall(sum, 2, 3);
+const total = starterProxyCall(2, 3);
 
-function proxyBinary(operation, left, right) {
+function starterProxyBinary(operation, left, right) {
   return operation(left, right);
 }
 
 const multiply = (left, right) => left * right;
-const product = proxyBinary(multiply, 4, 5);
+const product = starterProxyBinary(multiply, 4, 5);
+
+function starterSimpleOpAdd(left, right) {
+  return left + right;
+}
+starterSimpleOpAdd(1, 2);
+
+function unwrapIndirect() {
+  const held = 1;
+  function passThrough() {
+    return held;
+  }
+  passThrough();
+}
 
 // Proxy Variables
 const inputValue = 7;
 const originalValue = computeScore(inputValue);
 const aliasedValue = originalValue;
 const mirroredValue = aliasedValue;
+const gridCol = 1, gridRow = 2;
 
 console.log(aliasedValue);
 console.log(mirroredValue);
@@ -108,11 +122,19 @@ const config = (function () {
 
 const featureFlags = (() => ({beta: true}))();
 
+const literalShell = (function () {
+  return 7;
+}());
+
 // Template Literal Strings
 const label = `debug mode enabled`;
 const banner = `flASTer starter script`;
 console.log(label);
 console.log(banner);
+
+const foldedEval = eval('40 + 2');
+const fromNewFunction = new Function('return 1')();
+const fromFnConstructor = Function.constructor('return 1');
 
 // Fixed Assigned Values
 const statusCode = 200;
@@ -120,6 +142,15 @@ const statusCode = 200;
 if (statusCode === 200) {
   console.log('ok');
 }
+
+function lateLiteralAssign() {
+  let slot;
+  slot = 3;
+  return slot;
+}
+
+const flowGate = true;
+flowGate && logStep('shortcut');
 
 // Deterministic If Statements
 if (true) {
@@ -134,8 +165,22 @@ if (false) {
   runVisibleBranch();
 }
 
+if (true) {
+  logStep('nonempty-then-empty-else');
+} else {
+}
+
+if ([] && logStep('short-circuit-fold')) {
+  render();
+}
+
 // Comma Sequences in Returns and If Tests
 function sequenceReturnDemo() {
+  {
+    {
+      logStep('nested-blocks');
+    }
+  }
   return (
     logStep('first'),
     logStep('second'),
@@ -144,6 +189,8 @@ function sequenceReturnDemo() {
 }
 
 function sequenceIfDemo() {
+  ;
+  const neverReadHere = 1;
   if (
     (
       logStep('prepare'),
@@ -154,6 +201,8 @@ function sequenceIfDemo() {
     render();
   }
 }
+
+5, 6, 7;
 
 // Switch Statements With Literal Discriminants
 let flowStage = 'init';
@@ -178,15 +227,36 @@ switch (lifecycleStage) {
     break;
 }
 
+(function tableLookupDemo() {
+  const table = [
+    42, 42, 42, 42, 42, 42, 42, 42, 42, 42,
+    42, 42, 42, 42, 42, 42, 42, 42, 42, 42,
+    42,
+  ];
+  return table[0];
+}());
+
 // Computed Members
 const user = {name: 'Ada'};
 
 console.log(user['name']);
 console['log'](user.name);
 
+function memberLiteralDemo() {
+  const o = {};
+  o.x = 1;
+  return o.x;
+}
+
 // Call and Apply With This Receiver
 function demoCallApplyHost() {
   function noopForCallApply() {}
 
   noopForCallApply.call(this, 1);
+}
+
+function applyShellOuter() {
+  return function applyShellInner() {
+    return 1;
+  }.apply(this, arguments);
 }
