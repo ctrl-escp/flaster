@@ -182,7 +182,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Rearrange Switches',
     categoryGroup: 'obfuscation',
     category: 'control-flow',
-    description: 'Matches `switch` statements whose discriminant is an identifier declared with a literal initializer (REstringer uses this shape for switch linearization).',
+    description: 'Matches `switch` statements whose discriminant is an identifier declared with a literal initializer (used for control flow flattening).',
     codeExample: [
       "let mode = 'init';",
       'switch (mode) {',
