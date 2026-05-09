@@ -87,7 +87,7 @@ export function createScriptHistorySection() {
     handleInputEditorChange() {
       this.inputContentVersion += 1;
 
-      if (this.parsedContentVersion !== -1 || this.arb?.ast?.length) {
+      if (this.parsedContentVersion !== -1 || Array.isArray(this.arb?.ast)) {
         this.resetParsedState();
       }
     },

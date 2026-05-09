@@ -29,12 +29,17 @@ const messages = {
   enableFilters: 'Enable all saved filters',
 };
 
-const enabledFilters = computed(() => store.filters.filter((filter) => filter?.enabled));
+const enabledFilters = computed(() => (Array.isArray(store.filters)
+  ? store.filters.filter((filter) => filter?.enabled)
+  : []));
 const numOfEnabledFilters = computed(() => enabledFilters.value.length);
-const numOfAvailableFilters = computed(() => store.filters.length);
+const numOfAvailableFilters = computed(() => (Array.isArray(store.filters) ? store.filters.length : 0));
 const structureName = ref('');
+const availableKnownStructures = computed(() => (Array.isArray(store.availableKnownStructures)
+  ? store.availableKnownStructures
+  : []));
 const existingStructureCategories = computed(() => [...new Set(
-  store.availableKnownStructures
+  availableKnownStructures.value
     .filter((structure) => (structure.categoryGroup ?? 'obfuscation') === 'user-defined')
     .map((structure) => structure.category)
     .filter(Boolean),
@@ -158,7 +163,7 @@ function cancelNewStructureCategory() {
 </script>
 
 <template>
-  <section v-if="store.arb?.ast?.length" class="advanced-section">
+  <section class="advanced-section">
     <div class="section-header">
       <div class="section-intro">
         <h3>Define New Structure</h3>
@@ -264,9 +269,9 @@ function cancelNewStructureCategory() {
           <h4>Saved filters</h4>
           <span class="card-note">{{ numOfAvailableFilters ? `${numOfAvailableFilters} total` : 'Nothing saved yet' }}</span>
         </div>
-        <div v-if="store.filters.length" class="filter-list">
+        <div v-if="numOfAvailableFilters" class="filter-list">
           <article
-            v-for="filter in store.filters"
+            v-for="filter in (store.filters ?? [])"
             :key="filter.src"
             class="filter-item"
           >

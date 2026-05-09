@@ -359,7 +359,7 @@ export function createKnownStructuresSection(knownStructureState) {
     canRunKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
       const requestedIds = Array.isArray(structureIds) ? structureIds : [];
 
-      if (!this.arb?.ast?.length || this.knownStructureExecutionStatus.state === 'running') {
+      if (!Array.isArray(this.arb?.ast) || this.knownStructureExecutionStatus.state === 'running') {
         return false;
       }
 
@@ -405,7 +405,7 @@ export function createKnownStructuresSection(knownStructureState) {
       const runnableIds = requestedIds.filter((structureId) =>
         this.isKnownStructureRunnable(structureId),
       );
-      const hasParsedAst = Boolean(this.arb?.ast?.length);
+      const hasParsedAst = Array.isArray(this.arb?.ast);
 
       this.knownStructureExecutionStatus = {
         ...createExecutionStatus(),

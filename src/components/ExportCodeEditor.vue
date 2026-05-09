@@ -82,12 +82,14 @@ function createExtensions() {
       '&': {
         height: '100%',
         fontSize: '0.95rem',
+        backgroundColor: 'var(--bg-elevated)',
       },
       '.cm-scroller': {
         fontFamily: "'IBM Plex Mono', 'SFMono-Regular', monospace",
+        backgroundColor: 'var(--bg-elevated)',
       },
       '.cm-gutters': {
-        backgroundColor: '#0b111b',
+        backgroundColor: 'var(--bg-elevated)',
         borderRight: '1px solid rgba(255, 255, 255, 0.06)',
       },
       '.cm-activeLineGutter': {

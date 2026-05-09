@@ -82,7 +82,7 @@ function downloadScript() {
   height: min(80vh, 900px);
   border: 1px solid var(--panel-border);
   border-radius: 16px;
-  background: #0b111b;
+  background: var(--panel-surface);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   padding: 1rem;
   display: flex;
@@ -138,8 +138,9 @@ function downloadScript() {
   width: 100%;
   border-radius: 12px;
   border: 1px solid var(--panel-border);
-  background: #0b111b;
-  color: #dce6f4;
+  background: var(--bg-elevated);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
   overflow: hidden;
 }
 </style>

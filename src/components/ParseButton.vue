@@ -70,7 +70,7 @@ function parseContent({focusExploreNodes = false, pulseCodeStructures = false} =
       const parseResult = parseSource(code, {parseRunId});
       store.arb = parseResult.arborist ?? {ast: [], script: code};
       store.markKnownStructureInputChanged();
-      if (!parseResult.ok || !store.arb?.ast?.length) {
+      if (!parseResult.ok || !Array.isArray(store.arb?.ast)) {
         store.logMessage(messages.astParseFail, 'error');
       } else {
         store.rerunKnownStructureMatching();
