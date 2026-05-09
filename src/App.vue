@@ -6,6 +6,7 @@ import InputCodeEditor from './components/InputCodeEditor.vue';
 import ToasterView from './components/ToasterView.vue';
 import WorkspaceHeader from './components/WorkspaceHeader.vue';
 import ExportPanel from './components/ExportPanel.vue';
+import HelpOverlay from './components/HelpOverlay.vue';
 import WorkflowPanel from './components/WorkflowPanel.vue';
 
 const {
@@ -20,11 +21,7 @@ const {helpOpen, open: openHelp, close: closeHelp} = useHelpOverlay();
 </script>
 
 <template>
-  <main
-    class="app-shell"
-    :data-help-open="String(helpOpen)"
-    :data-help-close-handler="closeHelp.name"
-  >
+  <main class="app-shell">
     <div ref="workspaceGrid" class="workspace-grid" :style="workspaceGridStyle">
       <section class="header-strip">
         <workspace-header @open-help="openHelp" />
@@ -64,6 +61,7 @@ const {helpOpen, open: openHelp, close: closeHelp} = useHelpOverlay();
     </div>
   </main>
   <export-panel v-if="store.exportPanelOpen" />
+  <help-overlay v-if="helpOpen" @close="closeHelp" />
   <toaster-view />
 </template>
 
