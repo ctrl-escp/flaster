@@ -29,7 +29,7 @@
 		"@codemirror/view": "^6.40.0",
 		"flast": "latest",
 		"js-md5": "^0.8.3",
-		"restringer": "^2.1.0",
+		"restringer": "^2.2.0",
 		"vue": "^3.5.30"
 	},
 	"devDependencies": {
