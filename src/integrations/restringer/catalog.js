@@ -244,7 +244,7 @@ export const knownStructureRegistry = Object.freeze([
     title: 'Empty Statements',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
-    description: 'Matches empty statements (`;`) except those that are the required body of `if`/`for`/`while`/`do` constructs.',
+    description: 'Matches empty statements (`;`) that aren\'t the required body of `if`/`for`/`while`/`do` constructs.',
     codeExample: [
       'function example() {',
       '  ;',
@@ -260,7 +260,7 @@ export const knownStructureRegistry = Object.freeze([
   },
   {
     id: 'dead-node-declarations',
-    title: 'Dead Declarations',
+    title: 'Dead Code',
     categoryGroup: 'obfuscation',
     category: 'cleanup',
     description: 'Matches binding identifiers (e.g. in `const`/`let`/`var`, functions, or classes) under a non-program parent that have no recorded references (may miss dynamic use such as `eval` or bracketed property access).',
