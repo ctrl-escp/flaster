@@ -56,7 +56,7 @@ describe('store facade integration', () => {
     expect(generatedScript).toContain('Generated via flASTer');
   });
 
-  it('selects a matched structure after matching when none was active (Transform UI stays usable)', () => {
+  it('does not activate or inspect a structure after matching when none was active', () => {
     const store = createAppStore();
     store.setCurrentScriptSource({
       baselineContent: computedMembersSample,
@@ -70,7 +70,7 @@ describe('store facade integration', () => {
 
     store.runKnownStructureMatching(['computed-members']);
     expect(store.getKnownStructureMatches('computed-members').length).toBeGreaterThan(0);
-    expect(store.activeKnownStructureId).toBe('computed-members');
-    expect(store.inspectedKnownStructureId).toBe('computed-members');
+    expect(store.activeKnownStructureId).toBeNull();
+    expect(store.inspectedKnownStructureId).toBeNull();
   });
 });
