@@ -52,7 +52,7 @@ async function assertRootSrcVuePolicy() {
   if (offenders.length) {
     throw new Error(
       'Disallowed root-level Vue in src/ (feature components belong under src/components/; ' +
-        `allowlist in scripts/check-boundaries.mjs only if intentional): ${offenders.sort().join(', ')}`,
+      `allowlist in scripts/check-boundaries.mjs only if intentional): ${offenders.sort().join(', ')}`,
     );
   }
 }
@@ -87,7 +87,6 @@ function isForbiddenIntegrationDeepImport(targetPath) {
 }
 
 async function readSourceFiles(rootDir) {
-  const {readdir} = await import('node:fs/promises');
   const files = [];
 
   async function walk(currentDir) {
@@ -136,7 +135,7 @@ for (const filePath of sourceFiles) {
 
     throw new Error(
       'Forbidden REstringer integration import (use integrations/restringer/index.js or narrow allowlist): ' +
-        `${path.relative(projectRoot, filePath)} → ${specifier}`,
+      `${path.relative(projectRoot, filePath)} → ${specifier}`,
     );
   }
 }

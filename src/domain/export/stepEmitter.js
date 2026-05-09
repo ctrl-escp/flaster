@@ -52,7 +52,7 @@ function createCustomStepBlock(step, stepNumber, combineFilters) {
     ? step.filters?.filter((filter) => filter?.enabled && !!filter?.src) ?? []
     : [];
   const filter = enabledFilters.length
-    ? combineFilters(enabledFilters.map((filter) => filter.src))
+    ? combineFilters(enabledFilters.map((f) => f.src))
     : 'true';
   const transformationCode = step?.kind === 'custom' ? step.transformationCode ?? '' : '';
   const runMode = getCustomStepRunMode(step);
