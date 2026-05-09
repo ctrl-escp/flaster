@@ -6,6 +6,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
+		"lint": "eslint -c eslint.config.mjs .",
+		"lint:fix": "eslint -c eslint.config.mjs . --fix",
 		"build": "npm run check:restringer-safe && vite build",
 		"check:restringer-safe": "node scripts/verify-restringer-safe.mjs",
 		"check:boundaries": "node scripts/check-boundaries.mjs",
