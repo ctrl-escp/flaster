@@ -1,5 +1,5 @@
 <script setup>
-import {computed, ref} from 'vue';
+import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
 import store from '../store';
 import IconBrowse from './icons/IconBrowse.vue';
 import IconFolder from './icons/IconFolder.vue';
@@ -9,6 +9,7 @@ import IconArrowLeft from './icons/IconArrowLeft.vue';
 
 const inputCodeEditorId = store.editorIds.inputCodeEditor;
 const fileInput = ref(null);
+const fileLoaderRoot = ref(null);
 const isOpen = ref(false);
 const showSamples = ref(false);
 const shouldHighlightLoad = computed(() =>
@@ -35,6 +36,22 @@ function toggleMenu() {
 function closeMenu() {
   isOpen.value = false;
   showSamples.value = false;
+}
+
+function handleDocumentPointerDown(event) {
+  if (!isOpen.value) {
+    return;
+  }
+
+  const root = fileLoaderRoot.value;
+  const target = event.target;
+  if (!root || !(target instanceof Node)) {
+    return;
+  }
+
+  if (!root.contains(target)) {
+    closeMenu();
+  }
 }
 
 function chooseFile() {
@@ -98,10 +115,18 @@ function loadSample(sampleId) {
   store.loadSampleScript(sampleId);
   closeMenu();
 }
+
+onMounted(() => {
+  window.addEventListener('pointerdown', handleDocumentPointerDown);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('pointerdown', handleDocumentPointerDown);
+});
 </script>
 
 <template>
-  <div class="file-loader">
+  <div ref="fileLoaderRoot" class="file-loader">
     <button
       class="toolbar-btn load-btn"
       :class="{highlighted: shouldHighlightLoad}"

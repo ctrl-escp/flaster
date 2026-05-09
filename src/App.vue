@@ -90,6 +90,8 @@ const {
   display: flex;
   align-items: center;
   padding-top: 0.35rem;
+  position: relative;
+  z-index: 30;
 }
 
 .left-column {
