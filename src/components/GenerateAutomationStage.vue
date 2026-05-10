@@ -20,7 +20,7 @@ const canExport = computed(() => store.steps.length > 0);
       type="button"
       :disabled="!canExport"
       :title="canExport ? 'Open the generated Node.js script editor' : 'Add at least one pipeline step before exporting'"
-      @click="store.exportPanelOpen = true"
+      @click="store.automatePanelOpen = true"
     >
       <icon-eye class="export-icon" />
       <strong>Review Generated Script</strong>

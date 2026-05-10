@@ -35,13 +35,13 @@ function downloadScript() {
 </script>
 
 <template>
-  <div class="export-modal-backdrop" @click.self="store.exportPanelOpen = false">
+  <div class="export-modal-backdrop" @click.self="store.automatePanelOpen = false">
     <section class="export-modal">
       <div class="panel-header">
         <h2>Generated script</h2>
         <div class="header-actions">
           <span class="panel-meta">{{ store.steps.filter((step) => step.enabled !== false).length }} active steps</span>
-          <button class="close-btn icon-btn" type="button" title="Close the export window" aria-label="Close export window" @click="store.exportPanelOpen = false">
+          <button class="close-btn icon-btn" type="button" title="Close the Automate panel" aria-label="Close Automate panel" @click="store.automatePanelOpen = false">
             <icon-close />
           </button>
         </div>

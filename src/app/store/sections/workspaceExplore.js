@@ -33,7 +33,7 @@ export function createWorkspaceExploreSection() {
     selectedNodeSource: null,
     selectedPipelineStepIndex: -1,
     advancedToolsOpen: true,
-    exportPanelOpen: false,
+    automatePanelOpen: false,
     availableSampleScripts: sampleScripts,
     activeSampleScriptId: sampleScripts[0]?.id ?? null,
     templateCatalog: WORKSPACE_TEMPLATE_CATALOG,

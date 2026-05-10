@@ -5,7 +5,7 @@ import {useHelpOverlay} from './ui/composables/useHelpOverlay.js';
 import InputCodeEditor from './components/InputCodeEditor.vue';
 import ToasterView from './components/ToasterView.vue';
 import WorkspaceHeader from './components/WorkspaceHeader.vue';
-import ExportPanel from './components/ExportPanel.vue';
+import AutomatePanel from './components/AutomatePanel.vue';
 import HelpOverlay from './components/HelpOverlay.vue';
 import WorkflowPanel from './components/WorkflowPanel.vue';
 
@@ -60,7 +60,7 @@ const {helpOpen, open: openHelp, close: closeHelp} = useHelpOverlay();
       </section>
     </div>
   </main>
-  <export-panel v-if="store.exportPanelOpen" />
+  <automate-panel v-if="store.automatePanelOpen" />
   <help-overlay v-if="helpOpen" @close="closeHelp" />
   <toaster-view />
 </template>

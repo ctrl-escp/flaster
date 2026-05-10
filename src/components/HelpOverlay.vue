@@ -191,9 +191,8 @@ onMounted(() => {
               </li>
               <li>
                 <strong>Export</strong>
-                — Click <strong>Export</strong> (or open the export panel) to generate a standalone Node.js script.
-                The script embeds all structure definitions and transformers — run it locally on any file with
-                <code>node script.js target.js</code> without needing the browser.
+                — Open the <strong>Automate</strong> panel to review the generated script, then copy or download it as an <code>.mjs</code> file.
+                The script embeds all structure definitions and transformers and can be run locally using Node.js, Deno, Bun, or any compatible runtime.
               </li>
             </ol>
           </section>
