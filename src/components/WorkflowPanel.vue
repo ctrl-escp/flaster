@@ -68,7 +68,7 @@ const steps = computed(() => {
       icon: IconExport,
       hint: hasPipeline ? `${store.steps.length} pipeline steps ready to export` : 'Add pipeline steps first',
       ready: hasPipeline,
-      enabled: true,
+      enabled: hasPipeline,
     },
   ];
 });
@@ -100,6 +100,15 @@ watch(inferredStage, (nextStage) => {
     forcedStage.value = null;
   }
 });
+
+watch(
+  () => store.steps.length,
+  (len) => {
+    if (len === 0 && forcedStage.value === 'automation') {
+      forcedStage.value = null;
+    }
+  },
+);
 
 function openStage(stageId) {
   forcedStage.value = stageId;
