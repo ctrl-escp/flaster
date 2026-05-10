@@ -1,4 +1,4 @@
-# flASTer <img src="dist/favicon.svg">
+# flASTer <img src="public/favicon.svg">
 A [web interface](https://ctrl-escp.github.io/flaster/) for exploring JS code structures using [flAST](https://github.com/ctrl-escp/flast)
 
 Helpful in investigating code structures when obfuscating and deobfuscating JS.
