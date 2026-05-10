@@ -38,7 +38,7 @@ function downloadScript() {
   <div class="export-modal-backdrop" @click.self="store.exportPanelOpen = false">
     <section class="export-modal">
       <div class="panel-header">
-        <h2>Generated Node.js output</h2>
+        <h2>Generated script</h2>
         <div class="header-actions">
           <span class="panel-meta">{{ store.steps.filter((step) => step.enabled !== false).length }} active steps</span>
           <button class="close-btn icon-btn" type="button" title="Close the export window" aria-label="Close export window" @click="store.exportPanelOpen = false">
@@ -48,15 +48,15 @@ function downloadScript() {
       </div>
 
       <div class="export-actions">
-        <button class="primary-btn icon-btn" type="button" title="Download the generated Node.js script" aria-label="Download export" @click="downloadScript">
+        <button class="primary-btn icon-btn" type="button" title="Download the generated script" aria-label="Download export" @click="downloadScript">
           <icon-export />
         </button>
-        <button class="secondary-btn icon-btn" type="button" title="Copy the generated Node.js script to the clipboard" aria-label="Copy export" @click="copyScript">
+        <button class="secondary-btn icon-btn" type="button" title="Copy the generated script to the clipboard" aria-label="Copy export" @click="copyScript">
           <icon-copy />
         </button>
       </div>
 
-      <p class="order-note">Generated steps are emitted in pipeline order, and each custom transformation keeps its selected run mode.</p>
+      <p class="order-note">Generated steps are executed in pipeline order according to each transformation's selected run mode.<br>The resulting script should be saved as an <code>.mjs</code> file, to be executed using Node.js / Deno / Bun / etc...<br>The script requires installing the <code>flast</code> and <code>restringer</code> packages.</p>
 
       <div class="generated-script">
         <export-code-editor v-model="editableScript" />
