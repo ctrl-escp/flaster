@@ -278,8 +278,7 @@ h1 {
   align-items: center;
   min-width: 0;
   max-width: 10rem;
-  min-height: 1.75rem;
-  padding: 0.2rem 0.65rem;
+  padding: 0.5rem 0.65rem;
   border-radius: 999px;
   border: 1px solid var(--panel-border);
   background: rgba(255, 255, 255, 0.05);
@@ -439,8 +438,7 @@ h1 {
 
   .version-chip {
     max-width: 8rem;
-    min-height: 1.6rem;
-    padding: 0.18rem 0.5rem;
+    padding: 0.5rem 0.5rem;
     font-size: 0.75rem;
   }
 
