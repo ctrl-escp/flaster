@@ -13,6 +13,7 @@ const HELP_TABS = [
   {id: 'overview', label: 'What flASTer does'},
   {id: 'workflow', label: 'Workflow'},
   {id: 'console', label: 'Continue in the Console'},
+  {id: 'persistence', label: 'Saved workspace'},
   {id: 'shortcuts', label: 'Keyboard shortcuts'},
 ];
 
@@ -275,6 +276,41 @@ onMounted(() => {
             class="help-panel"
             role="tabpanel"
             :aria-labelledby="`help-tab-${HELP_TABS[3].id}`"
+          >
+            <dl class="mode-list">
+              <div class="mode-row">
+                <dt>Automatic restore point</dt>
+                <dd>
+                  flASTer saves one local workspace snapshot in this browser as you work. It includes the
+                  current script, editor text and cursor position, pipeline steps, filters, transform code,
+                  undo history, selected structures, and user-defined structures.
+                </dd>
+              </div>
+              <div class="mode-row">
+                <dt>Private to this browser</dt>
+                <dd>
+                  Saved workspace data stays in your browser storage. It is used only to recover your
+                  session after a reload, crash, or accidental close, and it is not part of generated
+                  automation scripts.
+                </dd>
+              </div>
+              <div class="mode-row">
+                <dt>Clearing saved data</dt>
+                <dd>
+                  Use <strong>Clear saved data</strong> in the header to delete the saved workspace,
+                  pipeline, undo history, and custom structures from this browser. The app reloads after
+                  the data is cleared.
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section
+            v-show="activeTabIndex === 4"
+            :id="`help-panel-${HELP_TABS[4].id}`"
+            class="help-panel"
+            role="tabpanel"
+            :aria-labelledby="`help-tab-${HELP_TABS[4].id}`"
           >
             <div class="shortcuts-table-wrap">
               <table class="shortcuts-table">

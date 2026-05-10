@@ -36,6 +36,14 @@ describe('HelpOverlay', () => {
     wrapper.unmount();
   });
 
+  it('documents local workspace persistence', () => {
+    const wrapper = mount(HelpOverlay, {attachTo: document.body});
+    expect(wrapper.text()).toMatch(/Saved workspace/);
+    expect(wrapper.text()).toMatch(/Automatic restore point/);
+    expect(wrapper.text()).toMatch(/Clear saved data/);
+    wrapper.unmount();
+  });
+
   it('emits close when the header close button is activated', async () => {
     const wrapper = mount(HelpOverlay, {attachTo: document.body});
     await wrapper.get('button[aria-label="Close help"]').trigger('click');
