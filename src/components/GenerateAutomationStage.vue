@@ -1,7 +1,7 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
-import IconExport from './icons/IconExport.vue';
+import IconEye from './icons/IconEye.vue';
 
 const canExport = computed(() => store.steps.length > 0);
 </script>
@@ -13,18 +13,18 @@ const canExport = computed(() => store.steps.length > 0);
       <div class="panel-meta">{{ store.steps.length }} steps ready</div>
     </div>
 
-    <p class="panel-copy">Export your pipeline to a Node.js script.</p>
+    <p class="panel-copy">Your pipeline is ready. Open the generated script to review, edit, then copy or download it.</p>
 
     <button
       class="export-cta"
       type="button"
       :disabled="!canExport"
-      :title="canExport ? 'Open the generated Node.js export' : 'Add at least one pipeline step before exporting'"
+      :title="canExport ? 'Open the generated Node.js script editor' : 'Add at least one pipeline step before exporting'"
       @click="store.exportPanelOpen = true"
     >
-      <icon-export class="export-icon" />
-      <strong>Export Node.js Script</strong>
-      <span>Open a generated script you can copy or download.</span>
+      <icon-eye class="export-icon" />
+      <strong>Review Generated Script</strong>
+      <span>Inspect and edit before you copy or download.</span>
     </button>
   </section>
 </template>
@@ -36,7 +36,6 @@ const canExport = computed(() => store.steps.length > 0);
   gap: 1rem;
   min-height: 0;
   height: 100%;
-  justify-content: center;
 }
 
 .panel-header {
