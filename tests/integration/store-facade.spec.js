@@ -19,7 +19,7 @@ describe('store facade integration', () => {
   it('covers parse → match → transform → pipeline replay → export', async () => {
     vi.stubGlobal('confirm', () => true);
 
-    const store = createAppStore();
+    const store = createAppStore(undefined, {skipPersistence: true});
     store.states.length = 0;
     store.steps = [];
     store.setCurrentScriptSource({
@@ -58,7 +58,7 @@ describe('store facade integration', () => {
   });
 
   it('does not activate or inspect a structure after matching when none was active', async () => {
-    const store = createAppStore();
+    const store = createAppStore(undefined, {skipPersistence: true});
     store.setCurrentScriptSource({
       baselineContent: computedMembersSample,
       label: 'No prior active structure',
@@ -76,7 +76,7 @@ describe('store facade integration', () => {
   });
 
   it('applyArboristToWorkspace updates editor text and store arb without clearing via resetParsedState', async () => {
-    const store = createAppStore();
+    const store = createAppStore(undefined, {skipPersistence: true});
     let docText = 'const x = 1;\n';
     const inputEditorId = store.editorIds.inputCodeEditor;
     const inputEditor = {

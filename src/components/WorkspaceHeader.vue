@@ -8,6 +8,7 @@ import IconBandaid from './icons/IconBandaid.vue';
 import IconBeautify from './icons/IconBeautify.vue';
 import IconGithub from './icons/IconGithub.vue';
 import IconReset from './icons/IconReset.vue';
+import IconTrash from './icons/IconTrash.vue';
 
 const emit = defineEmits(['open-help']);
 
@@ -132,6 +133,16 @@ onBeforeUnmount(() => {
             {{ dependency.label }} v{{ dependency.version }}
           </a>
         </div>
+        <button
+          class="header-btn header-btn-secondary header-btn-text header-btn-danger"
+          type="button"
+          title="Delete all saved workspace data from this browser"
+          aria-label="Clear saved workspace data"
+          @click="void store.clearAllStorage()"
+        >
+          <icon-trash class="header-icon" />
+          <span>Clear saved data</span>
+        </button>
         <button
           class="header-btn icon-btn"
           type="button"
@@ -325,6 +336,12 @@ h1 {
 .header-btn-text {
   gap: 0.45rem;
   padding: 0.5rem 0.8rem;
+}
+
+.header-btn-danger:hover:not(:disabled),
+.header-btn-danger:focus-visible:not(:disabled) {
+  border-color: #f87171;
+  color: #f87171;
 }
 
 .header-btn:disabled {
