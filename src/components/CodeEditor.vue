@@ -150,6 +150,27 @@ function highlightRanges(ranges, activeRange = null, options = {}) {
 
 let mountedEditor = null;
 
+/**
+ * @param {string} editorId
+ * @returns {string}
+ */
+function codeEditorAriaLabel(editorId) {
+  const ids = store.editorIds;
+  if (editorId === ids.inputCodeEditor) {
+    return 'JavaScript input code editor';
+  }
+  if (editorId === ids.filterEditor) {
+    return 'JavaScript filter code editor';
+  }
+  if (editorId === ids.transformEditor) {
+    return 'JavaScript transform code editor';
+  }
+  if (editorId === ids.composerEditor) {
+    return 'JavaScript composer code editor';
+  }
+  return 'JavaScript code editor';
+}
+
 onMounted(() => {
   // noinspection JSCheckFunctionSignatures
   const editor = new EditorView({
@@ -164,6 +185,9 @@ onMounted(() => {
         crosshairCursor(),
         drawSelection(),
         dropCursor(),
+        EditorView.contentAttributes.of({
+          'aria-label': codeEditorAriaLabel(props.editorId),
+        }),
         EditorState.allowMultipleSelections.of(true),
         EditorView.updateListener.of((update) => {
           if (!update.docChanged || props.editorId !== store.editorIds.inputCodeEditor) {
