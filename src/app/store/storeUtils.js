@@ -20,6 +20,14 @@ export function areStringArraysEqual(left = [], right = []) {
   return left.every((value, index) => value === right[index]);
 }
 
+export function debounce(fn, ms) {
+  let timer = null;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+}
+
 /**
  * @param {string[]} filtersArr
  * @returns {string}

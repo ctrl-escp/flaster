@@ -363,8 +363,12 @@ export function createKnownStructuresSection(knownStructureState) {
         return;
       }
 
-      const idSet = new Set(structures.map((structure) => structure.id));
-      this.availableKnownStructures = [...structures];
+      const userDefined = this.availableKnownStructures.filter(
+        (structure) => structure.categoryGroup === 'user-defined',
+      );
+      const merged = [...structures, ...userDefined];
+      const idSet = new Set(merged.map((structure) => structure.id));
+      this.availableKnownStructures = merged;
       this.selectedKnownStructureIds = this.selectedKnownStructureIds.filter((structureId) =>
         idSet.has(structureId),
       );
