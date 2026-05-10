@@ -72,7 +72,7 @@ function jumpToNode(node, source = 'related') {
       <button
         v-for="section in sections"
         :key="section.id"
-        class="section-btn icon-btn"
+        class="section-btn"
         :class="{active: store.activeNodeInspectorSection === section.id}"
         type="button"
         :disabled="store.activeNodeInspectorSection === section.id"
@@ -80,7 +80,10 @@ function jumpToNode(node, source = 'related') {
         :aria-label="`Open ${section.label} section`"
         @click="store.setActiveNodeInspectorSection(section.id)"
       >
-        <component :is="section.icon" />
+        <span class="section-btn__icon" aria-hidden="true">
+          <component :is="section.icon" />
+        </span>
+        <span class="section-btn__label">{{ section.label }}</span>
       </button>
     </div>
 
@@ -209,11 +212,17 @@ function jumpToNode(node, source = 'related') {
 }
 
 .inspector-switches {
+  container-type: inline-size;
+  container-name: inspector-switches;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 0.45rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+  scrollbar-width: thin;
 }
 
 .section-btn {
@@ -225,7 +234,44 @@ function jumpToNode(node, source = 'related') {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.35rem;
+  padding: 0.32rem 0.55rem;
+  min-height: 2.3rem;
+  flex: 0 1 auto;
+  min-width: 0;
 }
+
+.section-btn__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.section-btn__icon :deep(svg) {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: block;
+}
+
+.section-btn__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Not enough horizontal space for icon + text on one row — keep icons only (labels stay in aria-label / title). */
+@container inspector-switches (max-width: 26rem) {
+  .section-btn__label {
+    display: none;
+  }
+
+  .section-btn {
+    padding: 0.32rem 0.42rem;
+  }
+}
+
 
 .section-btn:disabled {
   opacity: 0.55;
