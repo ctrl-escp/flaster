@@ -125,7 +125,7 @@ onMounted(() => {
                 <dd>
                   Write custom structure matches to find obfuscation patterns unique to your target (proxy
                   arrays, string encoders, IIFE wrappers, or anything else), then attach custom transformations
-                  that simplify them. Stack matches and transforms into a pipeline, then export it as a Node.js
+                  that simplify them. Stack matches and transforms into a pipeline, then automate it as an <code>.mjs</code>
                   script that runs offline on any file.
                 </dd>
               </div>
@@ -136,7 +136,7 @@ onMounted(() => {
                 </dt>
                 <dd>
                   Apply obfuscating transformers to a clean script for testing or research. The same
-                  pipeline/export workflow applies in reverse.
+                  pipeline/automate workflow applies in reverse.
                 </dd>
               </div>
               <div class="mode-row">
@@ -160,7 +160,7 @@ onMounted(() => {
             role="tabpanel"
             :aria-labelledby="`help-tab-${HELP_TABS[1].id}`"
           >
-            <pre class="workflow-line" aria-hidden="true">Load &amp; Parse → Match Structures → Attach Transforms → Iterate → Export</pre>
+            <pre class="workflow-line" aria-hidden="true">Load &amp; Parse → Match Structures → Attach Transforms → Iterate → Automate</pre>
             <ol class="workflow-steps">
               <li>
                 <strong>Load &amp; Parse</strong>
@@ -190,8 +190,8 @@ onMounted(() => {
                 Reorder, enable, or disable steps without re-running them.
               </li>
               <li>
-                <strong>Export</strong>
-                — Open the <strong>Automate</strong> panel to review the generated script, then copy or download it as an <code>.mjs</code> file.
+                <strong>Automate</strong>
+                — Review the generated script, then copy or download it as an <code>.mjs</code> file.
                 The script embeds all structure definitions and transformers and can be run locally using Node.js, Deno, Bun, or any compatible runtime.
               </li>
             </ol>
