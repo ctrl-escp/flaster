@@ -713,6 +713,14 @@ h2 {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.structure-summary-checkbox input {
+  min-width: 24px;
+  min-height: 24px;
+  cursor: pointer;
 }
 
 .structure-summary-count {
