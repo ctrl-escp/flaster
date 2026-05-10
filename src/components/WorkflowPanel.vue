@@ -84,10 +84,7 @@ const inferredStage = computed(() => {
     return 'pipeline';
   }
 
-  if (
-    store.activeInspectorPanel === 'inspector' ||
-    store.activeWorkspaceTab === 'results'
-  ) {
+  if (store.activeWorkspaceTab === 'results') {
     return 'structures';
   }
 

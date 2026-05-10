@@ -25,7 +25,7 @@ export function createWorkspaceExploreSection() {
     hasVisitedExploreNodes: false,
     shouldPulseCodeStructuresStage: false,
     activeResultMode: 'ast',
-    activeInspectorPanel: 'inspector',
+    activeInspectorPanel: 'browser',
     activeNodeInspectorSection: 'overview',
     selectedNodeId: null,
     /** @type {number | null} Parse run id (`parseRunSequence`) that owns `selectedNodeId`. */
@@ -105,7 +105,7 @@ export function createWorkspaceExploreSection() {
         this.activeResultMode = this.getPreferredResultMode(this.activeResultMode);
       }
     },
-    setActiveInspectorPanel(panelName = 'inspector') {
+    setActiveInspectorPanel(panelName = 'browser') {
       this.activeInspectorPanel = panelName;
     },
     setActiveNodeInspectorSection(sectionName = 'overview') {
@@ -150,7 +150,7 @@ export function createWorkspaceExploreSection() {
 
       this.setSelectedNode(node, source);
       this.activeResultMode = source === 'related' ? 'related' : this.activeResultMode;
-      this.activeInspectorPanel = 'inspector';
+      this.activeInspectorPanel = 'browser';
     },
     async loadSampleScript(sampleId = this.activeSampleScriptId) {
       const sample = getSampleScript(sampleId);

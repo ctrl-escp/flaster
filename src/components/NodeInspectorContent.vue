@@ -1,18 +1,22 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
+import {createNodeAttributeEntries} from '../domain/selection/nodeInspectorModel.js';
 import {buildNodeInspectorOverviewRows} from '../ui/composables/nodeInspectorModel.js';
 import IconParse from './icons/IconParse.vue';
 import IconStructure from './icons/IconStructure.vue';
 import IconFilter from './icons/IconFilter.vue';
 import IconEye from './icons/IconEye.vue';
 
-const selectedNode = computed(() => store.getSelectedNode());
-const overlaps = computed(() => store.getKnownStructureOverlaps());
-const nodeMatches = computed(() => store.getNodeMatches(selectedNode.value));
-const children = computed(() => store.getNodeChildren(selectedNode.value));
-const scopeChain = computed(() => store.getNodeScopeChain(selectedNode.value));
-const attributes = computed(() => store.getSelectedNodeAttributes());
+const props = defineProps({
+  node: {type: Object, required: true},
+  /** Mirrors `store.selectedNodeSource` for overview rows */
+  sourceLabel: {type: String, default: null},
+  /** When the row is a known-structure match, pass it so overlaps exclude this structure */
+  structureMatch: {type: Object, default: null},
+  /** When true, omit outer scroll (parent handles overflow) */
+  embed: {type: Boolean, default: false},
+});
 
 const sections = [
   {id: 'overview', label: 'Overview', icon: IconParse},
@@ -21,14 +25,41 @@ const sections = [
   {id: 'structures', label: 'Structures', icon: IconEye},
 ];
 
-const overviewRows = computed(() => buildNodeInspectorOverviewRows({
-  node: selectedNode.value,
-  selectedNodeSource: store.selectedNodeSource,
-  scopeBlockType: scopeChain.value[0]?.type,
-  childCount: children.value.length,
-  nodeMatchCount: nodeMatches.value.length,
-  overlapCount: overlaps.value.length,
-}));
+const overlapProbe = computed(() => {
+  if (props.structureMatch) {
+    return props.structureMatch;
+  }
+
+  if (props.node?.range) {
+    return {structureId: null, relevantNode: props.node};
+  }
+
+  return null;
+});
+
+const overlaps = computed(() => {
+  if (!overlapProbe.value) {
+    return [];
+  }
+
+  return store.getKnownStructureOverlaps(overlapProbe.value);
+});
+
+const nodeMatches = computed(() => store.getNodeMatches(props.node));
+const children = computed(() => store.getNodeChildren(props.node));
+const scopeChain = computed(() => store.getNodeScopeChain(props.node));
+const attributes = computed(() => createNodeAttributeEntries(props.node));
+
+const overviewRows = computed(() =>
+  buildNodeInspectorOverviewRows({
+    node: props.node,
+    selectedNodeSource: props.sourceLabel,
+    scopeBlockType: scopeChain.value[0]?.type,
+    childCount: children.value.length,
+    nodeMatchCount: nodeMatches.value.length,
+    overlapCount: overlaps.value.length,
+  }),
+);
 
 function jumpToNode(node, source = 'related') {
   store.inspectNode(node, source);
@@ -36,32 +67,27 @@ function jumpToNode(node, source = 'related') {
 </script>
 
 <template>
-  <section class="workspace-panel inspector-panel">
-    <div class="panel-header">
-      <h2>{{ selectedNode ? `Node Info: ${selectedNode.type}` : 'Node Info' }}</h2>
-      <div class="panel-meta">{{ store.selectedNodeSource || 'No selection' }}</div>
+  <div class="node-inspector-content" :class="{embed}">
+    <div class="inspector-switches">
+      <button
+        v-for="section in sections"
+        :key="section.id"
+        class="section-btn icon-btn"
+        :class="{active: store.activeNodeInspectorSection === section.id}"
+        type="button"
+        :disabled="store.activeNodeInspectorSection === section.id"
+        :title="`Show the ${section.label.toLowerCase()} section for this node`"
+        :aria-label="`Open ${section.label} section`"
+        @click="store.setActiveNodeInspectorSection(section.id)"
+      >
+        <component :is="section.icon" />
+      </button>
     </div>
 
-    <div v-if="selectedNode" class="inspector-switches">
-        <button
-          v-for="section in sections"
-          :key="section.id"
-          class="section-btn icon-btn"
-          :class="{active: store.activeNodeInspectorSection === section.id}"
-          type="button"
-          :disabled="store.activeNodeInspectorSection === section.id"
-          :title="`Show the ${section.label.toLowerCase()} section for the selected node`"
-          :aria-label="`Open ${section.label} section`"
-          @click="store.setActiveNodeInspectorSection(section.id)"
-        >
-          <component :is="section.icon" />
-        </button>
-    </div>
-
-    <div v-if="selectedNode" class="inspector-content">
+    <div class="inspector-inner">
       <section v-if="store.activeNodeInspectorSection === 'overview'" class="inspector-card">
         <h3>Overview</h3>
-        <p class="source-preview">{{ selectedNode.src || 'No source snippet available.' }}</p>
+        <p class="source-preview">{{ node.src || 'No source snippet available.' }}</p>
         <dl class="overview-list">
           <div v-for="row in overviewRows" :key="row.label">
             <dt>{{ row.label }}</dt>
@@ -76,15 +102,15 @@ function jumpToNode(node, source = 'related') {
           <h4>Scope chain to the current scope block</h4>
           <div class="stack-list">
             <button
-              v-for="node in scopeChain"
-              :key="node.nodeId"
+              v-for="n in scopeChain"
+              :key="n.nodeId"
               class="list-btn"
               type="button"
               title="Inspect this ancestor node"
-              @click="jumpToNode(node, 'related')"
+              @click="jumpToNode(n, 'related')"
             >
-              <strong>{{ node.type }}</strong>
-              <span>{{ node.src?.slice(0, 140) }}</span>
+              <strong>{{ n.type }}</strong>
+              <span>{{ n.src?.slice(0, 140) }}</span>
             </button>
             <p v-if="!scopeChain.length" class="empty-copy">No scoped ancestors were found for this node.</p>
           </div>
@@ -94,15 +120,15 @@ function jumpToNode(node, source = 'related') {
           <h4>Immediate children</h4>
           <div class="stack-list">
             <button
-              v-for="node in children"
-              :key="node.nodeId"
+              v-for="n in children"
+              :key="n.nodeId"
               class="list-btn"
               type="button"
               title="Inspect this child node"
-              @click="jumpToNode(node, 'related')"
+              @click="jumpToNode(n, 'related')"
             >
-              <strong>{{ node.type }}</strong>
-              <span>{{ node.src?.slice(0, 140) }}</span>
+              <strong>{{ n.type }}</strong>
+              <span>{{ n.src?.slice(0, 140) }}</span>
             </button>
             <p v-if="!children.length" class="empty-copy">This node has no immediate children in the parsed AST list.</p>
           </div>
@@ -158,38 +184,36 @@ function jumpToNode(node, source = 'related') {
         </div>
       </section>
     </div>
-
-    <div v-else class="empty-state">
-      Select a match, AST node, or related node to inspect its node info, scope chain, attributes, and structural overlaps.
-    </div>
-  </section>
+  </div>
 </template>
 
 <style scoped>
-.inspector-panel {
+.node-inspector-content {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
+  gap: 0.55rem;
   min-height: 0;
-  height: 100%;
 }
 
-.panel-header,
+.node-inspector-content.embed {
+  height: 17.5rem;
+  min-height: 17.5rem;
+  max-height: 17.5rem;
+}
+
+.node-inspector-content.embed .inspector-inner {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.1rem;
+}
+
 .inspector-switches {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.panel-meta,
-.empty-copy {
-  color: var(--text-muted);
-}
-
-.inspector-switches {
   justify-content: flex-start;
+  gap: 0.45rem;
+  flex-wrap: wrap;
 }
 
 .section-btn {
@@ -220,20 +244,26 @@ function jumpToNode(node, source = 'related') {
   cursor: default;
 }
 
-.inspector-content {
+.inspector-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
   min-height: 0;
-  overflow: auto;
-  padding-right: 0.1rem;
 }
 
 .inspector-card {
   border: 1px solid var(--panel-border);
   border-radius: 12px;
-  padding: 0.8rem;
-  background: var(--panel-card);
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.12);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.65rem;
+}
+
+.inspector-card h3 {
+  margin: 0;
+  font-size: 0.95rem;
 }
 
 .source-preview {
@@ -241,6 +271,7 @@ function jumpToNode(node, source = 'related') {
   word-break: break-word;
   overflow-wrap: anywhere;
   color: var(--text-primary);
+  font-size: 0.88rem;
 }
 
 .overview-list,
@@ -248,24 +279,32 @@ function jumpToNode(node, source = 'related') {
 .subsection {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.55rem;
+}
+
+.subsection h4 {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .overview-list div {
   display: grid;
   grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr);
-  gap: 0.5rem;
+  gap: 0.45rem;
   align-items: start;
 }
 
 dt {
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 dd {
+  margin: 0;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
@@ -275,12 +314,12 @@ dd {
   color: var(--text-primary);
   background: rgba(255, 255, 255, 0.04);
   border-radius: 10px;
-  padding: 0.55rem 0.7rem;
+  padding: 0.5rem 0.65rem;
   cursor: pointer;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 0.18rem;
+  gap: 0.15rem;
 }
 
 .list-btn span {
@@ -290,23 +329,13 @@ dd {
   overflow-wrap: anywhere;
 }
 
-.empty-state {
-  border: 1px dashed var(--panel-border);
-  border-radius: 12px;
-  padding: 1rem;
+.empty-copy {
   color: var(--text-muted);
+  margin: 0;
+  font-size: 0.85rem;
 }
 
 @media (max-width: 720px) {
-  .inspector-panel {
-    height: auto;
-  }
-
-  .inspector-content {
-    overflow: visible;
-    padding-right: 0;
-  }
-
   .overview-list div {
     grid-template-columns: 1fr;
   }

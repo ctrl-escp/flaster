@@ -256,7 +256,7 @@ export function createKnownStructuresSection(knownStructureState) {
         this.refreshKnownStructureHighlights();
       }
     },
-    setSelectedKnownStructureMatch(structureId, matchIndex, revealInInspector = true) {
+    setSelectedKnownStructureMatch(structureId, matchIndex, revealInInspector = false) {
       const match = this.getKnownStructureMatches(structureId)
         .find((candidate) => candidate.metadata?.matchOrdinal === matchIndex);
 
@@ -280,7 +280,7 @@ export function createKnownStructuresSection(knownStructureState) {
       };
       this.setSelectedNode(nodeForMatchSelection(match), 'match');
       if (revealInInspector) {
-        this.activeInspectorPanel = 'inspector';
+        this.setActiveWorkspaceTab('results');
       }
       this.refreshKnownStructureHighlights();
     },

@@ -55,9 +55,23 @@ export function useResultBrowser() {
     });
   }
 
+  const expandedItemKey = ref(null);
+
+  function selectionMatchesItem(item) {
+    if (item.kind === 'match') {
+      return isKnownStructureMatchSelectionActive(store.selectedKnownStructureMatch, item.match);
+    }
+
+    return store.getSelectedNode()?.nodeId === item.node?.nodeId;
+  }
+
   function selectItem(item) {
     store.setActiveWorkspaceTab('results');
     store.setActiveInspectorPanel('browser');
+
+    if (expandedItemKey.value && expandedItemKey.value !== item.key) {
+      expandedItemKey.value = null;
+    }
 
     if (item.kind === 'match') {
       store.setSelectedKnownStructureMatch(item.match.structureId, item.match.metadata.matchOrdinal, false);
@@ -67,13 +81,26 @@ export function useResultBrowser() {
     store.setSelectedNode(item.node, store.activeResultMode);
   }
 
-  function openItemDetails(item) {
-    if (item.kind === 'match') {
-      store.setSelectedKnownStructureMatch(item.match.structureId, item.match.metadata.matchOrdinal);
+  function toggleResultItemExpand(item) {
+    if (expandedItemKey.value === item.key) {
+      expandedItemKey.value = null;
       return;
     }
 
-    store.inspectNode(item.node, store.activeResultMode);
+    expandedItemKey.value = item.key;
+    selectItem(item);
+  }
+
+  function isResultItemExpanded(item) {
+    return expandedItemKey.value === item.key;
+  }
+
+  function itemNodeSourceLabel(item) {
+    if (item.kind === 'match') {
+      return 'match';
+    }
+
+    return store.activeResultMode;
   }
 
   function isActive(item) {
@@ -111,6 +138,35 @@ export function useResultBrowser() {
     }
   });
 
+  watch(
+    () => ({
+      nodeId: store.getSelectedNode()?.nodeId,
+      matchKey: store.selectedKnownStructureMatch
+        ? `${store.selectedKnownStructureMatch.structureId}:${store.selectedKnownStructureMatch.index}`
+        : null,
+    }),
+    () => {
+      const key = expandedItemKey.value;
+      if (!key) {
+        return;
+      }
+
+      const item = visibleItems.value.find((i) => i.key === key);
+      if (!item || !selectionMatchesItem(item)) {
+        expandedItemKey.value = null;
+      }
+    },
+  );
+
+  watch(pagedItems, (items) => {
+    const key = expandedItemKey.value;
+    if (!key || items.some((i) => i.key === key)) {
+      return;
+    }
+
+    expandedItemKey.value = null;
+  });
+
   return {
     store,
     modes,
@@ -123,7 +179,9 @@ export function useResultBrowser() {
     pageRange,
     canOpenMode,
     selectItem,
-    openItemDetails,
+    toggleResultItemExpand,
+    isResultItemExpanded,
+    itemNodeSourceLabel,
     isActive,
     nextPage,
     prevPage,

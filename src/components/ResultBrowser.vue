@@ -1,5 +1,6 @@
 <script setup>
 import {useResultBrowser} from '../ui/composables/useResultBrowser.js';
+import NodeInspectorContent from './NodeInspectorContent.vue';
 import IconArrowLeft from './icons/IconArrowLeft.vue';
 import IconArrowRight from './icons/IconArrowRight.vue';
 import IconArrowUp from './icons/IconArrowUp.vue';
@@ -14,7 +15,9 @@ const {
   pageRange,
   canOpenMode,
   selectItem,
-  openItemDetails,
+  toggleResultItemExpand,
+  isResultItemExpanded,
+  itemNodeSourceLabel,
   isActive,
   nextPage,
   prevPage,
@@ -95,27 +98,42 @@ const {
         v-for="item in pagedItems"
         :key="item.key"
         class="result-item"
-        :class="{active: isActive(item)}"
+        :class="{active: isActive(item), expanded: isResultItemExpanded(item)}"
       >
-        <button
-          class="result-item-main"
-          type="button"
-          :title="item.summary"
-          @click="selectItem(item)"
-        >
-          <strong>{{ item.label }}</strong>
-          <small v-if="item.relationLabel" class="relation-tag">{{ item.relationLabel }}</small>
-          <span>{{ item.summary }}</span>
-          <small>{{ item.meta }}</small>
-        </button>
-        <button
-          class="result-item-detail mini-btn"
-          type="button"
-          :title="isActive(item) ? 'Open Node Info for this selection' : 'See more about this selection'"
-          @click="openItemDetails(item)"
-        >
-          {{ isActive(item) ? 'Node Info' : 'See more' }}
-        </button>
+        <div class="result-item-top">
+          <button
+            class="result-item-main"
+            type="button"
+            :title="item.summary"
+            @click="selectItem(item)"
+          >
+            <strong>{{ item.label }}</strong>
+            <small v-if="item.relationLabel" class="relation-tag">{{ item.relationLabel }}</small>
+            <span>{{ item.summary }}</span>
+            <small>{{ item.meta }}</small>
+          </button>
+          <button
+            class="result-item-caret mini-btn icon-btn"
+            type="button"
+            :title="isResultItemExpanded(item) ? 'Hide node details' : 'Show node details'"
+            :aria-expanded="isResultItemExpanded(item)"
+            aria-label="Toggle node details"
+            @click.stop="toggleResultItemExpand(item)"
+          >
+            <span class="caret-icon" :class="{open: isResultItemExpanded(item)}" aria-hidden="true">^</span>
+          </button>
+        </div>
+        <div v-if="isResultItemExpanded(item) && item.node" class="result-item-body">
+          <NodeInspectorContent
+            :node="item.node"
+            :source-label="itemNodeSourceLabel(item)"
+            :structure-match="item.kind === 'match' ? item.match : null"
+            embed
+          />
+        </div>
+        <div v-else-if="isResultItemExpanded(item) && !item.node" class="result-item-body result-item-body-empty">
+          No node is available for this row.
+        </div>
       </article>
     </div>
   </section>
@@ -229,14 +247,22 @@ const {
   border-radius: 12px;
   padding: 0.7rem 0.8rem;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.7rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
   width: 100%;
   box-sizing: border-box;
   flex: 0 0 auto;
   min-width: 0;
   max-width: 100%;
+}
+
+.result-item-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+  min-width: 0;
 }
 
 .result-item-main {
@@ -287,10 +313,34 @@ const {
   outline: none;
 }
 
-.result-item-detail {
+.result-item-caret {
   flex: 0 0 auto;
   align-self: center;
-  white-space: nowrap;
+}
+
+.caret-icon {
+  display: inline-block;
+  font-size: 1rem;
+  line-height: 1;
+  font-weight: 700;
+  transform: rotate(0deg);
+  transition: transform 0.2s ease;
+}
+
+.caret-icon.open {
+  transform: rotate(180deg);
+}
+
+.result-item-body {
+  border-top: 1px solid var(--panel-border);
+  padding-top: 0.55rem;
+  margin-top: 0.1rem;
+  min-width: 0;
+}
+
+.result-item-body-empty {
+  color: var(--text-muted);
+  font-size: 0.88rem;
 }
 
 .icon-btn {

@@ -3,16 +3,13 @@ import {computed} from 'vue';
 import store from '../store';
 import StructureExplorer from './StructureExplorer.vue';
 import ResultBrowser from './ResultBrowser.vue';
-import NodeInspector from './NodeInspector.vue';
 import IconBrowse from './icons/IconBrowse.vue';
 import IconListChecks from './icons/IconListChecks.vue';
-import IconInspect from './icons/IconInspect.vue';
 
 const hasResults = computed(() =>
   store.getKnownStructureMatches().length > 0 ||
   (store.areFiltersActive ? store.filteredNodes : store.arb?.ast ?? []).length > 0,
 );
-const hasNodeInfo = computed(() => Boolean(store.getSelectedNode()));
 const shouldHighlightResults = computed(() =>
   hasResults.value &&
   !store.hasVisitedExploreNodes &&
@@ -35,23 +32,9 @@ const tabs = computed(() => [
     icon: IconListChecks,
     enabled: hasResults.value,
   },
-  {
-    id: 'inspector',
-    label: 'Node Info',
-    icon: IconInspect,
-    enabled: hasNodeInfo.value,
-  },
 ]);
 
 const activeSubview = computed(() => {
-  if (
-    store.activeWorkspaceTab === 'results' &&
-    store.activeInspectorPanel === 'inspector' &&
-    hasNodeInfo.value
-  ) {
-    return 'inspector';
-  }
-
   if (store.activeWorkspaceTab === 'results' && hasResults.value) {
     return 'results';
   }
@@ -60,10 +43,6 @@ const activeSubview = computed(() => {
 });
 
 const activePanel = computed(() => {
-  if (activeSubview.value === 'inspector') {
-    return NodeInspector;
-  }
-
   if (activeSubview.value === 'results') {
     return ResultBrowser;
   }
@@ -74,15 +53,6 @@ const activePanel = computed(() => {
 function openTab(tabId) {
   if (tabId === 'results') {
     store.setActiveWorkspaceTab('results');
-    if (store.activeInspectorPanel === 'inspector' && hasNodeInfo.value) {
-      store.setActiveInspectorPanel('browser');
-    }
-    return;
-  }
-
-  if (tabId === 'inspector') {
-    store.setActiveWorkspaceTab('results');
-    store.setActiveInspectorPanel('inspector');
     return;
   }
 

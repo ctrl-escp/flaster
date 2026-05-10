@@ -268,12 +268,12 @@ const {
                 class="structure-action"
                 type="button"
                 :disabled="!canInspectStructure(structure)"
-                title="Open Explore Nodes and Node Info for this structure"
+                title="Open Explore Nodes for this structure"
                 aria-label="Show structure matches"
-                @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('inspector')"
+                @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('browser')"
               >
                 <icon-list-checks />
-                <span>Node Info</span>
+                <span>Explore nodes</span>
               </button>
               <button
                 class="structure-action structure-action-emphasis"
