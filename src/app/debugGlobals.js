@@ -1,4 +1,6 @@
 import flastPackage from 'flast/package.json' with {type: 'json'};
+import {watchEffect} from 'vue';
+import {createConsoleCatalog} from './consoleCatalog.js';
 import store from '../store.js';
 
 function shouldInstallDebugGlobals() {
@@ -14,13 +16,28 @@ export async function installDebugGlobals() {
     return;
   }
 
-  const [flastNs, restringerMod] = await Promise.all([
+  const [flastNs, integrationMod] = await Promise.all([
     import('flast/src/index.js'),
     import('../integrations/restringer/index.js'),
   ]);
 
-  window.flast = {...flastNs, version: flastPackage.version};
-  window.restringer = restringerMod.default;
-  window.selectedNode = null;
+  const restringerSafe = integrationMod.default;
+
+  window.flast = {
+    ...flastNs,
+    version: flastPackage.version,
+    async applyArboristToUI(arborist) {
+      return store.applyArboristToWorkspace(arborist);
+    },
+  };
+
+  const catalog = createConsoleCatalog(store, restringerSafe);
+  window.catalog = catalog;
+
   window.store = store;
+
+  watchEffect(() => {
+    window.arborist = store.arb ?? null;
+    window.selectedNode = store.getSelectedNode();
+  });
 }

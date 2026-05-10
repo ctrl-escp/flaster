@@ -6,9 +6,10 @@ Manual debugging (console inspection) uses properties on `window`. They are **no
 
 | Global | Owner | Consumers | Notes |
 | ------ | ----- | --------- | ----- |
-| `window.flast` | `src/app/debugGlobals.js` | Console / external snippets in dev | Full flAST namespace plus `version` from `flast/package.json`. Runtime parsing uses `import { Arborist } from 'flast/src/arborist.js'` instead. |
-| `window.restringer` | `src/app/debugGlobals.js` | Console in dev | The safe integration object (`restringerSafe`). The header shows REstringer’s version via the same adapter import (`restringerSafe.version`), not this global. |
-| `window.selectedNode` | `src/app/debugGlobals.js` | Console in dev | Initialized to `null`; assign in the console when useful. |
+| `window.flast` | `src/app/debugGlobals.js` | Console / external snippets in dev | Full flAST namespace plus `version` from `flast/package.json` and async `applyArboristToUI(arborist)` (delegates to `store.applyArboristToWorkspace`). Runtime parsing uses `import { Arborist } from 'flast/src/arborist.js'` instead. |
+| `window.arborist` | `src/app/debugGlobals.js` | Console in dev | Live `store.arb` (Vue `watchEffect`). |
+| `window.selectedNode` | `src/app/debugGlobals.js` | Console in dev | Live `store.getSelectedNode()` (`watchEffect`). |
+| `window.catalog` | `src/app/debugGlobals.js` | Console in dev | Built via `createConsoleCatalog` in `src/app/consoleCatalog.js`: workspace matchers/transforms plus `restringer` for the frozen `restringerSafe` bundle. |
 | `window.store` | `src/app/debugGlobals.js` | Console in dev | The reactive app store singleton. |
 
 ### When globals are installed

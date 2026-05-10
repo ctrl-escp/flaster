@@ -12,6 +12,7 @@ const closeBtn = ref(null);
 const HELP_TABS = [
   {id: 'overview', label: 'What flASTer does'},
   {id: 'workflow', label: 'Workflow'},
+  {id: 'console', label: 'Continue in the Console'},
   {id: 'shortcuts', label: 'Keyboard shortcuts'},
 ];
 
@@ -200,9 +201,81 @@ onMounted(() => {
           <section
             v-show="activeTabIndex === 2"
             :id="`help-panel-${HELP_TABS[2].id}`"
-            class="help-panel"
+            class="help-panel help-console-panel"
             role="tabpanel"
             :aria-labelledby="`help-tab-${HELP_TABS[2].id}`"
+          >
+            <p class="console-help-lead">
+              Open the <strong>Console</strong> to continue working with the same flAST tree and script as the UI.
+              The following names are attached to <code>window</code> for that workflow:
+            </p>
+
+            <dl class="console-help-dl">
+              <div class="console-help-row">
+                <dt><code>flast</code></dt>
+                <dd>
+                  The flAST library namespace loaded from the package, plus a <code>version</code> string and
+                  <code>applyArboristToUI(arborist)</code> (see below). Highlights include
+                  <code>Arborist</code>
+                  (parse a script into a flat <code>ast</code>, queue edits with
+                  <code>markNode</code>, <code>replaceNode</code>, or <code>deleteNode</code>, then
+                  <code>applyChanges()</code> to regenerate <code>script</code> and <code>ast</code>),
+                  <code>generateRootNode</code>,
+                  <code>generateFlatAST</code>,
+                  <code>generateCode</code>,
+                  <code>parseCode</code>,
+                  <code>extractNodesFromRoot</code>,
+                  <code>mapIdentifierRelations</code>,
+                  <code>applyIteratively</code>, and
+                  <code>logger</code>.
+                </dd>
+              </div>
+              <div class="console-help-row">
+                <dt><code>flast.applyArboristToUI(arborist)</code></dt>
+                <dd>
+                  After you change the live <code>arborist</code> in the console (mark nodes, apply changes, or swap
+                  in your own <code>Arborist</code> instance), call this async function to push that state into the
+                  workspace: the input editor text, the Result Browser / filters, known-structure matching, and
+                  parse/selection bookkeeping all catch up with your arborist.
+                </dd>
+              </div>
+              <div class="console-help-row">
+                <dt><code>arborist</code></dt>
+                <dd>
+                  The current workspace arborist (same object as the UI). Use it to inspect
+                  <code>script</code> and <code>ast</code>, call <code>markNode</code> / <code>applyChanges</code>, or
+                  run catalog matchers against it, then sync with
+                  <code>await flast.applyArboristToUI(arborist)</code>.
+                </dd>
+              </div>
+              <div class="console-help-row">
+                <dt><code>selectedNode</code></dt>
+                <dd>
+                  The AST node currently resolved from the UI selection (or <code>null</code>). Handy when you want
+                  the same node reference while exploring parents, scope, or matches in the console.
+                </dd>
+              </div>
+              <div class="console-help-row">
+                <dt><code>catalog</code></dt>
+                <dd>
+                  Matchers and transforms for the <strong>current</strong> workspace: <code>structures</code> (every
+                  descriptor, including user-defined ones), <code>structure(id)</code>,
+                  <code>matchersById</code> / <code>transformsById</code>, and
+                  <code>runMatcher</code> / <code>runTransform</code> / <code>runTransformSession</code> keyed by
+                  structure id. Built-in REstringer-backed entries are one part of that surface; use
+                  <code>catalog.restringer</code> for the frozen integration bundle (utilities, registry metadata,
+                  <code>listBuiltInStructures</code>, and the same runner helpers the adapter exports).
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section
+            v-show="activeTabIndex === 3"
+            :id="`help-panel-${HELP_TABS[3].id}`"
+            class="help-panel"
+            role="tabpanel"
+            :aria-labelledby="`help-tab-${HELP_TABS[3].id}`"
           >
             <div class="shortcuts-table-wrap">
               <table class="shortcuts-table">
@@ -404,6 +477,41 @@ onMounted(() => {
 .mode-row dd {
   margin: 0;
   color: var(--text-primary);
+}
+
+.console-help-lead {
+  margin: 0 0 0.85rem;
+  color: var(--text-primary);
+}
+
+.help-console-panel .console-help-dl {
+  margin: 0;
+}
+
+.console-help-row {
+  margin: 0 0 0.85rem;
+}
+
+.console-help-row:last-child {
+  margin-bottom: 0;
+}
+
+.console-help-row dt {
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+}
+
+.console-help-row dt code {
+  font-size: 0.86em;
+}
+
+.console-help-row dd {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.console-help-row dd code {
+  font-size: 0.86em;
 }
 
 .coming-soon {

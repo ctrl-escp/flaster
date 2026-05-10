@@ -108,6 +108,70 @@ export function createScriptHistorySection() {
       this.markCurrentInputParsed();
       await this.runKnownStructureMatching();
     },
+    /**
+     * Syncs a flAST {@link import('flast/src/arborist.js').Arborist} (e.g. edited in the devtools console)
+     * into the input editor, workspace `arb`, filters, known-structure results, and parse/selection metadata.
+     * Invoked from `flast.applyArboristToUI` when debug globals are installed.
+     *
+     * @param {import('flast/src/arborist.js').Arborist | {ast?: import('flast/src/types.js').ASTNode[], script?: string}} arborist
+     * @returns {Promise<boolean>}
+     */
+    async applyArboristToWorkspace(arborist) {
+      const inputEditor = this.getEditor(this.editorIds.inputCodeEditor);
+
+      if (!inputEditor) {
+        this.logMessage('applyArboristToWorkspace: input editor is not ready yet', 'error');
+        return false;
+      }
+
+      if (!arborist || typeof arborist.script !== 'string') {
+        this.logMessage('applyArboristToWorkspace: arborist must expose a string `script`', 'error');
+        return false;
+      }
+
+      const script = arborist.script;
+      const prevId = this.selectedNodeId;
+      const prevSource = this.selectedNodeSource;
+
+      this.suppressInputChangeParseReset = true;
+      try {
+        this.setContent(inputEditor, script);
+      } finally {
+        this.suppressInputChangeParseReset = false;
+      }
+
+      this.arb = arborist;
+      const parseRunId = this.bumpParseRunSequence();
+      this.markKnownStructureInputChanged();
+      this.reapplyFilters();
+      this.markCurrentInputParsed();
+
+      const ast = Array.isArray(arborist.ast) ? arborist.ast : [];
+      if (Number.isInteger(prevId) && ast.some((n) => n.nodeId === prevId)) {
+        this.selectedNodeId = prevId;
+        this.selectedNodeSource = prevSource ?? 'ast';
+        this.selectionParseRunId = parseRunId;
+        const node = ast.find((n) => n.nodeId === prevId);
+        if (node?.range?.length >= 2) {
+          inputEditor.highlightRange?.(node.range[0], node.range[1]);
+        }
+      } else {
+        this.setSelectedNode(null);
+      }
+
+      try {
+        await this.rerunKnownStructureMatching();
+      } catch (error) {
+        this.logMessage(error instanceof Error ? error.message : String(error), 'error');
+        return false;
+      }
+
+      if (typeof this.markParsedToolbarIcon === 'function') {
+        this.markParsedToolbarIcon();
+      }
+
+      return true;
+    },
     currentScriptLabel: 'Custom script',
     currentScriptKind: 'custom',
     currentScriptBaseline: '',
@@ -119,6 +183,11 @@ export function createScriptHistorySection() {
       this.parseRunSequence += 1;
       return this.parseRunSequence;
     },
+    /**
+     * When true, the next input editor doc change skips `resetParsedState` (used when replacing
+     * the document and `arb` together from `applyArboristToWorkspace`).
+     */
+    suppressInputChangeParseReset: false,
     shouldAutoParseInitialInput: true,
     // eslint-disable-next-line no-unused-vars
     logMessage(text, level) {},
@@ -143,6 +212,10 @@ export function createScriptHistorySection() {
     },
     handleInputEditorChange() {
       this.inputContentVersion += 1;
+
+      if (this.suppressInputChangeParseReset) {
+        return;
+      }
 
       if (this.parsedContentVersion !== -1 || Array.isArray(this.arb?.ast)) {
         this.resetParsedState();

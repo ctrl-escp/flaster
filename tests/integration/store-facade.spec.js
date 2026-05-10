@@ -1,4 +1,5 @@
 import {describe, it, expect, vi, afterEach} from 'vitest';
+import {toRaw} from 'vue';
 import {Arborist} from 'flast/src/arborist.js';
 import {createAppStore} from '../../src/app/createAppStore.js';
 import {composeTransformationScript} from '../../src/domain/export/index.js';
@@ -72,5 +73,47 @@ describe('store facade integration', () => {
     expect(store.getKnownStructureMatches('computed-members').length).toBeGreaterThan(0);
     expect(store.activeKnownStructureId).toBeNull();
     expect(store.inspectedKnownStructureId).toBeNull();
+  });
+
+  it('applyArboristToWorkspace updates editor text and store arb without clearing via resetParsedState', async () => {
+    const store = createAppStore();
+    let docText = 'const x = 1;\n';
+    const inputEditorId = store.editorIds.inputCodeEditor;
+    const inputEditor = {
+      editorId: inputEditorId,
+      state: {
+        doc: {
+          get length() {
+            return docText.length;
+          },
+          toString() {
+            return docText;
+          },
+        },
+      },
+      dispatch({changes}) {
+        let text = docText;
+        for (const ch of changes) {
+          if (Number.isInteger(ch.from)) {
+            const end = Number.isInteger(ch.to) ? ch.to : ch.from;
+            text = `${text.slice(0, ch.from)}${ch.insert ?? ''}${text.slice(end)}`;
+          }
+        }
+        docText = text;
+      },
+      highlightRange: vi.fn(),
+      isParsed: false,
+    };
+    store.editors.push(inputEditor);
+    store.markParsedToolbarIcon = vi.fn();
+
+    const arb = new Arborist('const x = 1;\n');
+    const ok = await store.applyArboristToWorkspace(arb);
+
+    expect(ok).toBe(true);
+    expect(toRaw(store.arb)).toBe(arb);
+    expect(docText).toBe('const x = 1;\n');
+    expect(store.isCurrentInputParsed()).toBe(true);
+    expect(store.markParsedToolbarIcon).toHaveBeenCalled();
   });
 });

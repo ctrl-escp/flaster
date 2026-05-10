@@ -100,6 +100,7 @@ async function parseContent({focusExploreNodes = false, pulseCodeStructures = fa
 onMounted(() => {
   store.resetParsedState = resetParsedState;
   store.parseContent = parseContent;
+  store.markParsedToolbarIcon = setContentParsed;
   store.tryAutoParseInitialInput = () => {
     if (!store.shouldAutoParseInitialInput || !canParse.value || !store.getEditor(store.editorIds.inputCodeEditor)) {
       return false;
