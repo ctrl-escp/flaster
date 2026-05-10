@@ -193,6 +193,9 @@ onMounted(() => {
           if (!update.docChanged || props.editorId !== store.editorIds.inputCodeEditor) {
             return;
           }
+          if (store.suppressEditorChangeProcessing) {
+            return;
+          }
 
           const content = update.state.doc.toString();
           store.handleInputEditorChange();
@@ -238,14 +241,18 @@ onMounted(() => {
   store.editors.push(editor);
   mountedEditor = editor;
 
-  if (props.editorId === store.editorIds.inputCodeEditor && store.currentScriptKind === 'custom') {
-    store.setCurrentScriptSource({
-      kind: 'custom',
-      label: store.currentScriptLabel,
-      baselineContent: editor.state.doc.toString(),
-    });
+  if (props.editorId === store.editorIds.inputCodeEditor) {
+    if (store.pendingEditorRestore) {
+      store.consumePendingEditorRestore(editor);
+    } else if (store.currentScriptKind === 'custom') {
+      store.setCurrentScriptSource({
+        kind: 'custom',
+        label: store.currentScriptLabel,
+        baselineContent: editor.state.doc.toString(),
+      });
 
-    store.tryAutoParseInitialInput();
+      store.tryAutoParseInitialInput();
+    }
   }
 });
 

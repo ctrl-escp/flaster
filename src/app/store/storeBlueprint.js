@@ -1,5 +1,6 @@
 import {createFiltersSection} from './sections/filters.js';
 import {createKnownStructuresSection} from './sections/knownStructures.js';
+import {createPersistenceSection} from './sections/persistence.js';
 import {createPipelineSection} from './sections/pipeline.js';
 import {createScriptHistorySection} from './sections/scriptHistory.js';
 import {createShellSection} from './sections/shell.js';
@@ -86,5 +87,6 @@ export function createStoreBlueprint(knownStructureState) {
     ...createKnownStructuresSection(knownStructureState),
     ...createPipelineSection(),
     ...createTemplateApplySection(),
+    ...createPersistenceSection(),
   };
 }
