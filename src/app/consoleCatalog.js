@@ -1,8 +1,8 @@
 import {
-  executeKnownStructureMatcher,
-  executeKnownStructureTransform,
-  executeKnownStructureTransformSession,
-} from '../integrations/restringer/runners.js';
+  runKnownStructureMatcher,
+  runKnownStructureTransform,
+  runKnownStructureTransformSession,
+} from '../integrations/restringer/index.js';
 
 /**
  * Browser-console catalog: matchers and transforms available in the current workspace
@@ -57,7 +57,7 @@ export function createConsoleCatalog(store, restringerSafe) {
         throw new Error(`Unknown structure id: ${structureId}`);
       }
 
-      return executeKnownStructureMatcher(structure, arb, options);
+      return runKnownStructureMatcher(arb, structure, options);
     },
 
     /**
@@ -71,7 +71,7 @@ export function createConsoleCatalog(store, restringerSafe) {
         throw new Error(`Unknown structure id: ${structureId}`);
       }
 
-      return executeKnownStructureTransform(structure, arb, match);
+      return runKnownStructureTransform(arb, structure, match);
     },
 
     /**
@@ -85,7 +85,7 @@ export function createConsoleCatalog(store, restringerSafe) {
         throw new Error(`Unknown structure id: ${structureId}`);
       }
 
-      return executeKnownStructureTransformSession(structure, arb, options);
+      return runKnownStructureTransformSession(arb, structure, options);
     },
   });
 }
