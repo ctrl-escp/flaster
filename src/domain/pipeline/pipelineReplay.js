@@ -10,18 +10,18 @@
  * @param {{
  *   baselineSource: string,
  *   steps: readonly object[],
- *   executor: (step: object, source: string) => TransformResult,
+ *   executor: (step: object, source: string) => TransformResult | Promise<TransformResult>,
  * }} args
- * @returns {{
+ * @returns {Promise<{
  *   ok: boolean,
  *   source: string,
  *   lastSuccessfulSource: string,
  *   error: Error | null,
  *   failedStepId: string | null,
  *   failedStepIndex: number | null,
- * }}
+ * }>}
  */
-export function replayPipeline({baselineSource, steps, executor}) {
+export async function replayPipeline({baselineSource, steps, executor}) {
   let source = typeof baselineSource === 'string' ? baselineSource : String(baselineSource ?? '');
   let lastSuccessfulSource = source;
   const list = Array.isArray(steps) ? steps : [];
@@ -37,7 +37,7 @@ export function replayPipeline({baselineSource, steps, executor}) {
     let result;
 
     try {
-      result = executor(step, source);
+      result = await Promise.resolve(executor(step, source));
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
       return {

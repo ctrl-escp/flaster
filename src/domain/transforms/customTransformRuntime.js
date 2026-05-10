@@ -11,8 +11,6 @@
  * @property {Error | null} error
  */
 
-import {runKnownStructureMatcher} from '../../integrations/restringer/index.js';
-
 /**
  * Compiles a filter body used as the expression inside `(n) => <body>`.
  *
@@ -79,9 +77,10 @@ function compileTransformBody(body, mode) {
  *   candidateFilters: Array<{src?: string, enabled?: boolean}>,
  *   runSettings: ReturnType<typeof normalizeCustomTransformRunSettings>,
  * }} options
- * @returns {TransformResult}
+ * @returns {Promise<TransformResult>}
  */
-export function runCustomTransformExecution(arborist, options) {
+export async function runCustomTransformExecution(arborist, options) {
+  const {runKnownStructureMatcher} = await import('../../integrations/restringer/index.js');
   const {body, structureId, candidateFilters, runSettings} = options;
   const sourceBefore = typeof arborist?.script === 'string' ? arborist.script : '';
   const transformName = 'custom';

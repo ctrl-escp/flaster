@@ -187,7 +187,7 @@ export function useStructureExplorer() {
     store.setActiveTemplate(defaultTemplate);
 
     if (defaultTemplate === 'apply-known-transform') {
-      store.previewKnownStructureTransform(structureId);
+      void store.previewKnownStructureTransform(structureId);
     } else {
       store.clearKnownStructureTransformPreview(structureId);
     }

@@ -4,7 +4,7 @@ import {executeKnownStructureTransformApply} from '../../src/domain/transforms/t
 import {runKnownStructureMatcher} from '../../src/integrations/restringer/index.js';
 
 describe('transformExecutor', () => {
-  it('completes a built-in safe transform with changesCount > 0', () => {
+  it('completes a built-in safe transform with changesCount > 0', async () => {
     const sampleScript = `
 function proxy(a, b) { return target(a, b); }
 const alias = original;
@@ -12,7 +12,7 @@ const out = proxy(one, two);
 console['log'](\`ok\`);
 `;
     const arb = new Arborist(sampleScript);
-    const result = executeKnownStructureTransformApply(arb, 'computed-members');
+    const result = await executeKnownStructureTransformApply(arb, 'computed-members');
 
     expect(result.isDone).toBe(true);
     expect(result.error).toBeNull();
@@ -23,25 +23,25 @@ console['log'](\`ok\`);
     expect(result.source.length).toBeGreaterThan(0);
   });
 
-  it('returns a completed no-op when the matcher finds nothing to change', () => {
+  it('returns a completed no-op when the matcher finds nothing to change', async () => {
     const arb = new Arborist('const only = 42;');
     const matchRun = runKnownStructureMatcher(arb, 'computed-members');
     expect(matchRun.error).toBeFalsy();
     expect(matchRun.count).toBe(0);
 
-    const result = executeKnownStructureTransformApply(arb, 'computed-members');
+    const result = await executeKnownStructureTransformApply(arb, 'computed-members');
     expect(result.isDone).toBe(true);
     expect(result.error).toBeNull();
     expect(result.changesCount).toBe(0);
     expect(result.source).toBe(arb.script);
   });
 
-  it('returns structured failure for unknown structure ids without applying edits', () => {
+  it('returns structured failure for unknown structure ids without applying edits', async () => {
     const script = 'const x = 1;';
     const arb = new Arborist(script);
     const before = arb.script;
 
-    const result = executeKnownStructureTransformApply(arb, 'not-a-real-structure-id');
+    const result = await executeKnownStructureTransformApply(arb, 'not-a-real-structure-id');
 
     expect(result.isDone).toBe(false);
     expect(result.changesCount).toBe(0);

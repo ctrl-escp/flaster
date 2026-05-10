@@ -1,5 +1,4 @@
-import {generateCode, generateRootNode} from 'flast';
-import {parseSource} from '../../../domain/parse/parseSource.js';
+import {loadRestringerIntegration} from '../../../integrations/restringer/index.js';
 import {cloneValue, normalizeScriptLabel} from '../storeUtils.js';
 
 /**
@@ -27,11 +26,11 @@ export function createScriptHistorySection() {
         transformationCode: this.transformationCode,
       });
     },
-    revertState() {
+    async revertState() {
       if (this.states.length) {
         const state = this.states.pop();
         // noinspection JSValidateTypes
-        this.loadNewScript(state.script);
+        await this.loadNewScript(state.script);
         this.filters = state.filters;
         this.steps = state.steps;
         this.transformationCode = state.transformationCode;
@@ -40,7 +39,7 @@ export function createScriptHistorySection() {
         this.logMessage('Reverted the last applied change', 'info');
       }
     },
-    beautifyInputScript() {
+    async beautifyInputScript() {
       const code = this.getCurrentScriptContent();
       if (!code.trim()) {
         return false;
@@ -52,6 +51,7 @@ export function createScriptHistorySection() {
 
       this.saveState({script: code});
 
+      const {generateCode, generateRootNode} = await import('flast');
       const rootNode = generateRootNode(code);
       if (!rootNode) {
         this.states.pop();
@@ -75,7 +75,7 @@ export function createScriptHistorySection() {
         return true;
       }
 
-      this.loadNewScript(beautified);
+      await this.loadNewScript(beautified);
       this.filters = filtersSnapshot;
       this.steps = stepsSnapshot;
       this.transformationCode = transformationSnapshot;
@@ -84,13 +84,17 @@ export function createScriptHistorySection() {
       this.logMessage('Script beautified', 'info');
       return true;
     },
-    loadNewScript(script) {
+    async loadNewScript(script) {
       this.lastBeautifiedContent = null;
       const inputEditor = this.getEditor(this.editorIds.inputCodeEditor);
 
       if (inputEditor) {
         this.setContent(inputEditor, script);
       }
+
+      const {parseSource} = await import('../../../domain/parse/parseSource.js');
+      const integration = await loadRestringerIntegration();
+      this.hydrateKnownStructureCatalog([...integration.knownStructures]);
 
       const parseRunId = this.bumpParseRunSequence();
       const parseResult = parseSource(script, {parseRunId});
@@ -102,7 +106,7 @@ export function createScriptHistorySection() {
       this.setSelectedNode(null);
       this.activeResultMode = 'ast';
       this.markCurrentInputParsed();
-      this.runKnownStructureMatching();
+      await this.runKnownStructureMatching();
     },
     currentScriptLabel: 'Custom script',
     currentScriptKind: 'custom',

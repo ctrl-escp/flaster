@@ -239,7 +239,7 @@ function finalizeEditStructure(filterSrc, selectedCategory) {
   }
 
   if (store.isCurrentInputParsed()) {
-    store.refreshKnownStructureMatchingForIds([structureId]);
+    void store.refreshKnownStructureMatchingForIds([structureId]);
   }
 
   resetStructureForm();

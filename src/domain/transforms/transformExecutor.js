@@ -10,16 +10,15 @@
  * @property {Error | null} error
  */
 
-import {runKnownStructureTransformSession} from '../../integrations/restringer/index.js';
-
 /**
  * Runs a safe known-structure transform session and applies pending edits when present.
  *
  * @param {import('flast/src/arborist.js').Arborist} arborist
  * @param {string} structureId
- * @returns {TransformResult}
+ * @returns {Promise<TransformResult>}
  */
-export function executeKnownStructureTransformApply(arborist, structureId) {
+export async function executeKnownStructureTransformApply(arborist, structureId) {
+  const {runKnownStructureTransformSession} = await import('../../integrations/restringer/index.js');
   const sourceBefore = typeof arborist?.script === 'string' ? arborist.script : '';
 
   let session;

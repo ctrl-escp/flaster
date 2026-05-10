@@ -132,7 +132,7 @@ const {
         :disabled="!canFindMatches"
         title="Run matching for the currently selected structures"
         aria-label="Find structure matches"
-        @click="store.runKnownStructureMatching()"
+        @click="void store.runKnownStructureMatching()"
       >
         <icon-search />
       </button>

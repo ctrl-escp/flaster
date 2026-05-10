@@ -3,20 +3,16 @@
  * Used by {@link replayPipeline} and the reactive store facade.
  */
 
-import {createArborist} from '../parse/parseSource.js';
-import {
-  normalizeCustomTransformRunSettings,
-  runCustomTransformExecution,
-} from '../transforms/customTransformRuntime.js';
-import {executeKnownStructureTransformApply} from '../transforms/transformExecutor.js';
-import {
-  collectKnownStructureMatchNodes,
-  runKnownStructureMatcher,
-} from '../../integrations/restringer/index.js';
+import {loadDeobWorkspaceModules} from '../deob/workspaceModules.js';
+import {normalizeCustomTransformRunSettings} from '../transforms/customTransformRuntime.js';
 import {getPipelineStepStructureId, normalizePipelineStepEntry} from './pipelineModel.js';
 
 /**
  * @typedef {import('../transforms/transformExecutor.js').TransformResult} TransformResult
+ */
+
+/**
+ * @typedef {Awaited<ReturnType<typeof loadDeobWorkspaceModules>>} DeobWorkspaceModules
  */
 
 /**
@@ -75,9 +71,9 @@ export function getOutermostMatchedNodes(matches = []) {
  * @param {{
  *   templateDrafts?: Record<string, {runMode?: string, maxIterations?: number}>,
  * }} ctx
- * @returns {TransformResult}
+ * @returns {Promise<TransformResult>}
  */
-function replayPipelineStepToTransformResult(script, step, ctx = {}) {
+async function replayPipelineStepToTransformResult(script, step, ctx = {}) {
   const templateDrafts = ctx.templateDrafts ?? {};
   const normalizedStep = normalizePipelineStepEntry(step);
   const templateType = normalizedStep.templateType ?? '';
@@ -94,22 +90,24 @@ function replayPipelineStepToTransformResult(script, step, ctx = {}) {
     };
   }
 
+  const m = await loadDeobWorkspaceModules();
+
   if (templateType === 'advanced-js-step' ||
     (normalizedStep.kind === 'custom' && normalizedStep.transformationCode)) {
-    return runCustomStepTransform(script, normalizedStep, templateDrafts, structureId);
+    return runCustomStepTransform(script, normalizedStep, templateDrafts, structureId, m);
   }
 
   if (templateType === 'apply-known-transform' ||
     normalizedStep.kind === 'known-structure-transform') {
-    return runKnownStructureStep(script, structureId);
+    return runKnownStructureStep(script, structureId, m);
   }
 
   if (templateType === 'delete-structure-matches') {
-    return runDeleteStructureMatchesStep(script, structureId, normalizedStep, templateDrafts);
+    return runDeleteStructureMatchesStep(script, structureId, normalizedStep, templateDrafts, m);
   }
 
   if (templateType === 'isolate-structure-matches') {
-    return runIsolateStructureMatchesStep(script, structureId);
+    return runIsolateStructureMatchesStep(script, structureId, m);
   }
 
   return {
@@ -124,7 +122,7 @@ function replayPipelineStepToTransformResult(script, step, ctx = {}) {
 
 /**
  * @param {Record<string, {runMode?: string, maxIterations?: number}>} templateDrafts
- * @returns {(step: object, source: string) => TransformResult}
+ * @returns {(step: object, source: string) => Promise<TransformResult>}
  */
 export function createPipelineStepExecutor(templateDrafts = {}) {
   return (step, source) => replayPipelineStepToTransformResult(source, step, {templateDrafts});
@@ -135,9 +133,10 @@ export function createPipelineStepExecutor(templateDrafts = {}) {
  * @param {object} normalizedStep
  * @param {Record<string, unknown>} templateDrafts
  * @param {string | null} structureId
- * @returns {TransformResult}
+ * @param {DeobWorkspaceModules} m
+ * @returns {Promise<TransformResult>}
  */
-function runCustomStepTransform(script, normalizedStep, templateDrafts, structureId) {
+async function runCustomStepTransform(script, normalizedStep, templateDrafts, structureId, m) {
   const raw = normalizedStep.transformationCode;
   const source = typeof raw === 'string' ? raw.trim() : '';
 
@@ -152,7 +151,7 @@ function runCustomStepTransform(script, normalizedStep, templateDrafts, structur
     };
   }
 
-  const arb = createArborist(script);
+  const arb = m.createArborist(script);
   const candidateFilters = Array.isArray(normalizedStep?.filters)
     ? normalizedStep.filters.filter((filter) => filter?.enabled !== false && filter?.src)
     : [];
@@ -160,7 +159,7 @@ function runCustomStepTransform(script, normalizedStep, templateDrafts, structur
     normalizedStep,
     templateDrafts['advanced-js-step'] ?? {},
   );
-  const result = runCustomTransformExecution(arb, {
+  const result = await m.runCustomTransformExecution(arb, {
     body: source,
     structureId: structureId ?? null,
     candidateFilters,
@@ -191,9 +190,10 @@ function runCustomStepTransform(script, normalizedStep, templateDrafts, structur
 /**
  * @param {string} script
  * @param {string | null} structureId
- * @returns {TransformResult}
+ * @param {DeobWorkspaceModules} m
+ * @returns {Promise<TransformResult>}
  */
-function runKnownStructureStep(script, structureId) {
+async function runKnownStructureStep(script, structureId, m) {
   if (!structureId) {
     return {
       isDone: false,
@@ -205,8 +205,8 @@ function runKnownStructureStep(script, structureId) {
     };
   }
 
-  const arb = createArborist(script);
-  const transformResult = executeKnownStructureTransformApply(arb, structureId);
+  const arb = m.createArborist(script);
+  const transformResult = await m.executeKnownStructureTransformApply(arb, structureId);
 
   if (!transformResult.isDone) {
     return transformResult;
@@ -231,9 +231,10 @@ function runKnownStructureStep(script, structureId) {
  * @param {string | null} structureId
  * @param {object} normalizedStep
  * @param {Record<string, unknown>} templateDrafts
- * @returns {TransformResult}
+ * @param {DeobWorkspaceModules} m
+ * @returns {Promise<TransformResult>}
  */
-function runDeleteStructureMatchesStep(script, structureId, normalizedStep, templateDrafts) {
+async function runDeleteStructureMatchesStep(script, structureId, normalizedStep, templateDrafts, m) {
   if (!structureId) {
     return {
       isDone: false,
@@ -245,7 +246,7 @@ function runDeleteStructureMatchesStep(script, structureId, normalizedStep, temp
     };
   }
 
-  const arb = createArborist(script);
+  const arb = m.createArborist(script);
   const runSettings = normalizeDeleteStructureRunSettings(normalizedStep, templateDrafts['delete-structure-matches'] ?? {});
   let iterationCount = 0;
   const shouldContinue = () => runSettings.runMode === 'until-stable' ||
@@ -254,7 +255,7 @@ function runDeleteStructureMatchesStep(script, structureId, normalizedStep, temp
 
   try {
     while (shouldContinue()) {
-      const matchRun = runKnownStructureMatcher(arb, structureId);
+      const matchRun = m.runKnownStructureMatcher(arb, structureId);
       if (matchRun.error) {
         return {
           isDone: false,
@@ -266,7 +267,7 @@ function runDeleteStructureMatchesStep(script, structureId, normalizedStep, temp
         };
       }
 
-      const matchedNodes = collectKnownStructureMatchNodes(matchRun.rawMatches);
+      const matchedNodes = m.collectKnownStructureMatchNodes(matchRun.rawMatches);
       if (!matchedNodes.length) {
         break;
       }
@@ -309,9 +310,10 @@ function runDeleteStructureMatchesStep(script, structureId, normalizedStep, temp
 /**
  * @param {string} script
  * @param {string | null} structureId
- * @returns {TransformResult}
+ * @param {DeobWorkspaceModules} m
+ * @returns {Promise<TransformResult>}
  */
-function runIsolateStructureMatchesStep(script, structureId) {
+async function runIsolateStructureMatchesStep(script, structureId, m) {
   if (!structureId) {
     return {
       isDone: false,
@@ -323,10 +325,10 @@ function runIsolateStructureMatchesStep(script, structureId) {
     };
   }
 
-  const arb = createArborist(script);
+  const arb = m.createArborist(script);
 
   try {
-    const matchRun = runKnownStructureMatcher(arb, structureId);
+    const matchRun = m.runKnownStructureMatcher(arb, structureId);
     if (matchRun.error) {
       return {
         isDone: false,
@@ -350,7 +352,7 @@ function runIsolateStructureMatchesStep(script, structureId) {
       };
     }
 
-    const matchedNodes = collectKnownStructureMatchNodes(matchRun.rawMatches);
+    const matchedNodes = m.collectKnownStructureMatchNodes(matchRun.rawMatches);
     const isolatedNodes = getOutermostMatchedNodes(matchedNodes).filter(Boolean);
 
     if (!isolatedNodes.length) {

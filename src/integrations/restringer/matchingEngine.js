@@ -1,18 +1,16 @@
-import {
-  knownStructures,
-  runKnownStructureMatcher,
-} from './index.js';
+import {loadRestringerIntegration} from './integrationLoader.js';
+import {liteKnownStructures} from './knownStructuresLite.js';
 
 /**
  * @typedef {import('flast/src/arborist.js').Arborist} Arborist
  */
 
 /**
- * @typedef {typeof knownStructures[number]} KnownStructureDescriptor
+ * @typedef {typeof liteKnownStructures[number]} KnownStructureDescriptor
  */
 
 /**
- * @typedef {ReturnType<typeof runKnownStructureMatcher>} KnownStructureRun
+ * @typedef {Awaited<ReturnType<Awaited<ReturnType<typeof loadRestringerIntegration>>['runKnownStructureMatcher']>>} KnownStructureRun
  */
 
 /**
@@ -37,7 +35,7 @@ import {
  *   catalog?: readonly KnownStructureDescriptor[],
  * }} args
  */
-export function detectStructures({source, arborist, structureIds, catalog}) {
+export async function detectStructures({source, arborist, structureIds, catalog}) {
   const resolvedSource = typeof source === 'string' ? source : '';
   const arbScript = typeof arborist?.script === 'string' ? arborist.script : null;
   if (arbScript !== null && resolvedSource !== arbScript) {
@@ -52,19 +50,19 @@ export function detectStructures({source, arborist, structureIds, catalog}) {
 }
 
 /**
- * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
+ * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=liteKnownStructures]
  * @returns {string[]}
  */
-export function getDefaultSelectedStructureIds(structures = knownStructures) {
+export function getDefaultSelectedStructureIds(structures = liteKnownStructures) {
   return structures
     .filter(Boolean)
     .map((structure) => structure.id);
 }
 
 /**
- * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
+ * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=liteKnownStructures]
  */
-export function createKnownStructureState(structures = knownStructures) {
+export function createKnownStructureState(structures = liteKnownStructures) {
   const availableKnownStructures = [...structures];
   const selectedKnownStructureIds = getDefaultSelectedStructureIds(availableKnownStructures);
 
@@ -140,15 +138,16 @@ export function groupStructureMatches(matches) {
  *   structures?: readonly KnownStructureDescriptor[],
  * }} [options={}]
  */
-export function runKnownStructureMatchingSession(arb, structureIds, options = {}) {
+export async function runKnownStructureMatchingSession(arb, structureIds, options = {}) {
+  const mod = await loadRestringerIntegration();
   const availableStructures = Array.isArray(options.structures) && options.structures.length
     ? options.structures
-    : knownStructures;
+    : mod.knownStructures;
   const structuresById = Object.fromEntries(availableStructures.map((structure) => [structure.id, structure]));
   const requestedIds = getRequestedStructureIds(structureIds, availableStructures);
   const idsToRun = getRunnableStructureIds(requestedIds, availableStructures);
   const runs = idsToRun.map((structureId) =>
-    runKnownStructureMatcher(arb, structuresById[structureId] ?? structureId, options));
+    mod.runKnownStructureMatcher(arb, structuresById[structureId] ?? structureId, options));
   const matches = runs.flatMap((run) => run.matches);
   const groupedMatches = groupStructureMatches(matches);
   const matchCounts = Object.fromEntries(runs.map((run) => [run.structureId, run.count]));
@@ -169,10 +168,10 @@ export function runKnownStructureMatchingSession(arb, structureIds, options = {}
 
 /**
  * @param {readonly string[] | undefined} structureIds
- * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
+ * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=liteKnownStructures]
  * @returns {string[]}
  */
-export function getRequestedStructureIds(structureIds, structures = knownStructures) {
+export function getRequestedStructureIds(structureIds, structures = liteKnownStructures) {
   const structuresById = Object.fromEntries(structures.map((structure) => [structure.id, structure]));
   const requestedIds = Array.isArray(structureIds) && structureIds.length
     ? structureIds
@@ -183,10 +182,10 @@ export function getRequestedStructureIds(structureIds, structures = knownStructu
 
 /**
  * @param {readonly string[] | undefined} structureIds
- * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=knownStructures]
+ * @param {ReadonlyArray<KnownStructureDescriptor>} [structures=liteKnownStructures]
  * @returns {string[]}
  */
-function getRunnableStructureIds(structureIds, structures = knownStructures) {
+function getRunnableStructureIds(structureIds, structures = liteKnownStructures) {
   const structuresById = Object.fromEntries(structures.map((structure) => [structure.id, structure]));
 
   return getRequestedStructureIds(structureIds, structures).filter((structureId) => {

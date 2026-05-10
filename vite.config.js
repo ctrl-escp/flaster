@@ -7,6 +7,24 @@ import {fileURLToPath, URL} from 'node:url';
 export default defineConfig({
   base: './',
   plugins: [vue()],
+  build: {
+    rollupOptions: {
+      output: {
+        // Rolldown (Vite 8) expects a function; group mirrors the prior package list.
+        manualChunks(id) {
+          let retValue;
+          if (id.includes('node_modules/@codemirror/')) {
+            retValue = 'codemirror';
+          }
+
+          if (id.includes('node_modules/restringer/') || id.includes('node_modules/flast/')) {
+            retValue = 'deobfuscator';
+          }
+          return retValue;
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

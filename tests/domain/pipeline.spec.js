@@ -105,7 +105,7 @@ describe('pipelineMutations', () => {
 });
 
 describe('replayPipeline', () => {
-  it('skips disabled steps and stays deterministic for append-only executor', () => {
+  it('skips disabled steps and stays deterministic for append-only executor', async () => {
     const executor = vi.fn((step, source) => ({
       isDone: true,
       changesCount: 1,
@@ -115,7 +115,7 @@ describe('replayPipeline', () => {
       error: null,
     }));
 
-    const out = replayPipeline({
+    const out = await replayPipeline({
       baselineSource: 'base',
       steps: [
         {id: '1', enabled: true, tag: 'a'},
@@ -130,7 +130,7 @@ describe('replayPipeline', () => {
     expect(executor).toHaveBeenCalledTimes(2);
   });
 
-  it('returns last successful source and step id on failure', () => {
+  it('returns last successful source and step id on failure', async () => {
     const executor = vi.fn((step, source) => {
       if (step.id === 'bad') {
         return {
@@ -153,7 +153,7 @@ describe('replayPipeline', () => {
       };
     });
 
-    const out = replayPipeline({
+    const out = await replayPipeline({
       baselineSource: '0',
       steps: [{id: 'ok', enabled: true}, {id: 'bad', enabled: true}],
       executor,
@@ -165,7 +165,7 @@ describe('replayPipeline', () => {
     expect(out.source).toBe('0>ok');
   });
 
-  it('replays known-structure steps without Vue', () => {
+  it('replays known-structure steps without Vue', async () => {
     const sampleScript = `
 function proxy(a, b) { return target(a, b); }
 const alias = original;
@@ -188,7 +188,7 @@ console['log'](\`ok\`);
       params: {structureId: 'proxy-calls'},
     });
 
-    const out = replayPipeline({
+    const out = await replayPipeline({
       baselineSource: sampleScript,
       steps: [step1, step2],
       executor,

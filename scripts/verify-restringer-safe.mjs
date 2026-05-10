@@ -195,7 +195,7 @@ if (transformSession.error || transformSession.targetedMatchCount < 1 || transfo
   throw new Error('runKnownStructureTransformSession did not preview a safe transform session');
 }
 
-const session = matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
+const session = await matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
   'proxy-calls',
   'computed-members',
   'missing-structure',
@@ -232,7 +232,7 @@ if (requestedIds.length !== 1 || requestedIds[0] !== 'proxy-calls') {
   throw new Error('getRequestedStructureIds did not normalize known structure IDs');
 }
 
-const errorSession = matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
+const errorSession = await matchingEngineModule.runKnownStructureMatchingSession(sampleArborist, [
   'proxy-calls',
   'proxy-variables',
 ], {
@@ -247,7 +247,8 @@ if (!(errorSession.errors['proxy-calls'] instanceof Error) ||
 }
 
 store.arb = new Arborist(sampleScript);
-store.runKnownStructureMatching(['proxy-calls', 'computed-members']);
+store.hydrateKnownStructureCatalog([...adapterModule.knownStructures]);
+await store.runKnownStructureMatching(['proxy-calls', 'computed-members']);
 
 if (store.knownStructureExecutionStatus.state !== 'complete') {
   throw new Error('store.runKnownStructureMatching did not mark the session complete');
@@ -286,7 +287,7 @@ if (store.activeKnownStructureId !== 'computed-members') {
   throw new Error('store.setActiveKnownStructure did not update the active structure');
 }
 
-store.runActiveKnownStructureMatching();
+await store.runActiveKnownStructureMatching();
 if (store.lastKnownStructureRunIds.length !== 1 || store.lastKnownStructureRunIds[0] !== 'computed-members') {
   throw new Error('store.runActiveKnownStructureMatching did not run only the active structure');
 }
@@ -301,7 +302,7 @@ if (!store.getSelectedKnownStructureMatch()) {
   throw new Error('store.selectKnownStructureMatchStep did not keep a selected match');
 }
 
-store.runKnownStructureMatching(['proxy-calls', 'computed-members']);
+await store.runKnownStructureMatching(['proxy-calls', 'computed-members']);
 store.setSelectedKnownStructureMatch('computed-members', 0);
 store.setSelectedKnownStructureMatch('proxy-calls', 0);
 store.setActiveKnownStructure('computed-members');
@@ -339,9 +340,9 @@ if (!copiedSeed.includes('proxy-calls') || !copiedSeed.includes('Seeded from kno
   throw new Error('store.copyKnownStructureRuleSeed did not return the expected seed text');
 }
 
-store.runKnownStructureMatching(['computed-members']);
+await store.runKnownStructureMatching(['computed-members']);
 store.setInspectedKnownStructure('computed-members');
-const transformPreview = store.previewKnownStructureTransform('computed-members');
+const transformPreview = await store.previewKnownStructureTransform('computed-members');
 
 if (!transformPreview || transformPreview.structureId !== 'computed-members' || transformPreview.pendingChanges < 1) {
   throw new Error('store.previewKnownStructureTransform did not produce a usable preview');
@@ -352,7 +353,7 @@ if (!store.getKnownStructureTransformPreview('computed-members')) {
 }
 
 const previousStepCount = store.steps.length;
-const applyTransformResult = store.applyKnownStructureTransform('computed-members');
+const applyTransformResult = await store.applyKnownStructureTransform('computed-members');
 
 if (!applyTransformResult) {
   throw new Error('store.applyKnownStructureTransform did not apply a previewed safe transform');

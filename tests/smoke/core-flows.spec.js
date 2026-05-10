@@ -46,10 +46,10 @@ describe('Phase 0 smoke — core flows', () => {
     expect(arb.ast?.length).toBeGreaterThan(0);
   });
 
-  it('runs known-structure detection on a bundled sample', () => {
+  it('runs known-structure detection on a bundled sample', async () => {
     const sample = readText('public/sample-scripts/array_replacements.js');
     const arb = new Arborist(sample);
-    const session = runKnownStructureMatchingSession(arb, getDefaultSelectedStructureIds());
+    const session = await runKnownStructureMatchingSession(arb, getDefaultSelectedStructureIds());
     expect(Object.values(session.errors).filter(Boolean).length).toBe(0);
     expect(session.totalMatches).toBeGreaterThan(0);
   });
@@ -84,7 +84,7 @@ console['log'](\`ok\`);
     store.states.length = 0;
     store.steps = [];
     store.setCurrentScriptSource({baselineContent: sampleScript, label: 'Smoke'});
-    store.loadNewScript(sampleScript);
+    await store.loadNewScript(sampleScript);
 
     const stepComputed = {
       kind: 'known-structure-transform',
@@ -101,7 +101,7 @@ console['log'](\`ok\`);
       params: {structureId: 'proxy-calls'},
     };
 
-    const ok = store.replayPipelineSteps([stepComputed, stepProxy], {
+    const ok = await store.replayPipelineSteps([stepComputed, stepProxy], {
       selectedPipelineStepIndex: 1,
       successMessage: 'Replayed',
     });

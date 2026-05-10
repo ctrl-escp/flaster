@@ -25,7 +25,7 @@ export function useTransformEditor() {
       ? store.copyKnownStructureRuleSeed(activeStructure.value.id)
       : '';
 
-    store.applyCustomTransformation(
+    void store.applyCustomTransformation(
       undefined,
       buildApplyCustomTransformationOptions({
         activeStructure: activeStructure.value,
@@ -40,7 +40,7 @@ export function useTransformEditor() {
   }
 
   function revertTransformation() {
-    store.revertState();
+    void store.revertState();
   }
 
   return {

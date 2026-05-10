@@ -107,9 +107,9 @@ describe('domain/export scriptGenerator', () => {
     }
   });
 
-  it('matches runtime transform output for computed-members (export parity)', () => {
+  it('matches runtime transform output for computed-members (export parity)', async () => {
     const arb = new Arborist(COMPUTED_MEMBERS_FIXTURE);
-    const runtime = executeKnownStructureTransformApply(arb, 'computed-members');
+    const runtime = await executeKnownStructureTransformApply(arb, 'computed-members');
     expect(runtime.isDone).toBe(true);
     expect(runtime.error).toBeNull();
     const expectedSource = runtime.source;

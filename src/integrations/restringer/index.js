@@ -301,6 +301,8 @@ export function normalizeStructureMatch(structureOrId, match, index = 0) {
 
 export {collectKnownStructureMatchNodes, describeKnownStructureMatchShape};
 
+export {loadRestringerIntegration} from './integrationLoader.js';
+
 /**
  * @param {Arborist} arb
  * @param {string | typeof knownStructures[number]} structureOrId

@@ -1,6 +1,6 @@
 <script setup>
 import store from '../store';
-import {parseSource} from '../domain/parse/parseSource.js';
+import {loadRestringerIntegration} from '../integrations/restringer/index.js';
 import {computed, onMounted, ref} from 'vue';
 import IconParse from './icons/IconParse.vue';
 
@@ -50,7 +50,7 @@ function resetParsedState() {
   store.page = 0;
 }
 
-function parseContent({focusExploreNodes = false, pulseCodeStructures = false} = {}) {
+async function parseContent({focusExploreNodes = false, pulseCodeStructures = false} = {}) {
   if (!canParse.value) {
     return;
   }
@@ -64,32 +64,36 @@ function parseContent({focusExploreNodes = false, pulseCodeStructures = false} =
       return;
     }
 
-    new Promise(() => {
-      store.filteredNodes = [];
-      const parseRunId = store.bumpParseRunSequence();
-      const parseResult = parseSource(code, {parseRunId});
-      store.arb = parseResult.arborist ?? {ast: [], script: code};
-      store.markKnownStructureInputChanged();
-      if (!parseResult.ok || !Array.isArray(store.arb?.ast)) {
-        store.logMessage(messages.astParseFail, 'error');
-      } else {
-        store.rerunKnownStructureMatching();
-      }
-      store.filteredNodes = store.arb.ast;
-      store.markCurrentInputParsed();
-      setContentParsed();
+    const [{parseSource}, integration] = await Promise.all([
+      import('../domain/parse/parseSource.js'),
+      loadRestringerIntegration(),
+    ]);
+    store.hydrateKnownStructureCatalog([...integration.knownStructures]);
 
-      if (focusExploreNodes) {
-        store.setActiveWorkspaceTab('results');
-        store.setActiveInspectorPanel('browser');
-      }
+    store.filteredNodes = [];
+    const parseRunId = store.bumpParseRunSequence();
+    const parseResult = parseSource(code, {parseRunId});
+    store.arb = parseResult.arborist ?? {ast: [], script: code};
+    store.markKnownStructureInputChanged();
+    if (!parseResult.ok || !Array.isArray(store.arb?.ast)) {
+      store.logMessage(messages.astParseFail, 'error');
+    } else {
+      await store.rerunKnownStructureMatching();
+    }
+    store.filteredNodes = store.arb.ast;
+    store.markCurrentInputParsed();
+    setContentParsed();
 
-      if (pulseCodeStructures) {
-        store.shouldPulseCodeStructuresStage = true;
-      }
-    }).catch((error) => store.logMessage(error.message, 'error'));
+    if (focusExploreNodes) {
+      store.setActiveWorkspaceTab('results');
+      store.setActiveInspectorPanel('browser');
+    }
+
+    if (pulseCodeStructures) {
+      store.shouldPulseCodeStructuresStage = true;
+    }
   } catch (error) {
-    store.logMessage(error.message, 'error');
+    store.logMessage(error instanceof Error ? error.message : String(error), 'error');
   }
 }
 
@@ -102,7 +106,7 @@ onMounted(() => {
     }
 
     store.shouldAutoParseInitialInput = false;
-    parseContent({
+    void parseContent({
       pulseCodeStructures: true,
     });
     return true;

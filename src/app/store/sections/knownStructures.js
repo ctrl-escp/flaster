@@ -353,6 +353,30 @@ export function createKnownStructuresSection(knownStructureState) {
       this.scrollKnownStructureSelectionIntoView = Boolean(enabled);
       this.refreshKnownStructureHighlights();
     },
+    /**
+     * Replace the lightweight catalog with full matcher/transform descriptors from REstringer.
+     *
+     * @param {readonly object[]} structures
+     */
+    hydrateKnownStructureCatalog(structures) {
+      if (!Array.isArray(structures) || !structures.length) {
+        return;
+      }
+
+      const idSet = new Set(structures.map((structure) => structure.id));
+      this.availableKnownStructures = [...structures];
+      this.selectedKnownStructureIds = this.selectedKnownStructureIds.filter((structureId) =>
+        idSet.has(structureId),
+      );
+
+      if (this.activeKnownStructureId && !idSet.has(this.activeKnownStructureId)) {
+        this.activeKnownStructureId = null;
+      }
+
+      if (this.inspectedKnownStructureId && !idSet.has(this.inspectedKnownStructureId)) {
+        this.inspectedKnownStructureId = null;
+      }
+    },
     markKnownStructureInputChanged() {
       this.knownStructureInputVersion += 1;
     },
@@ -400,7 +424,7 @@ export function createKnownStructuresSection(knownStructureState) {
 
       return createKnownStructureRuleSeed(structure);
     },
-    runKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
+    async runKnownStructureMatching(structureIds = this.selectedKnownStructureIds) {
       const requestedIds = Array.isArray(structureIds) ? structureIds : [];
       const runnableIds = requestedIds.filter((structureId) =>
         this.isKnownStructureRunnable(structureId),
@@ -429,7 +453,7 @@ export function createKnownStructuresSection(knownStructureState) {
         return this.knownStructureExecutionStatus;
       }
 
-      const session = detectStructures({
+      const session = await detectStructures({
         source: typeof this.arb?.script === 'string' ? this.arb.script : '',
         arborist: this.arb,
         structureIds: requestedIds,
@@ -501,7 +525,7 @@ export function createKnownStructuresSection(knownStructureState) {
      * @param {string[]} structureIds
      * @returns {object | null}
      */
-    refreshKnownStructureMatchingForIds(structureIds = []) {
+    async refreshKnownStructureMatchingForIds(structureIds = []) {
       const requestedIds = [...new Set(Array.isArray(structureIds) ? structureIds.filter(Boolean) : [])];
 
       if (!requestedIds.length) {
@@ -522,7 +546,7 @@ export function createKnownStructuresSection(knownStructureState) {
         return null;
       }
 
-      const session = detectStructures({
+      const session = await detectStructures({
         source: typeof this.arb?.script === 'string' ? this.arb.script : '',
         arborist: this.arb,
         structureIds: runnableIds,
@@ -610,14 +634,14 @@ export function createKnownStructuresSection(knownStructureState) {
 
       return this.knownStructureExecutionStatus;
     },
-    runActiveKnownStructureMatching() {
+    async runActiveKnownStructureMatching() {
       if (!this.activeKnownStructureId || !this.isKnownStructureRunnable(this.activeKnownStructureId)) {
         return this.runKnownStructureMatching([]);
       }
 
       return this.runKnownStructureMatching([this.activeKnownStructureId]);
     },
-    rerunKnownStructureMatching() {
+    async rerunKnownStructureMatching() {
       const structureIds = this.lastKnownStructureRunIds.length
         ? this.lastKnownStructureRunIds
         : this.selectedKnownStructureIds;

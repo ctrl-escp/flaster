@@ -23,9 +23,9 @@ describe('customTransformRuntime', () => {
     expect(s.maxIterations).toBe(1);
   });
 
-  it('runs a per-node custom transform that applies edits', () => {
+  it('runs a per-node custom transform that applies edits', async () => {
     const arb = new Arborist('const x = 1;');
-    const result = runCustomTransformExecution(arb, {
+    const result = await runCustomTransformExecution(arb, {
       body: 'arb.markNode(n);',
       structureId: null,
       candidateFilters: [{enabled: true, src: "n.type === 'VariableDeclaration'"}],
@@ -40,10 +40,10 @@ describe('customTransformRuntime', () => {
     expect(result.source).not.toBe('const x = 1;');
   });
 
-  it('returns completed zero-change run when the body makes no edits', () => {
+  it('returns completed zero-change run when the body makes no edits', async () => {
     const arb = new Arborist('const x = 1;');
     const before = arb.script;
-    const result = runCustomTransformExecution(arb, {
+    const result = await runCustomTransformExecution(arb, {
       body: '// no-op',
       structureId: null,
       candidateFilters: [],
@@ -55,10 +55,10 @@ describe('customTransformRuntime', () => {
     expect(result.source).toBe(before);
   });
 
-  it('returns failure without treating thrown user errors as success', () => {
+  it('returns failure without treating thrown user errors as success', async () => {
     const arb = new Arborist('const x = 1;');
     const before = arb.script;
-    const result = runCustomTransformExecution(arb, {
+    const result = await runCustomTransformExecution(arb, {
       body: 'throw new Error("user transform");',
       structureId: null,
       candidateFilters: [],
@@ -71,9 +71,9 @@ describe('customTransformRuntime', () => {
     expect(result.source).toBe(before);
   });
 
-  it('rejects malformed transform bodies', () => {
+  it('rejects malformed transform bodies', async () => {
     const arb = new Arborist('const x = 1;');
-    const result = runCustomTransformExecution(arb, {
+    const result = await runCustomTransformExecution(arb, {
       body: 'function (((invalid',
       structureId: null,
       candidateFilters: [],

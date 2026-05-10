@@ -49,7 +49,7 @@ function selectTemplate(template) {
   store.setActiveTemplate(template.type);
 
   if (template.type === 'apply-known-transform' && activeStructure.value) {
-    store.previewKnownStructureTransform(activeStructure.value.id);
+    void store.previewKnownStructureTransform(activeStructure.value.id);
     return;
   }
 
@@ -203,7 +203,7 @@ async function copyTransformExample() {
           ? 'Apply the selected transformation'
           : 'The selected transformation is not available yet'"
         aria-label="Apply transformation"
-        @click="store.applyTemplate()"
+        @click="void store.applyTemplate()"
       >
         <icon-check />
         <span>Apply</span>

@@ -18,7 +18,7 @@ export function createPipelineSection() {
   return {
     steps: [],
     transformationCode: '',
-    applyAndUpdateTransformation(transformSrc, stepEntry = null, appliedChangesOverride = null) {
+    async applyAndUpdateTransformation(transformSrc, stepEntry = null, appliedChangesOverride = null) {
       const changes = Number.isInteger(appliedChangesOverride)
         ? appliedChangesOverride
         : this.arb.applyChanges();
@@ -37,7 +37,7 @@ export function createPipelineSection() {
         this.selectedPipelineStepIndex = this.steps.length - 1;
         this.activeInspectorPanel = 'pipeline';
         this.logMessage(`${changes} changes were made`, 'success');
-        this.loadNewScript(this.arb.script);
+        await this.loadNewScript(this.arb.script);
         return true;
       }
       this.logMessage('No changes made', 'error');
@@ -138,7 +138,7 @@ export function createPipelineSection() {
 
       return true;
     },
-    replayPipelineSteps(nextSteps, {
+    async replayPipelineSteps(nextSteps, {
       selectedPipelineStepIndex = -1,
       activeStructureId = null,
       activeTemplateType = null,
@@ -150,7 +150,7 @@ export function createPipelineSection() {
         sequenceIndex: index + 1,
       }));
       const executor = createPipelineStepExecutor(this.templateDrafts);
-      const replay = replayPipeline({
+      const replay = await replayPipeline({
         baselineSource: baseScript,
         steps: normalizedSteps,
         executor,
@@ -181,7 +181,7 @@ export function createPipelineSection() {
       const nextScript = replay.source;
 
       this.states = [];
-      this.loadNewScript(nextScript);
+      await this.loadNewScript(nextScript);
       this.steps = normalizedSteps;
       this.transformationCode = transformationCode;
       this.selectedPipelineStepIndex = selectedPipelineStepIndex >= 0 &&
@@ -203,7 +203,7 @@ export function createPipelineSection() {
       this.logMessage(successMessage, 'success');
       return true;
     },
-    editPipelineStep(index) {
+    async editPipelineStep(index) {
       if (index < 0 || index >= this.steps.length) {
         return false;
       }
@@ -221,7 +221,7 @@ export function createPipelineSection() {
         return false;
       }
 
-      const replayed = this.replayPipelineSteps(this.steps.slice(0, index), {
+      const replayed = await this.replayPipelineSteps(this.steps.slice(0, index), {
         selectedPipelineStepIndex: this.steps.slice(0, index).length - 1,
         activeStructureId: structureId,
         activeTemplateType: templateType,
@@ -236,7 +236,7 @@ export function createPipelineSection() {
       this.logMessage('Choose a replacement transform for this structure', 'info');
       return true;
     },
-    removePipelineStep(index) {
+    async removePipelineStep(index) {
       if (index < 0 || index >= this.steps.length) {
         return false;
       }

@@ -180,7 +180,7 @@ export function createWorkspaceExploreSection() {
           label: sample.title,
           baselineContent: source,
         });
-        this.parseContent({
+        await this.parseContent({
           pulseCodeStructures: true,
         });
         this.logMessage(`Sample loaded and parsed: "${sample.title}"`, 'success');

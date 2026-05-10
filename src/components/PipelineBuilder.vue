@@ -58,11 +58,11 @@ import IconTransform from './icons/IconTransform.vue';
             type="button"
             title="Replace this step by reparsing and reopening the Transform panel"
             aria-label="Replace step transform"
-            @click.stop="store.editPipelineStep(index)"
+            @click.stop="void store.editPipelineStep(index)"
           >
             <icon-transform />
           </button>
-          <button class="mini-btn icon-btn icon-btn-sm" type="button" title="Remove this step from the pipeline" aria-label="Remove step" @click.stop="store.removePipelineStep(index)">
+          <button class="mini-btn icon-btn icon-btn-sm" type="button" title="Remove this step from the pipeline" aria-label="Remove step" @click.stop="void store.removePipelineStep(index)">
             <icon-close />
           </button>
         </div>

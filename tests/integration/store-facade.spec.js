@@ -15,7 +15,7 @@ describe('store facade integration', () => {
     vi.unstubAllGlobals();
   });
 
-  it('covers parse → match → transform → pipeline replay → export', () => {
+  it('covers parse → match → transform → pipeline replay → export', async () => {
     vi.stubGlobal('confirm', () => true);
 
     const store = createAppStore();
@@ -25,21 +25,21 @@ describe('store facade integration', () => {
       baselineContent: computedMembersSample,
       label: 'Facade integration',
     });
-    store.loadNewScript(computedMembersSample);
+    await store.loadNewScript(computedMembersSample);
 
     expect(store.arb.ast?.length ?? 0).toBeGreaterThan(0);
 
     store.setSelectedKnownStructureIds(['computed-members']);
     store.setActiveKnownStructure('computed-members');
-    store.runKnownStructureMatching(['computed-members']);
+    await store.runKnownStructureMatching(['computed-members']);
     expect(store.getKnownStructureMatches('computed-members').length).toBeGreaterThan(0);
 
-    store.previewKnownStructureTransform('computed-members');
-    const applied = store.applyKnownStructureTransform('computed-members');
+    await store.previewKnownStructureTransform('computed-members');
+    const applied = await store.applyKnownStructureTransform('computed-members');
     expect(applied).toBe(true);
     expect(store.steps.length).toBeGreaterThanOrEqual(1);
 
-    const replayed = store.replayPipelineSteps([...store.steps], {
+    const replayed = await store.replayPipelineSteps([...store.steps], {
       selectedPipelineStepIndex: store.steps.length - 1,
       successMessage: 'Replay ok',
     });
@@ -56,19 +56,19 @@ describe('store facade integration', () => {
     expect(generatedScript).toContain('Generated via flASTer');
   });
 
-  it('does not activate or inspect a structure after matching when none was active', () => {
+  it('does not activate or inspect a structure after matching when none was active', async () => {
     const store = createAppStore();
     store.setCurrentScriptSource({
       baselineContent: computedMembersSample,
       label: 'No prior active structure',
     });
-    store.loadNewScript(computedMembersSample);
+    await store.loadNewScript(computedMembersSample);
 
     expect(store.getKnownStructureMatches('computed-members').length).toBeGreaterThan(0);
     store.setActiveKnownStructure(null);
     expect(store.activeKnownStructureId).toBeNull();
 
-    store.runKnownStructureMatching(['computed-members']);
+    await store.runKnownStructureMatching(['computed-members']);
     expect(store.getKnownStructureMatches('computed-members').length).toBeGreaterThan(0);
     expect(store.activeKnownStructureId).toBeNull();
     expect(store.inspectedKnownStructureId).toBeNull();

@@ -1,15 +1,13 @@
-import {createArborist} from '../../../domain/parse/parseSource.js';
 import {createCustomStructureDescriptor} from '../../../domain/structures/customStructures.js';
 import {
   normalizeCustomTransformRunSettings,
   runCustomTransformExecution,
 } from '../../../domain/transforms/customTransformRuntime.js';
-import {executeKnownStructureTransformApply} from '../../../domain/transforms/transformExecutor.js';
+import {loadDeobWorkspaceModules} from '../../../domain/deob/workspaceModules.js';
 import {
   getOutermostMatchedNodes,
   normalizeDeleteStructureRunSettings as normalizeDeleteStructureRunSettingsFromPipeline,
 } from '../../../domain/pipeline/pipelineStepRunner.js';
-import {runKnownStructureTransformSession} from '../../../integrations/restringer/index.js';
 
 /**
  * Workspace templates, custom transforms, and known-structure apply/preview paths.
@@ -23,7 +21,7 @@ export function createTemplateApplySection() {
         this.templateDrafts['delete-structure-matches'] ?? {},
       );
     },
-    applyCustomTransformation(transformSrc, metadata = {}) {
+    async applyCustomTransformation(transformSrc, metadata = {}) {
       const source = transformSrc || this.getEditor(this.editorIds.transformEditor)?.state?.doc?.toString();
       if (!source) {
         this.logMessage('Missing transformation code', 'error');
@@ -44,7 +42,7 @@ export function createTemplateApplySection() {
           metadata,
           this.templateDrafts['advanced-js-step'] ?? {},
         );
-        const result = runCustomTransformExecution(this.arb, {
+        const result = await runCustomTransformExecution(this.arb, {
           body: normalizedSource,
           structureId: structureId ?? null,
           candidateFilters,
@@ -81,7 +79,7 @@ export function createTemplateApplySection() {
             : runSettings.runMode === 'count'
               ? `Custom transform ran ${iterationCount}/${runSettings.maxIterations} times`
               : `Custom transform ran ${iterationCount} time${iterationCount === 1 ? '' : 's'} until stable`);
-        const applied = this.applyAndUpdateTransformation(normalizedSource, stepEntry, totalChanges);
+        const applied = await this.applyAndUpdateTransformation(normalizedSource, stepEntry, totalChanges);
         if (!applied) {
           this.states.pop();
         }
@@ -98,7 +96,7 @@ export function createTemplateApplySection() {
      *
      * @param {string | null} [structureId=this.inspectedKnownStructureId ?? this.activeKnownStructureId]
      */
-    previewKnownStructureTransform(
+    async previewKnownStructureTransform(
       structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId,
     ) {
       const structure = this.getKnownStructureById(structureId);
@@ -128,6 +126,7 @@ export function createTemplateApplySection() {
       }
 
       try {
+        const {createArborist, runKnownStructureTransformSession} = await loadDeobWorkspaceModules();
         const previewArborist = createArborist(this.arb.script);
         const previewSession = runKnownStructureTransformSession(previewArborist, structure.id);
         const preview = {
@@ -179,7 +178,7 @@ export function createTemplateApplySection() {
      * @param {string | null} [structureId=this.inspectedKnownStructureId ?? this.activeKnownStructureId]
      * @returns {boolean}
      */
-    applyKnownStructureTransform(
+    async applyKnownStructureTransform(
       structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId,
     ) {
       const structure = this.getKnownStructureById(structureId);
@@ -195,7 +194,7 @@ export function createTemplateApplySection() {
       }
 
       const preview = this.getKnownStructureTransformPreview(structure.id) ??
-        this.previewKnownStructureTransform(structure.id);
+        await this.previewKnownStructureTransform(structure.id);
 
       if (!preview || preview.error) {
         return false;
@@ -204,7 +203,8 @@ export function createTemplateApplySection() {
       this.saveState();
 
       try {
-        const transformResult = executeKnownStructureTransformApply(this.arb, structure.id);
+        const {executeKnownStructureTransformApply} = await loadDeobWorkspaceModules();
+        const transformResult = await executeKnownStructureTransformApply(this.arb, structure.id);
 
         if (!transformResult.isDone || transformResult.changesCount < 1) {
           this.states.pop();
@@ -239,7 +239,7 @@ export function createTemplateApplySection() {
           },
         };
 
-        const applied = this.applyAndUpdateTransformation(
+        const applied = await this.applyAndUpdateTransformation(
           null,
           stepEntry,
           transformResult.changesCount,
@@ -262,7 +262,7 @@ export function createTemplateApplySection() {
         return false;
       }
     },
-    applyDeleteStructureMatches(
+    async applyDeleteStructureMatches(
       structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId,
     ) {
       const structure = this.getKnownStructureById(structureId);
@@ -304,8 +304,8 @@ export function createTemplateApplySection() {
 
           totalDeletedMatches += nextMatchedNodes.length;
           iterationCount += 1;
-          this.loadNewScript(this.arb.script);
-          this.runKnownStructureMatching();
+          await this.loadNewScript(this.arb.script);
+          await this.runKnownStructureMatching();
         }
 
         const stepEntry = {
@@ -334,7 +334,7 @@ export function createTemplateApplySection() {
           },
         };
 
-        const applied = this.applyAndUpdateTransformation(null, stepEntry, totalDeletedMatches);
+        const applied = await this.applyAndUpdateTransformation(null, stepEntry, totalDeletedMatches);
         if (!applied) {
           this.states.pop();
         }
@@ -345,7 +345,7 @@ export function createTemplateApplySection() {
         return false;
       }
     },
-    applyIsolateStructureMatches(
+    async applyIsolateStructureMatches(
       structureId = this.inspectedKnownStructureId ?? this.activeKnownStructureId,
     ) {
       const structure = this.getKnownStructureById(structureId);
@@ -389,7 +389,7 @@ export function createTemplateApplySection() {
           },
         };
 
-        const applied = this.applyAndUpdateTransformation(null, stepEntry);
+        const applied = await this.applyAndUpdateTransformation(null, stepEntry);
         if (!applied) {
           this.states.pop();
         }
@@ -461,7 +461,7 @@ export function createTemplateApplySection() {
 
       return `n.type === ${JSON.stringify(selectedNode.type)}`;
     },
-    applyTemplate(templateType = this.activeTemplateType) {
+    async applyTemplate(templateType = this.activeTemplateType) {
       const activeStructure = this.getKnownStructureById(this.inspectedKnownStructureId ?? this.activeKnownStructureId);
 
       if (templateType === 'apply-known-transform') {

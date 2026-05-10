@@ -1,7 +1,6 @@
 <script setup>
 import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
 import flastPackage from 'flast/package.json' with {type: 'json'};
-import restringerSafe from '../integrations/restringer/index.js';
 import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
@@ -11,6 +10,8 @@ import IconGithub from './icons/IconGithub.vue';
 import IconReset from './icons/IconReset.vue';
 
 const emit = defineEmits(['open-help']);
+
+const restringerVersion = ref('…');
 
 const BANDAID_ROTATIONS = [90, 180, 270];
 const BANDAID_ANIMATION_MS = 30000;
@@ -23,7 +24,7 @@ const dependencyVersions = computed(() => ([
   },
   {
     label: 'REstringer',
-    version: restringerSafe.version,
+    version: restringerVersion.value,
     href: 'https://github.com/ctrl-escp/restringer',
   },
 ]));
@@ -66,6 +67,13 @@ function refreshBandaidAnimation() {
 
 onMounted(() => {
   bandaidAnimationTimer = window.setInterval(refreshBandaidAnimation, BANDAID_ANIMATION_MS);
+  void import('../integrations/restringer/index.js')
+    .then((mod) => {
+      restringerVersion.value = mod.default.version;
+    })
+    .catch(() => {
+      restringerVersion.value = '?';
+    });
 });
 
 onBeforeUnmount(() => {
@@ -91,7 +99,7 @@ onBeforeUnmount(() => {
           :disabled="!canBeautify"
           :title="beautifyTitle"
           aria-label="Beautify script"
-          @click="store.beautifyInputScript()"
+          @click="void store.beautifyInputScript()"
         >
           <icon-beautify class="header-icon" />
           <span>Beautify</span>
@@ -102,7 +110,7 @@ onBeforeUnmount(() => {
           :disabled="!canUndo"
           :title="canUndo ? 'Undo the last applied transformation. Click again to keep rolling back changes.' : 'There are no applied changes to undo'"
           aria-label="Undo last transformation"
-          @click="store.revertState()"
+          @click="void store.revertState()"
         >
           <icon-reset class="header-icon" />
           <span>Undo</span>
