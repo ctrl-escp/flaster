@@ -95,6 +95,9 @@ function createExtensions() {
       '.cm-activeLineGutter': {
         backgroundColor: 'rgba(126, 202, 255, 0.12)',
       },
+      '& .cm-content .ͼd': {
+        color: '#a8b3c5',
+      },
     }),
   ];
 }

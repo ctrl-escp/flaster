@@ -224,6 +224,9 @@ onMounted(() => {
         ]),
         lineNumbers(),
         oneDark,
+        EditorView.theme({
+          '& .cm-content .ͼd': {color: '#a8b3c5'},
+        }),
         rectangularSelection(),
         syntaxHighlighting(oneDarkHighlightStyle, {fallback: true}),
       ],
