@@ -36,6 +36,18 @@ describe('HelpOverlay', () => {
     wrapper.unmount();
   });
 
+  it('documents code editor folding shortcuts', () => {
+    const wrapper = mount(HelpOverlay, {attachTo: document.body});
+    const text = wrapper.text();
+    expect(text).toMatch(/Collapse all editor blocks/);
+    expect(text).toMatch(/Expand all editor blocks/);
+    expect(text).toMatch(/Collapse the current editor block/);
+    expect(text).toMatch(/Expand the current editor block/);
+    expect(text).toMatch(/Collapse the current editor block recursively/);
+    expect(text).toMatch(/Expand the current editor block recursively/);
+    wrapper.unmount();
+  });
+
   it('documents local workspace persistence', () => {
     const wrapper = mount(HelpOverlay, {attachTo: document.body});
     expect(wrapper.text()).toMatch(/Saved workspace/);

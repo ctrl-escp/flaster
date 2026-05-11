@@ -330,6 +330,46 @@ onMounted(() => {
                     <td>Parse the current input</td>
                   </tr>
                   <tr>
+                    <th scope="row">
+                      <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>[</kbd>
+                      <span class="shortcut-note">(<kbd>Cmd</kbd> + <kbd>Option</kbd> + <kbd>[</kbd> on macOS)</span>
+                    </th>
+                    <td>Collapse the current editor block</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>]</kbd>
+                      <span class="shortcut-note">(<kbd>Cmd</kbd> + <kbd>Option</kbd> + <kbd>]</kbd> on macOS)</span>
+                    </th>
+                    <td>Expand the current editor block</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>[</kbd>
+                      <span class="shortcut-note">
+                        (<kbd>Cmd</kbd> + <kbd>Option</kbd> + <kbd>Shift</kbd> + <kbd>[</kbd> on macOS)
+                      </span>
+                    </th>
+                    <td>Collapse the current editor block recursively</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>]</kbd>
+                      <span class="shortcut-note">
+                        (<kbd>Cmd</kbd> + <kbd>Option</kbd> + <kbd>Shift</kbd> + <kbd>]</kbd> on macOS)
+                      </span>
+                    </th>
+                    <td>Expand the current editor block recursively</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>[</kbd></th>
+                    <td>Collapse all editor blocks</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>]</kbd></th>
+                    <td>Expand all editor blocks</td>
+                  </tr>
+                  <tr>
                     <th scope="row"><kbd>Escape</kbd></th>
                     <td>
                       Close this help screen

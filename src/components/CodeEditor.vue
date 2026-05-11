@@ -11,7 +11,6 @@ import {autocompletion, closeBrackets, closeBracketsKeymap, completionKeymap} fr
 import {
   bracketMatching,
   foldGutter,
-  foldKeymap,
   indentOnInput,
   syntaxHighlighting,
 } from '@codemirror/language';
@@ -29,6 +28,7 @@ import {
   rectangularSelection,
 } from '@codemirror/view';
 import {oneDark, oneDarkHighlightStyle} from '@codemirror/theme-one-dark';
+import {foldingKeymap} from '../ui/codemirror/foldingKeymap.js';
 
 const props = defineProps({
   editorId: {
@@ -221,7 +221,7 @@ onMounted(() => {
           ...defaultKeymap,
           ...searchKeymap,
           ...historyKeymap,
-          ...foldKeymap,
+          ...foldingKeymap,
           ...completionKeymap,
           ...lintKeymap,
         ]),
