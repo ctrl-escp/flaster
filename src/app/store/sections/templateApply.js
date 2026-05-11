@@ -38,6 +38,7 @@ export function createTemplateApplySection() {
         const structureId = metadata?.selectionSource?.kind === 'known-structure'
           ? metadata.selectionSource.structureId
           : metadata?.params?.structureId;
+        const structure = this.getKnownStructureById(structureId);
         const runSettings = normalizeCustomTransformRunSettings(
           metadata,
           this.templateDrafts['advanced-js-step'] ?? {},
@@ -45,6 +46,7 @@ export function createTemplateApplySection() {
         const result = await runCustomTransformExecution(this.arb, {
           body: normalizedSource,
           structureId: structureId ?? null,
+          structure,
           candidateFilters,
           runSettings,
         });

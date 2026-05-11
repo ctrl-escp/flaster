@@ -68,6 +68,10 @@ export function createWorkspaceTemplateDrafts() {
  * @returns {string}
  */
 export function createKnownStructureRuleSeed(structure) {
+  if ((structure?.categoryGroup ?? '') === 'user-defined' && structure.codeExample) {
+    return structure.codeExample;
+  }
+
   return `// Seeded from known structure: ${structure.title} (${structure.id})
 // Category: ${structure.category}
 // Execution: ${structure.executionMode}

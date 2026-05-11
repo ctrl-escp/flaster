@@ -1,5 +1,6 @@
 import {describe, it, expect} from 'vitest';
 import {Arborist} from 'flast/src/arborist.js';
+import {createCustomStructureDescriptor} from '../../src/domain/structures/customStructures.js';
 import {
   compileNodePredicate,
   normalizeCustomTransformRunSettings,
@@ -53,6 +54,30 @@ describe('customTransformRuntime', () => {
     expect(result.isDone).toBe(true);
     expect(result.changesCount).toBe(0);
     expect(result.source).toBe(before);
+  });
+
+  it('runs custom transforms against user-defined structure descriptors', async () => {
+    const arb = new Arborist('const a = 1; const b = "x";');
+    const structure = createCustomStructureDescriptor(
+      'All literals',
+      "n.type === 'Literal'",
+      'custom',
+      'custom-all-literals-test',
+    );
+
+    const result = await runCustomTransformExecution(arb, {
+      body: 'for (const match of matches) arb.markNode(match, {type: "Literal", value: "Moooo"});',
+      structureId: structure.id,
+      structure,
+      candidateFilters: [{enabled: true, src: structure.codeExample}],
+      runSettings: normalizeCustomTransformRunSettings({runMode: 'once'}, {}),
+    });
+
+    expect(result.isDone).toBe(true);
+    expect(result.error).toBeNull();
+    expect(result.changesCount).toBe(2);
+    expect(result.structureName).toBe(structure.id);
+    expect(result.source).toContain("'Moooo'");
   });
 
   it('returns failure without treating thrown user errors as success', async () => {

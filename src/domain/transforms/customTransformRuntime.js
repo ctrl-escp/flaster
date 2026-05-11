@@ -74,6 +74,7 @@ function compileTransformBody(body, mode) {
  * @param {{
  *   body: string,
  *   structureId: string | null,
+ *   structure?: object | null,
  *   candidateFilters: Array<{src?: string, enabled?: boolean}>,
  *   runSettings: ReturnType<typeof normalizeCustomTransformRunSettings>,
  * }} options
@@ -81,7 +82,7 @@ function compileTransformBody(body, mode) {
  */
 export async function runCustomTransformExecution(arborist, options) {
   const {runKnownStructureMatcher} = await import('../../integrations/restringer/index.js');
-  const {body, structureId, candidateFilters, runSettings} = options;
+  const {body, structureId, structure, candidateFilters, runSettings} = options;
   const sourceBefore = typeof arborist?.script === 'string' ? arborist.script : '';
   const transformName = 'custom';
   const structureName = structureId ?? null;
@@ -117,7 +118,8 @@ export async function runCustomTransformExecution(arborist, options) {
   try {
     while (shouldContinue()) {
       if (structureId) {
-        const matchRun = runKnownStructureMatcher(arborist, structureId, {
+        const structureOrId = structure?.id === structureId ? structure : structureId;
+        const matchRun = runKnownStructureMatcher(arborist, structureOrId, {
           candidateFilter: combineFilter,
         });
 
