@@ -3,20 +3,20 @@
  *
  * REstringer matching and API detection run separately; this module is the join step
  * so Structure Explorer / Explore Nodes can treat API detectors like any other structure.
- * Invoked from `runApiInteractionsMatcher()` after each detector pass (and on clear).
+ * Invoked from `runApiSurfaceMatcher()` after each detector pass (and on clear).
  */
 
 import {
   groupStructureMatches,
   normalizeStructureMatch,
 } from '../../integrations/restringer/index.js';
-import {apiDetectorRegistry} from '../../domain/apiInteractions/detectorRegistry.js';
+import {apiDetectorRegistry} from '../../domain/apiSurface/detectorRegistry.js';
 
 /**
  * Merges API detector hits into the known-structure match store so API patterns
  * appear in Structure Explorer and Explore Nodes alongside REstringer results.
  *
- * Strategy: strip all prior matches for structures with `categoryGroup === 'api-interaction'`,
+ * Strategy: strip all prior matches for structures with `categoryGroup === 'api-surface'`,
  * then rebuild from `store.apiDetectorHits` so re-parsing does not leave stale API rows.
  * REstringer-owned structures are left untouched.
  *
@@ -34,7 +34,7 @@ import {apiDetectorRegistry} from '../../domain/apiInteractions/detectorRegistry
 export function syncApiDetectorHitsToKnownStructureMatches(store) {
   const apiStructureIds = new Set(
     store.availableKnownStructures
-      .filter((structure) => structure.categoryGroup === 'api-interaction')
+      .filter((structure) => structure.categoryGroup === 'api-surface')
       .map((structure) => structure.id),
   );
 
@@ -42,7 +42,7 @@ export function syncApiDetectorHitsToKnownStructureMatches(store) {
     return;
   }
 
-  // Phase 1 — drop API-interaction rows from the last combined match snapshot.
+  // Phase 1 — drop prior api-surface rows from the last combined match snapshot.
   const retainedMatches = store.latestKnownStructureMatches.filter(
     (match) => !apiStructureIds.has(match.structureId),
   );

@@ -1,6 +1,6 @@
 /** @import {ASTNode, Arborist} from '../../../flastTypes.js' */
 import {loadRestringerIntegration} from '../../../integrations/restringer/index.js';
-import {buildHydratedKnownStructureCatalog} from '../../../domain/apiInteractions/index.js';
+import {buildHydratedKnownStructureCatalog} from '../../../domain/apiSurface/index.js';
 import {cloneValue, normalizeScriptLabel} from '../storeUtils.js';
 
 /**
@@ -109,7 +109,7 @@ export function createScriptHistorySection() {
       this.activeResultMode = 'ast';
       this.markCurrentInputParsed();
       await this.runKnownStructureMatching();
-      await this.runApiInteractionsMatcher();
+      await this.runApiSurfaceMatcher();
     },
     /**
      * Syncs a flAST {@link Arborist} (e.g. edited in the devtools console)
@@ -164,7 +164,7 @@ export function createScriptHistorySection() {
 
       try {
         await this.rerunKnownStructureMatching();
-        await this.runApiInteractionsMatcher();
+        await this.runApiSurfaceMatcher();
       } catch (error) {
         this.logMessage(error instanceof Error ? error.message : String(error), 'error');
         return false;

@@ -9,4 +9,6 @@ Feel free to open feature requests on the Issues page
 ## Features
 - Easily see which nodes are caught by the filter and find them in the code.
 - Combine several filters into a single rule.
+- **API Surface** — static detection of browser and runtime API usage in the loaded script.
+- **Capabilities** — behavioral patterns (fingerprinting, anti-debugging, tracking, etc.) inferred from API surface hits.
 - Enjoy the VS-Code editor in your browser to help make changes to the code being investigated.

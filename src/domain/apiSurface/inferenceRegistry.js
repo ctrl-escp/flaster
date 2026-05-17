@@ -1,7 +1,7 @@
 /**
- * Catalog of behavioral inferences derived from detector co-occurrence.
+ * Catalog of capabilities derived from detector co-occurrence.
  *
- * Rows reference detector ids in `requires` clauses; the inference engine evaluates them
+ * Rows reference detector ids in `requires` clauses; the capability engine evaluates them
  * after `runApiDetectors` completes. Cross-references are validated against `apiDetectorIds`
  * at module load.
  *
@@ -18,7 +18,7 @@ const _registry = [
   {
     id: 'devtools-size-probe',
     title: 'DevTools Size Probe',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'anti-debugging',
     risk: 'benign',
     riskReason: 'Detects whether DevTools is open by measuring window dimensions. Does not collect or transmit user data.',
@@ -41,7 +41,7 @@ const _registry = [
   {
     id: 'devtools-timing-probe',
     title: 'DevTools Timing Probe',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'anti-debugging',
     risk: 'benign',
     riskReason: 'Probes debugger presence via execution timing. Does not collect or transmit user data.',
@@ -60,7 +60,7 @@ const _registry = [
   {
     id: 'automation-detection',
     title: 'Automation / Bot Detection',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'anti-debugging',
     risk: 'benign',
     riskReason: 'Identifies automated browser environments. Does not collect or transmit user data.',
@@ -84,7 +84,7 @@ const _registry = [
   {
     id: 'canvas-fingerprinting',
     title: 'Canvas Fingerprinting',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'fingerprinting',
     risk: 'risky',
     riskReason: 'Privacy: produces a persistent device identifier from GPU rendering output, enabling cross-site user tracking without consent or cookies.',
@@ -106,7 +106,7 @@ const _registry = [
   {
     id: 'navigator-fingerprinting',
     title: 'Navigator Fingerprinting',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'fingerprinting',
     risk: 'risky',
     riskReason: 'Privacy: combines multiple browser properties into a unique device fingerprint, enabling user identification without storing any data.',
@@ -131,7 +131,7 @@ const _registry = [
   {
     id: 'screen-fingerprinting',
     title: 'Screen Geometry Fingerprinting',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'fingerprinting',
     risk: 'risky',
     riskReason: 'Privacy: records display configuration as a fingerprint signal, contributing to cross-site user identification.',
@@ -152,7 +152,7 @@ const _registry = [
   {
     id: 'cookie-tracking',
     title: 'Cookie-Based Tracking',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'tracking',
     risk: 'risky',
     riskReason: 'Privacy: reads and writes persistent cookies, enabling user identification and behavioral tracking across sessions.',
@@ -168,7 +168,7 @@ const _registry = [
   {
     id: 'storage-profiling',
     title: 'Storage Profiling',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'tracking',
     risk: 'risky',
     riskReason: 'Privacy: reads stored user data from local or session storage, which may include sensitive profile, preference, or session information.',
@@ -188,7 +188,7 @@ const _registry = [
   {
     id: 'prototype-injection',
     title: 'Native Prototype Injection',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'prototype-tampering',
     risk: 'risky',
     riskReason: 'Security: overwrites native prototype properties, potentially intercepting all method calls on built-in types — a vector for data exfiltration hooks and anti-debugging traps.',
@@ -209,7 +209,7 @@ const _registry = [
   {
     id: 'dynamic-code-execution',
     title: 'Dynamic Code Execution',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'dynamic-execution',
     risk: 'risky',
     riskReason: 'Security: executes code constructed at runtime, bypassing static analysis — the primary mechanism for delivering obfuscated payloads and injecting malicious logic.',
@@ -227,7 +227,7 @@ const _registry = [
   {
     id: 'remote-code-fetch-exec',
     title: 'Remote Code Fetch + Execute',
-    categoryGroup: 'behavioral-inference',
+    categoryGroup: 'capabilities',
     category: 'dynamic-execution',
     risk: 'risky',
     riskReason: 'Security + Privacy: fetches code or data from a remote server and executes or injects it — a classic loader pattern enabling phishing, credential theft, or malware delivery.',

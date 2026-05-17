@@ -146,9 +146,10 @@ onMounted(() => {
                   <span class="coming-soon">coming soon</span>
                 </dt>
                 <dd>
-                  Identify behavioral signals — network calls, <code>eval</code> usage, DOM manipulation,
-                  anti-debugging guards — directly from the AST without executing the code. Detections will
-                  appear as read-only structure matches that can be used to annotate or filter a script.
+                  <strong>API Surface</strong> finds browser and runtime API usage; <strong>Capabilities</strong>
+                  infer higher-level patterns (fingerprinting, anti-debugging, tracking) from those hits —
+                  all from the AST without executing the code. Open the <strong>API Surface</strong> tab after
+                  parse; detector hits also appear as known structures in Code Structures.
                 </dd>
               </div>
             </dl>

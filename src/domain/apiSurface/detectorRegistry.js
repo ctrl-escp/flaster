@@ -1,5 +1,5 @@
 /**
- * Canonical catalog of atomic API interaction detectors.
+ * Canonical catalog of atomic API surface detectors.
  *
  * Each row describes one API surface (object, name, access kind). Matcher implementations
  * live under `matchers/`; this file is metadata only. Rows are validated and frozen at
@@ -568,5 +568,5 @@ validateApiDetectorRegistry(_registry);
 
 export const apiDetectorRegistry = Object.freeze(_registry.map(Object.freeze));
 
-/** Stable set of all detector ids — used by inference validation. */
+/** Stable set of all detector ids — used by capability registry validation. */
 export const apiDetectorIds = new Set(apiDetectorRegistry.map((d) => d.id));

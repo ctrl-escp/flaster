@@ -3,7 +3,7 @@ import {computed} from 'vue';
 import store from '../store';
 import StructureExplorer from './StructureExplorer.vue';
 import ResultBrowser from './ResultBrowser.vue';
-import ApiInteractionsPanel from './ApiInteractionsPanel.vue';
+import ApiSurfacePanel from './ApiSurfacePanel.vue';
 import IconBrowse from './icons/IconBrowse.vue';
 import IconListChecks from './icons/IconListChecks.vue';
 import IconEye from './icons/IconEye.vue';
@@ -17,8 +17,8 @@ const shouldPulseStructures = computed(() =>
 );
 
 const hasApiResults = computed(() =>
-  store.apiInteractionsStatus === 'done' &&
-  (store.apiInferences.length > 0 || Object.keys(store.apiDetectorHits).length > 0),
+  store.apiSurfaceStatus === 'done' &&
+  (store.capabilities.length > 0 || Object.keys(store.apiDetectorHits).length > 0),
 );
 
 const tabs = computed(() => [
@@ -36,7 +36,7 @@ const tabs = computed(() => [
   },
   {
     id: 'api',
-    label: 'API Interactions',
+    label: 'API Surface',
     icon: IconEye,
     enabled: true,
     highlight: hasApiResults.value,
@@ -51,7 +51,7 @@ const activeSubview = computed(() => {
 
 const activePanel = computed(() => {
   if (activeSubview.value === 'results') return ResultBrowser;
-  if (activeSubview.value === 'api') return ApiInteractionsPanel;
+  if (activeSubview.value === 'api') return ApiSurfacePanel;
   return StructureExplorer;
 });
 

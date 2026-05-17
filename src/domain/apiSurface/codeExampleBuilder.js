@@ -1,5 +1,5 @@
 /**
- * Builds illustrative code snippets for API interaction detectors from registry metadata.
+ * Builds illustrative code snippets for API surface detectors from registry metadata.
  */
 
 /** @type {Set<string>} */

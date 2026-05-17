@@ -1,8 +1,8 @@
 <script setup>
 import {computed, ref} from 'vue';
 import store from '../store';
-import {apiDetectorRegistry} from '../domain/apiInteractions/index.js';
-import {buildApiDetectorCodeExample} from '../domain/apiInteractions/codeExampleBuilder.js';
+import {apiDetectorRegistry} from '../domain/apiSurface/index.js';
+import {buildApiDetectorCodeExample} from '../domain/apiSurface/codeExampleBuilder.js';
 import {
   advanceStructureMatchOrdinal,
   structureMatchDisplayIndex,
@@ -10,8 +10,8 @@ import {
 import IconArrowLeft from './icons/IconArrowLeft.vue';
 import IconArrowRight from './icons/IconArrowRight.vue';
 
-const status = computed(() => store.apiInteractionsStatus);
-const inferences = computed(() => store.apiInferences);
+const status = computed(() => store.apiSurfaceStatus);
+const capabilities = computed(() => store.capabilities);
 const hits = computed(() => store.apiDetectorHits);
 
 const detectorById = Object.fromEntries(apiDetectorRegistry.map(r => [r.id, r]));
@@ -62,7 +62,7 @@ function allExtractions(matches) {
 }
 
 const isEmpty = computed(() =>
-  status.value === 'done' && inferences.value.length === 0 && firedDetectors.value.length === 0,
+  status.value === 'done' && capabilities.value.length === 0 && firedDetectors.value.length === 0,
 );
 
 function ensureDetectorSelected(detectorId) {
@@ -122,12 +122,12 @@ function stepDetectorMatch(detectorId, direction = 1) {
 </script>
 
 <template>
-  <section class="workspace-panel api-panel">
+  <section class="workspace-panel api-surface-panel">
     <div class="panel-header">
-      <h2>API Interactions</h2>
+      <h2>API Surface</h2>
       <div class="panel-meta">
         <span v-if="status === 'done'">
-          {{ inferences.length }} inference{{ inferences.length === 1 ? '' : 's' }},
+          {{ capabilities.length }} capabilit{{ capabilities.length === 1 ? 'y' : 'ies' }},
           {{ firedDetectors.length }} detector{{ firedDetectors.length === 1 ? '' : 's' }}
         </span>
         <span v-else-if="status === 'running'">Analysing…</span>
@@ -136,11 +136,11 @@ function stepDetectorMatch(detectorId, direction = 1) {
     </div>
 
     <p class="helper-copy">
-      Behavioral inferences and browser API usage detected in the loaded script.
+      Capabilities and browser API usage detected in the loaded script.
     </p>
 
     <div v-if="status === 'idle'" class="empty-state">
-      Load a script to see its API interactions.
+      Load a script to see its API surface.
     </div>
 
     <div v-else-if="status === 'running'" class="empty-state">
@@ -148,24 +148,24 @@ function stepDetectorMatch(detectorId, direction = 1) {
     </div>
 
     <div v-else-if="isEmpty" class="empty-state">
-      No notable API interactions detected.
+      No notable API surface usage detected.
     </div>
 
     <template v-else>
-      <!-- ── Inferences ──────────────────────────────────── -->
-      <div v-if="inferences.length" class="section">
-        <h3 class="section-title">Behavioral Inferences</h3>
-        <ul class="inference-list">
-          <li v-for="inf in inferences" :key="inf.id" class="inference-row">
-            <div class="inference-head">
-              <span class="risk-badge" :class="inf.risk">{{ inf.risk }}</span>
-              <span class="inference-title">{{ inf.title }}</span>
+      <!-- ── Capabilities ──────────────────────────────────── -->
+      <div v-if="capabilities.length" class="section">
+        <h3 class="section-title">Capabilities</h3>
+        <ul class="capability-list">
+          <li v-for="cap in capabilities" :key="cap.id" class="capability-row">
+            <div class="capability-head">
+              <span class="risk-badge" :class="cap.risk">{{ cap.risk }}</span>
+              <span class="capability-title">{{ cap.title }}</span>
             </div>
-            <p class="inference-desc">{{ inf.description }}</p>
-            <p class="risk-reason">{{ inf.riskReason }}</p>
+            <p class="capability-desc">{{ cap.description }}</p>
+            <p class="risk-reason">{{ cap.riskReason }}</p>
             <div class="contributing-detectors">
               <span
-                v-for="id in inf.firedDetectorIds"
+                v-for="id in cap.firedDetectorIds"
                 :key="id"
                 class="detector-chip"
               >{{ detectorById[id]?.title ?? id }}</span>
@@ -174,9 +174,9 @@ function stepDetectorMatch(detectorId, direction = 1) {
         </ul>
       </div>
 
-      <!-- ── Detectors ──────────────────────────────────── -->
+      <!-- ── API surface ──────────────────────────────────── -->
       <div v-if="firedDetectors.length" class="section">
-        <h3 class="section-title">Detected API Calls</h3>
+        <h3 class="section-title">API Surface</h3>
         <ul class="detector-list">
           <li v-for="{row, matches} in firedDetectors" :key="row.id" class="detector-row">
             <div class="detector-head">
@@ -257,7 +257,7 @@ function stepDetectorMatch(detectorId, direction = 1) {
 </template>
 
 <style scoped>
-.api-panel {
+.api-surface-panel {
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -311,9 +311,9 @@ function stepDetectorMatch(detectorId, direction = 1) {
   margin: 0;
 }
 
-/* ── Inferences ──────────────────────────────────── */
+/* ── Capabilities ──────────────────────────────────── */
 
-.inference-list {
+.capability-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -322,7 +322,7 @@ function stepDetectorMatch(detectorId, direction = 1) {
   gap: 0.55rem;
 }
 
-.inference-row {
+.capability-row {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -332,7 +332,7 @@ function stepDetectorMatch(detectorId, direction = 1) {
   background: rgba(255, 255, 255, 0.02);
 }
 
-.inference-head {
+.capability-head {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -360,13 +360,13 @@ function stepDetectorMatch(detectorId, direction = 1) {
   border: 1px solid rgba(80, 200, 120, 0.28);
 }
 
-.inference-title {
+.capability-title {
   font-size: 0.82rem;
   font-weight: 600;
   line-height: 1.3;
 }
 
-.inference-desc {
+.capability-desc {
   font-size: 0.75rem;
   color: var(--text-muted);
   line-height: 1.45;

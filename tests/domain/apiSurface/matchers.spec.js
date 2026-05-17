@@ -1,7 +1,7 @@
 import {describe, it, expect} from 'vitest';
 import {Arborist} from '../../../node_modules/flast/src/arborist.js';
-import {runApiDetectors} from '../../../src/domain/apiInteractions/matchingEngine.js';
-import {runInferences} from '../../../src/domain/apiInteractions/inferenceEngine.js';
+import {runApiDetectors} from '../../../src/domain/apiSurface/matchingEngine.js';
+import {runInferences} from '../../../src/domain/apiSurface/inferenceEngine.js';
 
 function detect(script) {
   const arb = new Arborist(script);
@@ -241,10 +241,10 @@ describe('canvas detectors', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. Inference engine
+// 6. Capability engine
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('inferences', () => {
+describe('capabilities', () => {
   function infers(results, id) {
     return runInferences(results).some(i => i.id === id);
   }

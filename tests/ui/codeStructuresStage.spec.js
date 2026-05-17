@@ -23,8 +23,8 @@ describe('CodeStructuresStage', () => {
       }];
     store.knownStructureMatchCounts = {};
     store.selectedKnownStructureIds = [];
-    store.apiInteractionsStatus = 'idle';
-    store.apiInferences = [];
+    store.apiSurfaceStatus = 'idle';
+    store.capabilities = [];
     store.apiDetectorHits = {};
   });
 
@@ -39,7 +39,7 @@ describe('CodeStructuresStage', () => {
     const searchInput = wrapper.get('input[type="search"]');
     await searchInput.setValue('persist-me');
 
-    await wrapper.get('button[title="API Interactions"]').trigger('click');
+    await wrapper.get('button[title="API Surface"]').trigger('click');
     await flushPromises();
 
     await wrapper.get('button[title="Code Structures"]').trigger('click');

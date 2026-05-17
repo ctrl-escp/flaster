@@ -1,6 +1,6 @@
 /** @import {ASTNode} from '../../flastTypes.js' */
 /**
- * A single atomic API-interaction detector — describes one specific browser/JS API
+ * A single atomic API surface detector — describes one specific browser/JS API
  * surface and how it's accessed. Matchers are not stored here; this is catalog-only.
  *
  * @typedef {'property-read' | 'property-write' | 'method-call' | 'constructor'} ApiKind
@@ -8,7 +8,7 @@
  * @typedef {object} ApiDetectorRow
  * @property {string} id               Stable catalog key.
  * @property {string} title            Human-facing name.
- * @property {string} categoryGroup    Always 'api-interaction'.
+ * @property {string} categoryGroup    Always 'api-surface'.
  * @property {string} category         Subgroup slug (window-geometry, storage, canvas, …).
  * @property {string} apiObject        Receiver name (window, document, localStorage, …).
  * @property {string} apiName          Property or method name (innerWidth, setItem, …).
@@ -69,7 +69,7 @@ export function buildApiDetectorDefinition(row) {
   return {
     id: row.id,
     title: row.title,
-    categoryGroup: 'api-interaction',
+    categoryGroup: 'api-surface',
     category: row.category,
     apiObject: row.apiObject,
     apiName: row.apiName,
@@ -112,7 +112,7 @@ export function validateApiDetectorRegistry(registry) {
       );
     }
 
-    if (row.categoryGroup !== undefined && row.categoryGroup !== 'api-interaction') {
+    if (row.categoryGroup !== undefined && row.categoryGroup !== 'api-surface') {
       throw new Error(`Detector row "${row.id}" must not override categoryGroup`);
     }
 

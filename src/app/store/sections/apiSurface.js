@@ -1,34 +1,34 @@
 /**
- * Pinia-style store section for API interaction analysis.
+ * Pinia-style store section for API surface analysis.
  *
  * Orchestration (after parse / arborist apply):
- *   runApiDetectors → runInferences → apiDetectorHits / apiInferences → sync → highlights
+ *   runApiDetectors → runInferences → apiDetectorHits / capabilities → sync → highlights
  *
- * @see ../apiInteractionSync.js
+ * @see ../apiSurfaceSync.js
  */
 
 import {
   apiDetectorRegistry,
   runApiDetectors,
   runInferences,
-} from '../../../domain/apiInteractions/index.js';
-import {syncApiDetectorHitsToKnownStructureMatches} from '../apiInteractionSync.js';
+} from '../../../domain/apiSurface/index.js';
+import {syncApiDetectorHitsToKnownStructureMatches} from '../apiSurfaceSync.js';
 
 /**
- * @typedef {import('../../../domain/apiInteractions/inferenceEngine.js').InferenceResult} InferenceResult
- * @typedef {import('../../../domain/apiInteractions/detectorDefinition.js').DetectorMatch} DetectorMatch
+ * @typedef {import('../../../domain/apiSurface/inferenceEngine.js').InferenceResult} InferenceResult
+ * @typedef {import('../../../domain/apiSurface/detectorDefinition.js').DetectorMatch} DetectorMatch
  */
 
-export function createApiInteractionsSection() {
+export function createApiSurfaceSection() {
   return {
     /** @type {'idle' | 'running' | 'done'} */
-    apiInteractionsStatus: 'idle',
+    apiSurfaceStatus: 'idle',
 
     /**
-     * Fired inferences from the last analysis pass.
+     * Fired capabilities from the last analysis pass.
      * @type {InferenceResult[]}
      */
-    apiInferences: [],
+    capabilities: [],
 
     /**
      * Detector hits from the last analysis pass, keyed by detector id.
@@ -36,9 +36,9 @@ export function createApiInteractionsSection() {
      */
     apiDetectorHits: {},
 
-    clearApiInteractionResults() {
-      this.apiInteractionsStatus = 'idle';
-      this.apiInferences = [];
+    clearApiSurfaceResults() {
+      this.apiSurfaceStatus = 'idle';
+      this.capabilities = [];
       this.apiDetectorHits = {};
     },
 
@@ -47,22 +47,22 @@ export function createApiInteractionsSection() {
     },
 
     /**
-     * Runs the detector + inference pipeline on the current `arb` and syncs results
+     * Runs the detector + capability pipeline on the current `arb` and syncs results
      * into known-structure state. Called from Parse, script history, and arborist apply.
      */
-    async runApiInteractionsMatcher() {
+    async runApiSurfaceMatcher() {
       const arb = this.arb;
       if (!arb?.ast?.length) {
-        this.clearApiInteractionResults();
+        this.clearApiSurfaceResults();
         this.syncApiDetectorHitsToKnownStructureMatches();
         this.refreshKnownStructureHighlights();
         return;
       }
 
-      this.apiInteractionsStatus = 'running';
+      this.apiSurfaceStatus = 'running';
 
       const detectorResults = runApiDetectors(arb);
-      const inferences = runInferences(detectorResults);
+      const capabilities = runInferences(detectorResults);
 
       // Map → plain object so Vue can track per-detector hit lists reactively.
       const hits = {};
@@ -72,8 +72,8 @@ export function createApiInteractionsSection() {
       }
 
       this.apiDetectorHits = hits;
-      this.apiInferences = inferences;
-      this.apiInteractionsStatus = 'done';
+      this.capabilities = capabilities;
+      this.apiSurfaceStatus = 'done';
       this.syncApiDetectorHitsToKnownStructureMatches();
       this.refreshKnownStructureHighlights();
     },

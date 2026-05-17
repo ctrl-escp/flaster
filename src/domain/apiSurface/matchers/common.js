@@ -1,6 +1,6 @@
 /** @import {ASTNode, Arborist} from '../../../flastTypes.js' */
 /**
- * Shared utilities for API interaction matcher functions.
+ * Shared utilities for API surface matcher functions.
  *
  * Matcher function contract:
  *   (n: ASTNode, arb: Arborist) => DetectorMatch | null

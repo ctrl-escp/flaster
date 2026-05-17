@@ -1,7 +1,7 @@
 import {describe, it, expect} from 'vitest';
-import {apiDetectorRegistry} from '../../../src/domain/apiInteractions/detectorRegistry.js';
-import {buildApiDetectorCodeExample} from '../../../src/domain/apiInteractions/codeExampleBuilder.js';
-import {buildHydratedKnownStructureCatalog} from '../../../src/domain/apiInteractions/asKnownStructures.js';
+import {apiDetectorRegistry} from '../../../src/domain/apiSurface/detectorRegistry.js';
+import {buildApiDetectorCodeExample} from '../../../src/domain/apiSurface/codeExampleBuilder.js';
+import {buildHydratedKnownStructureCatalog} from '../../../src/domain/apiSurface/asKnownStructures.js';
 
 describe('buildApiDetectorCodeExample', () => {
   it('generates a non-empty example for every detector', () => {

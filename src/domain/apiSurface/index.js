@@ -1,5 +1,5 @@
 /**
- * API interactions domain — static detection of browser/JS API usage and behavioral inferences.
+ * API Surface domain — static detection of browser/JS API usage and capabilities.
  *
  * Typical usage:
  *   1. `buildHydratedKnownStructureCatalog(restringerStructures)` when hydrating the structure catalog.

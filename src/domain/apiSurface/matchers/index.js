@@ -1,5 +1,5 @@
 /**
- * Aggregates API interaction detector matchers from category modules.
+ * Aggregates API surface detector matchers from category modules.
  *
  * Each category file groups related detectors and re-exports their matcher functions.
  * Per-detector implementations live in `<detector-id>.js` files.

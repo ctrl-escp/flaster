@@ -1,8 +1,8 @@
 /**
- * Inference engine — evaluates behavioral inferences against a completed detector pass.
+ * Capability engine — evaluates registered capability patterns against a completed detector pass.
  *
- * For each inference in the registry, all `requires` clauses are tested against
- * the detector results. An inference fires only when every clause passes.
+ * For each row in `apiInferenceRegistry`, all `requires` clauses are tested against
+ * the detector results. A capability fires only when every clause passes.
  *
  * Clause evaluation — a detector "fired" when it has at least one match:
  *   mode 'any' + minCount N  →  at least N distinct detectors in the list fired
@@ -18,7 +18,7 @@
  * @property {import('./inferenceDefinition.js').InferenceRisk} risk
  * @property {string} riskReason
  * @property {string} description
- * @property {string[]} firedDetectorIds  Which detectors contributed to this inference firing.
+ * @property {string[]} firedDetectorIds  Which detectors contributed to this capability firing.
  */
 
 import {apiInferenceRegistry} from './inferenceRegistry.js';
@@ -48,7 +48,7 @@ function evaluateClause(clause, detectorResults) {
 }
 
 /**
- * Evaluates all registered inferences against a detector result set.
+ * Evaluates all registered capability patterns against a detector result set.
  *
  * @param {DetectorResults} detectorResults
  * @returns {InferenceResult[]}

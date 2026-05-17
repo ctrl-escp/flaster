@@ -1,4 +1,4 @@
-import {createApiInteractionsSection} from './sections/apiInteractions.js';
+import {createApiSurfaceSection} from './sections/apiSurface.js';
 import {createFiltersSection} from './sections/filters.js';
 import {createKnownStructuresSection} from './sections/knownStructures.js';
 import {createPersistenceSection} from './sections/persistence.js';
@@ -89,6 +89,6 @@ export function createStoreBlueprint(knownStructureState) {
     ...createPipelineSection(),
     ...createTemplateApplySection(),
     ...createPersistenceSection(),
-    ...createApiInteractionsSection(),
+    ...createApiSurfaceSection(),
   };
 }

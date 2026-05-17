@@ -1,6 +1,6 @@
 /** @import {Arborist} from '../../flastTypes.js' */
 /**
- * Adapts API interaction detectors into the known-structure catalog format so they
+ * Adapts API surface detectors into the known-structure catalog format so they
  * appear in the Code Structures explorer and support node-by-node browsing.
  *
  * Each detector becomes one structure entry. The matcher function runs only the
@@ -8,7 +8,7 @@
  * returns DetectorMatch objects whose `node` field is picked up by the normalizer's
  * `findNodeInMatch` → `relevantNode`, driving source-location highlighting and navigation.
  *
- * Transforms are not supported for API interaction detectors.
+ * Transforms are not supported for API surface detectors.
  */
 
 import {buildApiDetectorDefinition} from './detectorDefinition.js';
@@ -83,7 +83,7 @@ function buildStructureForDetector(row) {
 }
 
 /**
- * Returns all API interaction detectors as known-structure descriptors, ready to
+ * Returns all API surface detectors as known-structure descriptors, ready to
  * be merged into the catalog via `hydrateKnownStructureCatalog`.
  *
  * @returns {object[]}

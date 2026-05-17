@@ -5,6 +5,6 @@
   "ignore": ["tests/fixtures/structure-sources/**"],
   "ignoreIssues": {
     "src/integrations/restringer/index.js": ["exports", "duplicates"],
-    "src/domain/apiInteractions/index.js": ["exports"]
+    "src/domain/apiSurface/index.js": ["exports"]
   }
 }

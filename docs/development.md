@@ -38,3 +38,16 @@ Follow this order so metadata, runners, fixtures, and CI stay aligned:
 7. **Verification** — Run `npm run check` (includes `check:catalog`, which loads the catalog module and validates shape and uniqueness).
 
 `npm run check:catalog` runs `scripts/verify-structure-catalog.mjs` and fails on duplicate ids, missing labels/categories, disallowed catalog keys, or broken matcher/transform metadata contracts.
+
+## API Surface and Capabilities
+
+After parse, flASTer runs **API Surface** analysis: static matchers find browser/JS runtime API usage (detectors), then the capability engine derives higher-level patterns (fingerprinting, anti-debugging, tracking, etc.) from those hits.
+
+| Concept | Where |
+| ------- | ----- |
+| Domain code | `src/domain/apiSurface/` — see [README](../../src/domain/apiSurface/README.md) for architecture, matcher contract, and how to add detectors/capabilities. |
+| App store | `runApiSurfaceMatcher()` in `src/app/store/sections/apiSurface.js`; results in `apiDetectorHits` and `capabilities`. |
+| UI | **API Surface** tab (`ApiSurfacePanel.vue`) — **Capabilities** section plus per-detector **API Surface** hits. |
+| Known structures | Detectors hydrate into the structure catalog (`categoryGroup: 'api-surface'`) and sync via `apiSurfaceSync.js` for Code Structures / Explore Nodes. |
+
+Tests: `tests/domain/apiSurface/matchers.spec.js`.

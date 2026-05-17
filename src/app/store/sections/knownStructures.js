@@ -148,8 +148,8 @@ export function createKnownStructuresSection(knownStructureState) {
         : null;
     },
     clearKnownStructureResults() {
-      if (typeof this.clearApiInteractionResults === 'function') {
-        this.clearApiInteractionResults();
+      if (typeof this.clearApiSurfaceResults === 'function') {
+        this.clearApiSurfaceResults();
       }
 
       this.latestKnownStructureMatches = [];
@@ -525,7 +525,7 @@ export function createKnownStructuresSection(knownStructureState) {
 
       this.refreshKnownStructureHighlights();
 
-      if (this.apiInteractionsStatus === 'done' &&
+      if (this.apiSurfaceStatus === 'done' &&
         typeof this.syncApiDetectorHitsToKnownStructureMatches === 'function') {
         this.syncApiDetectorHitsToKnownStructureMatches();
         this.refreshKnownStructureHighlights();
@@ -647,7 +647,7 @@ export function createKnownStructuresSection(knownStructureState) {
 
       this.refreshKnownStructureHighlights();
 
-      if (this.apiInteractionsStatus === 'done' &&
+      if (this.apiSurfaceStatus === 'done' &&
         typeof this.syncApiDetectorHitsToKnownStructureMatches === 'function') {
         this.syncApiDetectorHitsToKnownStructureMatches();
         this.refreshKnownStructureHighlights();
