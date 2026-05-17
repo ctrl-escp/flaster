@@ -1,5 +1,6 @@
 <script setup>
 import store from '../store';
+import {buildHydratedKnownStructureCatalog} from '../domain/apiInteractions/asKnownStructures.js';
 import {loadRestringerIntegration} from '../integrations/restringer/index.js';
 import {computed, onMounted, ref} from 'vue';
 import IconParse from './icons/IconParse.vue';
@@ -68,7 +69,7 @@ async function parseContent({focusExploreNodes = false, pulseCodeStructures = fa
       import('../domain/parse/parseSource.js'),
       loadRestringerIntegration(),
     ]);
-    store.hydrateKnownStructureCatalog([...integration.knownStructures]);
+    store.hydrateKnownStructureCatalog(buildHydratedKnownStructureCatalog(integration.knownStructures));
 
     store.filteredNodes = [];
     const parseRunId = store.bumpParseRunSequence();
@@ -79,6 +80,7 @@ async function parseContent({focusExploreNodes = false, pulseCodeStructures = fa
       store.logMessage(messages.astParseFail, 'error');
     } else {
       await store.rerunKnownStructureMatching();
+      await store.runApiInteractionsMatcher();
     }
     store.filteredNodes = store.arb.ast;
     store.markCurrentInputParsed();

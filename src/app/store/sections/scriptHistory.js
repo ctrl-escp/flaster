@@ -1,4 +1,5 @@
 import {loadRestringerIntegration} from '../../../integrations/restringer/index.js';
+import {buildHydratedKnownStructureCatalog} from '../../../domain/apiInteractions/asKnownStructures.js';
 import {cloneValue, normalizeScriptLabel} from '../storeUtils.js';
 
 /**
@@ -94,7 +95,7 @@ export function createScriptHistorySection() {
 
       const {parseSource} = await import('../../../domain/parse/parseSource.js');
       const integration = await loadRestringerIntegration();
-      this.hydrateKnownStructureCatalog([...integration.knownStructures]);
+      this.hydrateKnownStructureCatalog(buildHydratedKnownStructureCatalog(integration.knownStructures));
 
       const parseRunId = this.bumpParseRunSequence();
       const parseResult = parseSource(script, {parseRunId});
@@ -107,6 +108,7 @@ export function createScriptHistorySection() {
       this.activeResultMode = 'ast';
       this.markCurrentInputParsed();
       await this.runKnownStructureMatching();
+      await this.runApiInteractionsMatcher();
     },
     /**
      * Syncs a flAST {@link import('flast/src/arborist.js').Arborist} (e.g. edited in the devtools console)
@@ -161,6 +163,7 @@ export function createScriptHistorySection() {
 
       try {
         await this.rerunKnownStructureMatching();
+        await this.runApiInteractionsMatcher();
       } catch (error) {
         this.logMessage(error instanceof Error ? error.message : String(error), 'error');
         return false;

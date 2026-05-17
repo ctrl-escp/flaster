@@ -148,6 +148,10 @@ export function createKnownStructuresSection(knownStructureState) {
         : null;
     },
     clearKnownStructureResults() {
+      if (typeof this.clearApiInteractionResults === 'function') {
+        this.clearApiInteractionResults();
+      }
+
       this.latestKnownStructureMatches = [];
       this.knownStructureMatchesById = {};
       this.knownStructureMatchCounts = {};
@@ -520,6 +524,12 @@ export function createKnownStructuresSection(knownStructureState) {
 
       this.refreshKnownStructureHighlights();
 
+      if (this.apiInteractionsStatus === 'done' &&
+        typeof this.syncApiDetectorHitsToKnownStructureMatches === 'function') {
+        this.syncApiDetectorHitsToKnownStructureMatches();
+        this.refreshKnownStructureHighlights();
+      }
+
       return this.knownStructureExecutionStatus;
     },
     /**
@@ -635,6 +645,12 @@ export function createKnownStructuresSection(knownStructureState) {
       );
 
       this.refreshKnownStructureHighlights();
+
+      if (this.apiInteractionsStatus === 'done' &&
+        typeof this.syncApiDetectorHitsToKnownStructureMatches === 'function') {
+        this.syncApiDetectorHitsToKnownStructureMatches();
+        this.refreshKnownStructureHighlights();
+      }
 
       return this.knownStructureExecutionStatus;
     },

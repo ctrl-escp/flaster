@@ -3,8 +3,10 @@ import {computed} from 'vue';
 import store from '../store';
 import StructureExplorer from './StructureExplorer.vue';
 import ResultBrowser from './ResultBrowser.vue';
+import ApiInteractionsPanel from './ApiInteractionsPanel.vue';
 import IconBrowse from './icons/IconBrowse.vue';
 import IconListChecks from './icons/IconListChecks.vue';
+import IconEye from './icons/IconEye.vue';
 
 const hasResults = computed(() =>
   store.getKnownStructureMatches().length > 0 ||
@@ -17,6 +19,11 @@ const shouldHighlightResults = computed(() =>
 );
 const shouldPulseStructures = computed(() =>
   store.shouldPulseCodeStructuresStage,
+);
+
+const hasApiResults = computed(() =>
+  store.apiInteractionsStatus === 'done' &&
+  (store.apiInferences.length > 0 || Object.keys(store.apiDetectorHits).length > 0),
 );
 
 const tabs = computed(() => [
@@ -32,21 +39,24 @@ const tabs = computed(() => [
     icon: IconListChecks,
     enabled: hasResults.value,
   },
+  {
+    id: 'api',
+    label: 'API Interactions',
+    icon: IconEye,
+    enabled: true,
+    highlight: hasApiResults.value,
+  },
 ]);
 
 const activeSubview = computed(() => {
-  if (store.activeWorkspaceTab === 'results' && hasResults.value) {
-    return 'results';
-  }
-
+  if (store.activeWorkspaceTab === 'results' && hasResults.value) return 'results';
+  if (store.activeWorkspaceTab === 'api') return 'api';
   return 'structures';
 });
 
 const activePanel = computed(() => {
-  if (activeSubview.value === 'results') {
-    return ResultBrowser;
-  }
-
+  if (activeSubview.value === 'results') return ResultBrowser;
+  if (activeSubview.value === 'api') return ApiInteractionsPanel;
   return StructureExplorer;
 });
 
@@ -55,7 +65,10 @@ function openTab(tabId) {
     store.setActiveWorkspaceTab('results');
     return;
   }
-
+  if (tabId === 'api') {
+    store.setActiveWorkspaceTab('api');
+    return;
+  }
   store.shouldPulseCodeStructuresStage = false;
   store.setActiveWorkspaceTab('explorer');
 }
@@ -70,7 +83,7 @@ function openTab(tabId) {
         class="subtab-btn"
         :class="{
           active: activeSubview === tab.id,
-          highlighted: tab.id === 'results' && shouldHighlightResults,
+          highlighted: (tab.id === 'results' && shouldHighlightResults) || (tab.id === 'api' && tab.highlight && activeSubview !== 'api'),
           pulsating: tab.id === 'structures' && shouldPulseStructures,
         }"
         type="button"
