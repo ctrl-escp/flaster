@@ -3,6 +3,12 @@ import {computed, ref} from 'vue';
 import store from '../store';
 import {apiDetectorRegistry} from '../domain/apiInteractions/index.js';
 import {buildApiDetectorCodeExample} from '../domain/apiInteractions/codeExampleBuilder.js';
+import {
+  advanceStructureMatchOrdinal,
+  structureMatchDisplayIndex,
+} from '../domain/selection/nodeSelection.js';
+import IconArrowLeft from './icons/IconArrowLeft.vue';
+import IconArrowRight from './icons/IconArrowRight.vue';
 
 const status = computed(() => store.apiInteractionsStatus);
 const inferences = computed(() => store.apiInferences);
@@ -59,12 +65,59 @@ const isEmpty = computed(() =>
   status.value === 'done' && inferences.value.length === 0 && firedDetectors.value.length === 0,
 );
 
+function ensureDetectorSelected(detectorId) {
+  if (!store.selectedKnownStructureIds.includes(detectorId)) {
+    store.setSelectedKnownStructureIds([
+      ...new Set([...store.selectedKnownStructureIds, detectorId]),
+    ]);
+  }
+}
+
 function openDetectorInExplorer(detectorId) {
-  store.setSelectedKnownStructureIds([
-    ...new Set([...store.selectedKnownStructureIds, detectorId]),
-  ]);
+  ensureDetectorSelected(detectorId);
   store.setActiveKnownStructure(detectorId);
   store.setActiveWorkspaceTab('explorer');
+}
+
+function detectorMatchCount(detectorId) {
+  return store.getKnownStructureMatches(detectorId).length;
+}
+
+function detectorMatchPosition(detectorId) {
+  return structureMatchDisplayIndex(
+    store.getKnownStructureMatches(detectorId),
+    detectorId,
+    store.selectedKnownStructureMatch,
+    store.knownStructureSelectionById[detectorId],
+  );
+}
+
+function isDetectorMatchActive(detectorId) {
+  return store.selectedKnownStructureMatch?.structureId === detectorId;
+}
+
+function stepDetectorMatch(detectorId, direction = 1) {
+  const matches = store.getKnownStructureMatches(detectorId);
+  if (!matches.length) {
+    return;
+  }
+
+  ensureDetectorSelected(detectorId);
+  store.setActiveKnownStructure(detectorId);
+
+  const nextOrdinal = advanceStructureMatchOrdinal(
+    matches,
+    detectorId,
+    store.selectedKnownStructureMatch,
+    store.knownStructureSelectionById[detectorId],
+    direction,
+  );
+
+  if (!Number.isInteger(nextOrdinal)) {
+    return;
+  }
+
+  store.setSelectedKnownStructureMatch(detectorId, nextOrdinal);
 }
 </script>
 
@@ -126,22 +179,25 @@ function openDetectorInExplorer(detectorId) {
         <h3 class="section-title">Detected API Calls</h3>
         <ul class="detector-list">
           <li v-for="{row, matches} in firedDetectors" :key="row.id" class="detector-row">
-            <button
-              class="detector-head detector-head-btn"
-              type="button"
-              :title="`Show ${row.title} in Code Structures`"
-              @click="openDetectorInExplorer(row.id)"
-            >
+            <div class="detector-head">
               <span class="detector-title">{{ row.title }}</span>
-              <span class="match-count">{{ matches.length }}×</span>
-            </button>
+            </div>
             <template v-for="{ role, values } in allExtractions(matches)" :key="role">
               <div v-if="values.length" class="extraction-row">
                 <span class="extraction-role">{{ role }}</span>
                 <span v-for="v in values" :key="v" class="extraction-value">{{ v }}</span>
               </div>
             </template>
-            <div class="example-actions">
+            <div class="detector-footer">
+              <div class="example-actions">
+              <button
+                class="example-structure"
+                type="button"
+                :title="`Show ${row.title} in Code Structures`"
+                @click="openDetectorInExplorer(row.id)"
+              >
+                Code structure
+              </button>
               <button
                 class="example-toggle"
                 type="button"
@@ -159,6 +215,38 @@ function openDetectorInExplorer(detectorId) {
               >
                 Copy
               </button>
+              </div>
+              <div
+                v-if="detectorMatchCount(row.id) > 0"
+                class="detector-match-nav"
+                :class="{active: isDetectorMatchActive(row.id)}"
+              >
+                <button
+                  class="detector-nav-btn"
+                  type="button"
+                  title="Jump to the previous match in the editor"
+                  aria-label="Previous match"
+                  @click="stepDetectorMatch(row.id, -1)"
+                >
+                  <icon-arrow-left />
+                  <span>Prev</span>
+                </button>
+                <div class="detector-match-status" aria-live="polite">
+                  <strong>{{ detectorMatchPosition(row.id) }}</strong>
+                  <span>/</span>
+                  <span>{{ detectorMatchCount(row.id) }}</span>
+                </div>
+                <button
+                  class="detector-nav-btn"
+                  type="button"
+                  title="Jump to the next match in the editor"
+                  aria-label="Next match"
+                  @click="stepDetectorMatch(row.id, 1)"
+                >
+                  <span>Next</span>
+                  <icon-arrow-right />
+                </button>
+              </div>
             </div>
             <pre v-if="expandedExampleId === row.id" class="detector-example"><code>{{ codeExampleFor(row) }}</code></pre>
           </li>
@@ -337,36 +425,19 @@ function openDetectorInExplorer(detectorId) {
   gap: 0.5rem;
 }
 
-.detector-head-btn {
-  width: 100%;
-  border: none;
-  background: transparent;
-  color: inherit;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-}
-
-.detector-head-btn:hover,
-.detector-head-btn:focus-visible {
-  outline: none;
-}
-
-.detector-head-btn:hover .detector-title,
-.detector-head-btn:focus-visible .detector-title {
-  color: #d7f0ff;
+.detector-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
 }
 
 .detector-title {
   font-size: 0.78rem;
   font-weight: 500;
   font-family: var(--font-mono, monospace);
-}
-
-.match-count {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  flex-shrink: 0;
 }
 
 .extraction-row {
@@ -392,12 +463,70 @@ function openDetectorInExplorer(detectorId) {
   color: #c8e6c9;
 }
 
-.example-actions {
-  display: flex;
-  gap: 0.35rem;
-  margin-top: 0.15rem;
+.detector-match-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.1rem 0.25rem;
+  margin-left: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  flex-shrink: 0;
 }
 
+.detector-match-nav.active {
+  border-color: rgba(126, 202, 255, 0.28);
+  background: rgba(126, 202, 255, 0.08);
+}
+
+.detector-nav-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.65rem;
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.detector-nav-btn svg {
+  width: 0.72rem;
+  height: 0.72rem;
+}
+
+.detector-nav-btn:hover,
+.detector-nav-btn:focus-visible {
+  color: #d7f0ff;
+  border-color: rgba(126, 202, 255, 0.28);
+  outline: none;
+}
+
+.detector-match-status {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+.detector-match-status strong {
+  color: #d7f0ff;
+  font-weight: 600;
+}
+
+.example-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.example-structure,
 .example-toggle,
 .example-copy {
   font-size: 0.65rem;
@@ -409,8 +538,10 @@ function openDetectorInExplorer(detectorId) {
   cursor: pointer;
 }
 
+.example-structure:hover,
 .example-toggle:hover,
 .example-copy:hover,
+.example-structure:focus-visible,
 .example-toggle:focus-visible,
 .example-copy:focus-visible {
   color: #d7f0ff;
@@ -420,6 +551,8 @@ function openDetectorInExplorer(detectorId) {
 
 .detector-example {
   margin: 0.25rem 0 0;
+  width: 100%;
+  box-sizing: border-box;
   padding: 0.45rem 0.55rem;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.25);
