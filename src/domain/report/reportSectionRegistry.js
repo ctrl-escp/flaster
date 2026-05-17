@@ -12,8 +12,13 @@ import {
  */
 
 /**
+ * @typedef {import('./reportFilters.js').ReportFilterId} ReportFilterId
+ */
+
+/**
  * @typedef {{
  *   id: string,
+ *   filterId: ReportFilterId,
  *   title: string,
  *   helperCopy: string,
  *   collect: (context: ReportCollectContext) => import('./reportCollectors.js').ReportFinding[],
@@ -24,6 +29,7 @@ import {
 export const reportSectionRegistry = [
   {
     id: 'capabilities',
+    filterId: 'api-surface',
     title: 'Capabilities',
     helperCopy: 'Higher-level patterns inferred from API surface detector co-occurrence.',
     collect({store, status}) {
@@ -35,6 +41,7 @@ export const reportSectionRegistry = [
   },
   {
     id: 'obfuscation',
+    filterId: 'obfuscation',
     title: 'Obfuscation',
     helperCopy: 'Known obfuscation structures matched in the loaded script.',
     collect({store, status}) {
@@ -46,7 +53,8 @@ export const reportSectionRegistry = [
   },
   {
     id: 'api-surface',
-    title: 'API Surface',
+    filterId: 'api-surface',
+    title: 'Detectors',
     helperCopy: 'Browser and runtime API usage detected in the AST.',
     collect({store, status}) {
       if (status !== 'done' || store.apiSurfaceStatus !== 'done') {

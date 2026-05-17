@@ -3,11 +3,9 @@ import {computed} from 'vue';
 import store from '../store';
 import StructureExplorer from './StructureExplorer.vue';
 import ResultBrowser from './ResultBrowser.vue';
-import ApiSurfacePanel from './ApiSurfacePanel.vue';
 import ReportPanel from './ReportPanel.vue';
 import IconBrowse from './icons/IconBrowse.vue';
 import IconListChecks from './icons/IconListChecks.vue';
-import IconEye from './icons/IconEye.vue';
 import IconReport from './icons/IconReport.vue';
 import {buildReportModel} from '../domain/report/index.js';
 
@@ -17,11 +15,6 @@ const hasResults = computed(() =>
 );
 const shouldPulseStructures = computed(() =>
   store.shouldPulseCodeStructuresStage,
-);
-
-const hasApiResults = computed(() =>
-  store.apiSurfaceStatus === 'done' &&
-  (store.capabilities.length > 0 || Object.keys(store.apiDetectorHits).length > 0),
 );
 
 const hasReportResults = computed(() => {
@@ -49,26 +42,17 @@ const tabs = computed(() => [
     enabled: true,
     highlight: hasReportResults.value,
   },
-  {
-    id: 'api',
-    label: 'API Surface',
-    icon: IconEye,
-    enabled: true,
-    highlight: hasApiResults.value,
-  },
 ]);
 
 const activeSubview = computed(() => {
   if (store.activeWorkspaceTab === 'results' && hasResults.value) return 'results';
-  if (store.activeWorkspaceTab === 'report') return 'report';
-  if (store.activeWorkspaceTab === 'api') return 'api';
+  if (store.activeWorkspaceTab === 'report' || store.activeWorkspaceTab === 'api') return 'report';
   return 'structures';
 });
 
 const activePanel = computed(() => {
   if (activeSubview.value === 'results') return ResultBrowser;
   if (activeSubview.value === 'report') return ReportPanel;
-  if (activeSubview.value === 'api') return ApiSurfacePanel;
   return StructureExplorer;
 });
 
@@ -79,10 +63,6 @@ function openTab(tabId) {
   }
   if (tabId === 'report') {
     store.setActiveWorkspaceTab('report');
-    return;
-  }
-  if (tabId === 'api') {
-    store.setActiveWorkspaceTab('api');
     return;
   }
   store.shouldPulseCodeStructuresStage = false;

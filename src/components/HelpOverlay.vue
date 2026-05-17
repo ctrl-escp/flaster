@@ -148,8 +148,8 @@ onMounted(() => {
                 <dd>
                   <strong>API Surface</strong> finds browser and runtime API usage; <strong>Capabilities</strong>
                   infer higher-level patterns (fingerprinting, anti-debugging, tracking) from those hits —
-                  all from the AST without executing the code. Open the <strong>API Surface</strong> tab after
-                  parse; detector hits also appear as known structures in Code Structures.
+                  all from the AST without executing the code. Open the <strong>Report</strong> tab after
+                  parse and filter by API Surface; detector hits also appear as known structures in Code Structures.
                 </dd>
               </div>
             </dl>

@@ -7,3 +7,8 @@ export {
   resolveReportStatus,
 } from './reportCollectors.js';
 export {reportSectionRegistry} from './reportSectionRegistry.js';
+export {
+  REPORT_FILTER_OPTIONS,
+  countFindingsForFilter,
+  filterReportSections,
+} from './reportFilters.js';

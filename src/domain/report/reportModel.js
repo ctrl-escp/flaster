@@ -10,8 +10,13 @@ import {resolveReportStatus} from './reportCollectors.js';
  */
 
 /**
+ * @typedef {import('./reportFilters.js').ReportFilterId} ReportFilterId
+ */
+
+/**
  * @typedef {{
  *   id: string,
+ *   filterId: ReportFilterId,
  *   title: string,
  *   helperCopy: string,
  *   findings: ReportFinding[],
@@ -43,6 +48,7 @@ export function buildReportModel(store) {
     if (findings.length) {
       sections.push({
         id: definition.id,
+        filterId: definition.filterId,
         title: definition.title,
         helperCopy: definition.helperCopy,
         findings,

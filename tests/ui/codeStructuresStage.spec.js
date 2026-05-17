@@ -39,7 +39,7 @@ describe('CodeStructuresStage', () => {
     const searchInput = wrapper.get('input[type="search"]');
     await searchInput.setValue('persist-me');
 
-    await wrapper.get('button[title="API Surface"]').trigger('click');
+    await wrapper.get('button[title="Report"]').trigger('click');
     await flushPromises();
 
     await wrapper.get('button[title="Code Structures"]').trigger('click');
