@@ -121,6 +121,31 @@ export function isAssignmentTarget(node) {
   return node.parentKey === 'left' && node.parentNode?.type === 'AssignmentExpression';
 }
 
+/** Parent types whose `test` child is a boolean condition, not a value read. */
+const TEST_CLAUSE_PARENT_TYPES = new Set([
+  'ConditionalExpression',
+  'IfStatement',
+  'WhileStatement',
+  'DoWhileStatement',
+  'ForStatement',
+]);
+
+/**
+ * True when `node` is the entire condition of a test clause (ternary, if, loop).
+ * Patterns like `document.cookie ? parse() : []` only probe API availability.
+ *
+ * @param {import('flast/src/types.js').ASTNode} node
+ * @returns {boolean}
+ */
+export function isDirectTestClause(node) {
+  const parent = node.parentNode;
+  return (
+    node.parentKey === 'test' &&
+    parent != null &&
+    TEST_CLAUSE_PARENT_TYPES.has(parent.type)
+  );
+}
+
 // ── value resolution ──────────────────────────────────────────────────────────
 
 /**

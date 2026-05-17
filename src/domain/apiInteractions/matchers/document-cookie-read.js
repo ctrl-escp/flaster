@@ -1,4 +1,10 @@
-import {makeMatch, getMemberName, isDocumentNode, isAssignmentTarget} from './common.js';
+import {
+  makeMatch,
+  getMemberName,
+  isDocumentNode,
+  isAssignmentTarget,
+  isDirectTestClause,
+} from './common.js';
 
 /**
  * Detects reads of document.cookie in all access forms:
@@ -13,5 +19,6 @@ export function matcher(n) {
   if (!isDocumentNode(n.object)) return null;
   if (getMemberName(n) !== 'cookie') return null;
   if (isAssignmentTarget(n)) return null;
+  if (isDirectTestClause(n)) return null;
   return makeMatch(n);
 }

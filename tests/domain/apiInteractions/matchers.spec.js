@@ -128,6 +128,16 @@ describe('document-cookie-read', () => {
     expect(hits(r, 'document-cookie-read')).toBe(0);
     expect(hits(r, 'document-cookie-write')).toBe(1);
   });
+
+  it('does not match cookie used only as a ternary test (API probe)', () => {
+    const r = detect('var c = document[\'cookie\'] ? document[\'cookie\'].split(\'; \') : [];');
+    expect(hits(r, 'document-cookie-read')).toBe(1);
+  });
+
+  it('does not match cookie used only as an if-test (API probe)', () => {
+    const r = detect('if (document.cookie) { parse(document.cookie); }');
+    expect(hits(r, 'document-cookie-read')).toBe(1);
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
