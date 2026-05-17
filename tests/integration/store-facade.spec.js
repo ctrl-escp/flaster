@@ -57,6 +57,26 @@ describe('store facade integration', () => {
     expect(generatedScript).toContain('Generated via flASTer');
   });
 
+  it('openExploreNodesForStructure switches to matches mode for that structure', async () => {
+    const store = createAppStore(undefined, {skipPersistence: true});
+    store.setCurrentScriptSource({
+      baselineContent: computedMembersSample,
+      label: 'Explore nodes',
+    });
+    await store.loadNewScript(computedMembersSample);
+    store.setSelectedKnownStructureIds(['computed-members']);
+    await store.runKnownStructureMatching(['computed-members']);
+
+    store.activeResultMode = 'ast';
+    const opened = store.openExploreNodesForStructure('computed-members');
+
+    expect(opened).toBe(true);
+    expect(store.activeWorkspaceTab).toBe('results');
+    expect(store.activeResultMode).toBe('matches');
+    expect(store.activeKnownStructureId).toBe('computed-members');
+    expect(store.getKnownStructureMatches('computed-members').length).toBeGreaterThan(0);
+  });
+
   it('does not activate or inspect a structure after matching when none was active', async () => {
     const store = createAppStore(undefined, {skipPersistence: true});
     store.setCurrentScriptSource({

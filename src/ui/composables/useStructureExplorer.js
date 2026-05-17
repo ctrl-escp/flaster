@@ -176,6 +176,10 @@ export function useStructureExplorer() {
     );
   }
 
+  function openStructureExploreNodes(structureId) {
+    store.openExploreNodesForStructure(structureId);
+  }
+
   function openStructureTransform(structureId) {
     const defaultTemplate = store.canPreviewKnownStructureTransform(structureId)
       ? 'apply-known-transform'
@@ -444,6 +448,7 @@ export function useStructureExplorer() {
     stepStructureMatch,
     getCurrentStructureMatchPosition,
     canTransformStructure,
+    openStructureExploreNodes,
     openStructureTransform,
     toggleExpandedStructure,
     openExample,

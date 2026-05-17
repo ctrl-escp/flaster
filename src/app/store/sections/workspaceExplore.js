@@ -105,6 +105,24 @@ export function createWorkspaceExploreSection() {
         this.activeResultMode = this.getPreferredResultMode(this.activeResultMode);
       }
     },
+    /**
+     * Open Explore Nodes scoped to a structure's matches (from a structure card or match reveal).
+     * @param {string | null} structureId
+     * @returns {boolean}
+     */
+    openExploreNodesForStructure(structureId) {
+      if (!structureId || !this.getKnownStructureById(structureId)) {
+        return false;
+      }
+
+      this.setActiveKnownStructure(structureId);
+      if (this.getKnownStructureMatches(structureId).length > 0) {
+        this.setActiveResultMode('matches');
+      }
+      this.setActiveWorkspaceTab('results');
+      this.setActiveInspectorPanel('browser');
+      return true;
+    },
     setActiveInspectorPanel(panelName = 'browser') {
       this.activeInspectorPanel = panelName;
     },

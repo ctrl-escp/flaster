@@ -45,6 +45,7 @@ const {
   stepStructureMatch,
   getCurrentStructureMatchPosition,
   canTransformStructure,
+  openStructureExploreNodes,
   openStructureTransform,
   toggleExpandedStructure,
   openExample,
@@ -270,7 +271,7 @@ const {
                 :disabled="!canInspectStructure(structure)"
                 title="Open Explore Nodes for this structure"
                 aria-label="Show structure matches"
-                @click="store.setInspectedKnownStructure(structure.id); activateStructure(structure.id); store.setActiveWorkspaceTab('results'); store.setActiveInspectorPanel('browser')"
+                @click="openStructureExploreNodes(structure.id)"
               >
                 <icon-list-checks />
                 <span>Explore nodes</span>

@@ -284,6 +284,7 @@ export function createKnownStructuresSection(knownStructureState) {
       };
       this.setSelectedNode(nodeForMatchSelection(match), 'match');
       if (revealInInspector) {
+        this.setActiveResultMode('matches');
         this.setActiveWorkspaceTab('results');
       }
       this.refreshKnownStructureHighlights();
