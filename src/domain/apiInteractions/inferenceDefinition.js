@@ -31,48 +31,9 @@
  * @property {RequirementClause[]} requires  All clauses must pass for the inference to fire.
  */
 
-/**
- * Built, validated descriptor.
- *
- * @typedef {object} ApiInferenceDefinition
- * @property {string} id
- * @property {string} title
- * @property {string} categoryGroup
- * @property {string} category
- * @property {InferenceRisk} risk
- * @property {string} riskReason
- * @property {InferenceKind} inferenceKind
- * @property {string} description
- * @property {RequirementClause[]} requires
- * @property {string} searchText
- */
-
 const VALID_RISKS = new Set(['risky', 'benign']);
 const VALID_INFERENCE_KINDS = new Set(['co-occurrence', 'value-pattern', 'frequency']);
 const VALID_CLAUSE_MODES = new Set(['any', 'all']);
-
-/**
- * @param {ApiInferenceRow} row
- * @returns {ApiInferenceDefinition}
- */
-export function buildApiInferenceDefinition(row) {
-  return {
-    id: row.id,
-    title: row.title,
-    categoryGroup: 'behavioral-inference',
-    category: row.category,
-    risk: row.risk,
-    riskReason: row.riskReason,
-    inferenceKind: row.inferenceKind,
-    description: row.description,
-    requires: row.requires.map((clause) => ({
-      detectorIds: [...clause.detectorIds],
-      mode: clause.mode,
-      minCount: clause.minCount ?? 1,
-    })),
-    searchText: [row.title, row.category, row.description, row.riskReason].join(' ').toLowerCase(),
-  };
-}
 
 /**
  * @param {unknown[]} registry

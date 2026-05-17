@@ -300,6 +300,7 @@ export function normalizeStructureMatch(structureOrId, match, index = 0) {
 }
 
 export {collectKnownStructureMatchNodes, describeKnownStructureMatchShape};
+export {groupStructureMatches} from './matchingEngine.js';
 
 export {loadRestringerIntegration} from './integrationLoader.js';
 

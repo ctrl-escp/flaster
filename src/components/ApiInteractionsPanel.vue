@@ -1,7 +1,7 @@
 <script setup>
 import {computed} from 'vue';
 import store from '../store';
-import {apiDetectorRegistry} from '../domain/apiInteractions/detectorRegistry.js';
+import {apiDetectorRegistry} from '../domain/apiInteractions/index.js';
 
 const status = computed(() => store.apiInteractionsStatus);
 const inferences = computed(() => store.apiInferences);

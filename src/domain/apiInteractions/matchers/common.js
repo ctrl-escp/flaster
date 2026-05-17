@@ -196,7 +196,7 @@ export function resolveStrings(node, depth = 0) {
  * @param {import('flast/src/types.js').ASTNode | undefined} node
  * @returns {string | null}
  */
-export function resolveString(node) {
+function resolveString(node) {
   return resolveStrings(node)[0] ?? null;
 }
 

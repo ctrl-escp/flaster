@@ -1,6 +1,6 @@
 <script setup>
 import store from '../store';
-import {buildHydratedKnownStructureCatalog} from '../domain/apiInteractions/asKnownStructures.js';
+import {buildHydratedKnownStructureCatalog} from '../domain/apiInteractions/index.js';
 import {loadRestringerIntegration} from '../integrations/restringer/index.js';
 import {computed, onMounted, ref} from 'vue';
 import IconParse from './icons/IconParse.vue';

@@ -1,5 +1,5 @@
 import {loadRestringerIntegration} from '../../../integrations/restringer/index.js';
-import {buildHydratedKnownStructureCatalog} from '../../../domain/apiInteractions/asKnownStructures.js';
+import {buildHydratedKnownStructureCatalog} from '../../../domain/apiInteractions/index.js';
 import {cloneValue, normalizeScriptLabel} from '../storeUtils.js';
 
 /**

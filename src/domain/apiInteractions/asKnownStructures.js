@@ -10,12 +10,12 @@
  * Transforms are not supported for API interaction detectors.
  */
 
-import {
-  createAvailabilityNote,
-  createSearchText,
-} from '../../integrations/restringer/capabilities.js';
+import {buildApiDetectorDefinition} from './detectorDefinition.js';
 import {apiDetectorRegistry} from './detectorRegistry.js';
 import {apiDetectorMatchers} from './matchers/index.js';
+
+const API_STRUCTURE_SUPPORT_NOTE =
+  'Detected automatically when a script is parsed. Matcher-only; transforms are not available.';
 
 /** @type {Map<string, string>} apiKind → AST node type */
 const API_KIND_TO_NODE_TYPE = new Map([
@@ -34,21 +34,18 @@ const API_KIND_TO_NODE_TYPE = new Map([
 function buildStructureForDetector(row) {
   const nodeType = API_KIND_TO_NODE_TYPE.get(row.apiKind);
   const matcherFn = apiDetectorMatchers[row.id];
-  const catalogEntry = {
-    id: row.id,
-    title: row.title,
-    categoryGroup: 'api-interaction',
-    category: row.category,
-    description: row.description,
-    executionMode: 'no-eval',
-    noEval: true,
-  };
+  const meta = buildApiDetectorDefinition(row);
 
   return {
-    ...catalogEntry,
-    codeExample: '',
-    searchText: createSearchText(catalogEntry),
+    id: meta.id,
+    title: meta.title,
+    categoryGroup: meta.categoryGroup,
+    category: meta.category,
+    description: meta.description,
     executionMode: 'no-eval',
+    noEval: true,
+    codeExample: '',
+    searchText: meta.searchText,
     matcherAvailable: true,
     transformAvailable: false,
     transformEnabled: false,
@@ -59,7 +56,7 @@ function buildStructureForDetector(row) {
       sandboxTransform: false,
       nodeMatch: false,
       nodeTransform: false,
-      note: createAvailabilityNote(catalogEntry),
+      note: API_STRUCTURE_SUPPORT_NOTE,
     }),
 
     /**
@@ -89,13 +86,16 @@ function buildStructureForDetector(row) {
  *
  * @returns {object[]}
  */
-export function buildApiDetectorStructures() {
+function buildApiDetectorStructures() {
   return apiDetectorRegistry.map(buildStructureForDetector);
 }
 
 /**
- * @param {readonly object[]} restringerStructures
- * @returns {object[]}
+ * Merges REstringer known structures with API detector descriptors for catalog hydration.
+ * Call once when loading the integration catalog (parse, history restore) before matching.
+ *
+ * @param {readonly object[]} restringerStructures  Structures from REstringer integration.
+ * @returns {object[]}  Combined catalog passed to `hydrateKnownStructureCatalog`.
  */
 export function buildHydratedKnownStructureCatalog(restringerStructures) {
   return [...restringerStructures, ...buildApiDetectorStructures()];

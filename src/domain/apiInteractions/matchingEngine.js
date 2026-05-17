@@ -53,6 +53,8 @@ export function runApiDetectors(arb) {
   const typeMap = arb.ast[0]?.typeMap;
   if (!typeMap) return results;
 
+  // Outer loop: each AST bucket once. Inner loops: every node × every detector for that bucket.
+  // Matchers are cheap predicates; indexing by node type avoids scanning CallExpressions for window.innerWidth, etc.
   for (const [nodeType, detectorIds] of nodeTypeIndex) {
     const nodes = typeMap[nodeType];
     const nodeLen = nodes?.length;

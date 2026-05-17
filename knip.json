@@ -4,6 +4,7 @@
   "project": ["src/**/*.{js,vue}", "tests/**/*.js"],
   "ignore": ["tests/fixtures/structure-sources/**"],
   "ignoreIssues": {
-    "src/integrations/restringer/index.js": ["exports", "duplicates"]
+    "src/integrations/restringer/index.js": ["exports", "duplicates"],
+    "src/domain/apiInteractions/index.js": ["exports"]
   }
 }

@@ -1,3 +1,13 @@
+/**
+ * Canonical catalog of atomic API interaction detectors.
+ *
+ * Each row describes one API surface (object, name, access kind). Matcher implementations
+ * live under `matchers/`; this file is metadata only. Rows are validated and frozen at
+ * load time — duplicate ids or invalid `apiKind` values throw immediately.
+ *
+ * @see ./detectorDefinition.js for row and match types
+ */
+
 import {validateApiDetectorRegistry} from './detectorDefinition.js';
 
 /** @type {import('./detectorDefinition.js').ApiDetectorRow[]} */

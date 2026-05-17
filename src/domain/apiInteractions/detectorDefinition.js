@@ -13,8 +13,8 @@
  * @property {string} apiName          Property or method name (innerWidth, setItem, …).
  * @property {ApiKind} apiKind         How the API is accessed.
  * @property {string} description
- * @property {string[]} extractionRoles  Role names this detector may return (e.g. ['key'], ['context-type','attributes']).
- *                                       Empty when the detector is purely structural (no values extracted).
+ * @property {boolean} [extractsValue]  When true, matcher may populate extractions; requires extractedValueLabel.
+ * @property {string | null} [extractedValueLabel]  Primary extraction role key (e.g. 'key', 'url'); must match matcher extractions map.
  */
 
 /**
@@ -59,6 +59,8 @@ const VALID_API_KINDS = new Set(['property-read', 'property-write', 'method-call
 const REQUIRED_STRINGS = ['id', 'title', 'category', 'apiObject', 'apiName', 'apiKind', 'description'];
 
 /**
+ * Projects a registry row into the UI/catalog shape (adds categoryGroup, searchText).
+ *
  * @param {ApiDetectorRow} row
  * @returns {ApiDetectorDefinition}
  */

@@ -1,6 +1,16 @@
+/**
+ * API interactions domain — static detection of browser/JS API usage and behavioral inferences.
+ *
+ * Typical usage:
+ *   1. `buildHydratedKnownStructureCatalog(restringerStructures)` when hydrating the structure catalog.
+ *   2. After parse, `runApiDetectors(arb)` then `runInferences(detectorResults)`.
+ *   3. App store syncs hits into known-structure matches for Structure Explorer.
+ */
+
 export {apiDetectorRegistry, apiDetectorIds} from './detectorRegistry.js';
 export {apiInferenceRegistry} from './inferenceRegistry.js';
 export {buildApiDetectorDefinition, validateApiDetectorRegistry} from './detectorDefinition.js';
-export {buildApiInferenceDefinition, validateApiInferenceRegistry} from './inferenceDefinition.js';
+export {validateApiInferenceRegistry} from './inferenceDefinition.js';
 export {runApiDetectors} from './matchingEngine.js';
 export {runInferences} from './inferenceEngine.js';
+export {buildHydratedKnownStructureCatalog} from './asKnownStructures.js';

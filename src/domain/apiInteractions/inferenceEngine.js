@@ -67,6 +67,7 @@ export function runInferences(detectorResults) {
     const firedSet = new Set();
     let allClausesPassed = true;
 
+    // Every clause must pass; firedDetectorIds accumulates contributing detectors across clauses.
     for (let i = 0; i < reqLen; i++) {
       const {passes, firedIds} = evaluateClause(requires[i], detectorResults);
       if (!passes) {

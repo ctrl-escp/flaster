@@ -1,3 +1,13 @@
+/**
+ * Catalog of behavioral inferences derived from detector co-occurrence.
+ *
+ * Rows reference detector ids in `requires` clauses; the inference engine evaluates them
+ * after `runApiDetectors` completes. Cross-references are validated against `apiDetectorIds`
+ * at module load.
+ *
+ * @see ./inferenceDefinition.js for clause semantics
+ */
+
 import {validateApiInferenceRegistry} from './inferenceDefinition.js';
 import {apiDetectorIds} from './detectorRegistry.js';
 
@@ -151,8 +161,8 @@ const _registry = [
       'Script both reads and writes document.cookie. Indicates persistent state is being ' +
       'stored and retrieved via cookies, a common mechanism for user tracking or session management.',
     requires: [
-      { detectorIds: ['document-cookie-read'], mode: 'all' },
-      { detectorIds: ['document-cookie-write'], mode: 'all' },
+      {detectorIds: ['document-cookie-read'], mode: 'all'},
+      {detectorIds: ['document-cookie-write'], mode: 'all'},
     ],
   },
   {

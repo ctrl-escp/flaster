@@ -1,7 +1,18 @@
-import {runApiDetectors} from '../../../domain/apiInteractions/matchingEngine.js';
-import {runInferences} from '../../../domain/apiInteractions/inferenceEngine.js';
-import {apiDetectorRegistry} from '../../../domain/apiInteractions/detectorRegistry.js';
-import {syncApiDetectorHitsToKnownStructureMatches} from '../../../domain/apiInteractions/syncKnownStructureMatches.js';
+/**
+ * Pinia-style store section for API interaction analysis.
+ *
+ * Orchestration (after parse / arborist apply):
+ *   runApiDetectors → runInferences → apiDetectorHits / apiInferences → sync → highlights
+ *
+ * @see ../apiInteractionSync.js
+ */
+
+import {
+  apiDetectorRegistry,
+  runApiDetectors,
+  runInferences,
+} from '../../../domain/apiInteractions/index.js';
+import {syncApiDetectorHitsToKnownStructureMatches} from '../apiInteractionSync.js';
 
 /**
  * @typedef {import('../../../domain/apiInteractions/inferenceEngine.js').InferenceResult} InferenceResult
@@ -35,6 +46,10 @@ export function createApiInteractionsSection() {
       syncApiDetectorHitsToKnownStructureMatches(this);
     },
 
+    /**
+     * Runs the detector + inference pipeline on the current `arb` and syncs results
+     * into known-structure state. Called from Parse, script history, and arborist apply.
+     */
     async runApiInteractionsMatcher() {
       const arb = this.arb;
       if (!arb?.ast?.length) {
@@ -49,6 +64,7 @@ export function createApiInteractionsSection() {
       const detectorResults = runApiDetectors(arb);
       const inferences = runInferences(detectorResults);
 
+      // Map → plain object so Vue can track per-detector hit lists reactively.
       const hits = {};
       for (const row of apiDetectorRegistry) {
         const matches = detectorResults.get(row.id);
