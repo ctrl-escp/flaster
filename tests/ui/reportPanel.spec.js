@@ -98,6 +98,15 @@ describe('ReportPanel', () => {
 
     expect(wrapper.text()).toContain('DevTools Size Probe');
     expect(wrapper.text()).toContain('window.innerWidth');
+    expect(wrapper.find('.finding-row.capability .finding-match-nav').exists()).toBe(true);
+
+    await wrapper.get('.finding-row.capability button[aria-label="Next match"]').trigger('click');
+    await flushPromises();
+
+    expect(store.selectedKnownStructureMatch).toEqual({
+      structureId: 'window-inner-width',
+      index: 0,
+    });
 
     const filterButtons = wrapper.get('[aria-label="Report filters"]').findAll('button');
     await filterButtons[0].trigger('click');

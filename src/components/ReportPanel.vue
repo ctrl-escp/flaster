@@ -124,6 +124,13 @@ function browseFinding(finding) {
   }
   matchNav.focusDetector(finding.structureId);
 }
+
+function browseCapability(finding) {
+  if (finding.kind !== 'capability') {
+    return;
+  }
+  matchNav.focusCapability(finding.firedDetectorIds);
+}
 </script>
 
 <template>
@@ -214,6 +221,15 @@ function browseFinding(finding) {
                 >
                   {{ detectorById[detectorId]?.title ?? detectorId }}
                 </button>
+              </div>
+              <div v-if="finding.matchCount > 0" class="finding-footer">
+                <finding-match-nav
+                  :active="matchNav.isCapabilityMatchActive(finding.firedDetectorIds)"
+                  :position="matchNav.capabilityMatchPosition(finding.firedDetectorIds)"
+                  :total="finding.matchCount"
+                  @prev="matchNav.stepCapabilityMatch(finding.firedDetectorIds, -1)"
+                  @next="browseCapability(finding)"
+                />
               </div>
             </template>
 

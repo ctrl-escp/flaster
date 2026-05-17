@@ -12,3 +12,7 @@ export {
   countFindingsForFilter,
   filterReportSections,
 } from './reportFilters.js';
+export {
+  collectCapabilityEvidenceMatches,
+  countCapabilityEvidenceMatches,
+} from './capabilityMatches.js';

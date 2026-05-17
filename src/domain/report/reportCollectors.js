@@ -1,6 +1,7 @@
 /** @import {ApiDetectorRow} from '../apiSurface/detectorRegistry.js' */
 
 import {apiDetectorRegistry} from '../apiSurface/detectorRegistry.js';
+import {countCapabilityEvidenceMatches} from './capabilityMatches.js';
 
 /**
  * @typedef {{
@@ -22,6 +23,7 @@ import {apiDetectorRegistry} from '../apiSurface/detectorRegistry.js';
  *   risk: string,
  *   riskReason: string,
  *   firedDetectorIds: string[],
+ *   matchCount: number,
  * }} CapabilityReportFinding
  */
 
@@ -162,13 +164,18 @@ export function collectApiSurfaceFindings(store) {
 export function collectCapabilityFindings(store) {
   const capabilities = store.capabilities ?? [];
 
-  return capabilities.map((cap) => ({
-    id: cap.id,
-    kind: 'capability',
-    title: cap.title,
-    description: cap.description,
-    risk: cap.risk,
-    riskReason: cap.riskReason,
-    firedDetectorIds: cap.firedDetectorIds ?? [],
-  }));
+  return capabilities.map((cap) => {
+    const firedDetectorIds = cap.firedDetectorIds ?? [];
+
+    return {
+      id: cap.id,
+      kind: 'capability',
+      title: cap.title,
+      description: cap.description,
+      risk: cap.risk,
+      riskReason: cap.riskReason,
+      firedDetectorIds,
+      matchCount: countCapabilityEvidenceMatches(store, firedDetectorIds),
+    };
+  });
 }
