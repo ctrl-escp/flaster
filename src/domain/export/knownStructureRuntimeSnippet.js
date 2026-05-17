@@ -1,3 +1,4 @@
+/** @import {Arborist} from '../../flastTypes.js' */
 /**
  * Emits the reusable helper used by generated built-in transform steps.
  *

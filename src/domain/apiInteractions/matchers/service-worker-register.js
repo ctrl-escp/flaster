@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, slot, getMemberName, resolveStrings} from './common.js';
 
 /**
@@ -8,7 +9,7 @@ import {makeMatch, slot, getMemberName, resolveStrings} from './common.js';
  *   navigator.serviceWorker.register('/sw.js')
  *   navigator['serviceWorker']['register']('/sw.js')
  *
- * @param {import('flast/src/types.js').ASTNode} n CallExpression
+ * @param {ASTNode} n CallExpression
  */
 export function matcher(n) {
   if (n.callee?.type !== 'MemberExpression') return null;

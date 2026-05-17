@@ -1,3 +1,4 @@
+/** @import {Arborist} from '../../flastTypes.js' */
 /**
  * Adapts API interaction detectors into the known-structure catalog format so they
  * appear in the Code Structures explorer and support node-by-node browsing.
@@ -61,7 +62,7 @@ function buildStructureForDetector(row) {
     }),
 
     /**
-     * @param {import('flast/src/arborist.js').Arborist} arb
+     * @param {Arborist} arb
      * @returns {import('./detectorDefinition.js').DetectorMatch[]}
      */
     matcher(arb) {

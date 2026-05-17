@@ -1,3 +1,4 @@
+/** @import {Arborist} from '../../flastTypes.js' */
 /**
  * User-authored custom transforms run here via `new Function` (interim browser runtime).
  * Prefer a Web Worker with timeouts when this surface needs hard isolation.
@@ -70,7 +71,7 @@ function compileTransformBody(body, mode) {
 /**
  * Runs a custom JS transform loop (advanced-js-step semantics).
  *
- * @param {import('flast/src/arborist.js').Arborist} arborist
+ * @param {Arborist} arborist
  * @param {{
  *   body: string,
  *   structureId: string | null,

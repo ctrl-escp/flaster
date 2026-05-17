@@ -1,6 +1,7 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, slot, isMethodCall, resolveStrings} from './common.js';
 
-/** @param {import('flast/src/types.js').ASTNode} n CallExpression */
+/** @param {ASTNode} n CallExpression */
 export function matcher(n) {
   if (!isMethodCall(n, 'sessionStorage', 'setItem')) return null;
   const keyNode = n.arguments[0];

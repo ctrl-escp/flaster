@@ -1,6 +1,7 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, getMemberName, isDocumentNode} from './common.js';
 
-/** @param {import('flast/src/types.js').ASTNode} n MemberExpression */
+/** @param {ASTNode} n MemberExpression */
 export function matcher(n) {
   if (!isDocumentNode(n.object)) return null;
   if (getMemberName(n) !== 'domain') return null;

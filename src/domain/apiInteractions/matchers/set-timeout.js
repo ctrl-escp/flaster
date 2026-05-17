@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, slot, getMemberName, resolveNumber} from './common.js';
 
 /**
@@ -6,7 +7,7 @@ import {makeMatch, slot, getMemberName, resolveNumber} from './common.js';
  *   window.setTimeout(fn, 100)
  *   window['setTimeout'](fn, 100)
  *
- * @param {import('flast/src/types.js').ASTNode} n CallExpression
+ * @param {ASTNode} n CallExpression
  */
 export function matcher(n) {
   const isBare = n.callee?.type === 'Identifier' && n.callee.name === 'setTimeout';

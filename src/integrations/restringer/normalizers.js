@@ -1,6 +1,4 @@
-/**
- * @typedef {import('flast/src/types.js').ASTNode} ASTNode
- */
+/** @import {ASTNode} from '../../flastTypes.js' */
 
 /**
  * Checks whether a value looks like a flAST AST node with a range.

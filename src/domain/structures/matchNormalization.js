@@ -1,8 +1,9 @@
+/** @import {ASTNode, Arborist} from '../../flastTypes.js' */
 /**
  * Encodes a flAST node location as a stable path segment list.
  * Uses flat-AST `nodeId` when present (preferred for decode via arborist.ast).
  *
- * @param {import('flast/src/types.js').ASTNode | null | undefined} node
+ * @param {ASTNode | null | undefined} node
  * @returns {Array<string | number> | null}
  */
 export function encodeNodePath(node) {
@@ -20,9 +21,9 @@ export function encodeNodePath(node) {
 /**
  * Resolves an encoded path back to a node on the current flat AST, when possible.
  *
- * @param {import('flast/src/arborist.js').Arborist} arborist
+ * @param {Arborist} arborist
  * @param {readonly (string | number)[] | null | undefined} nodePath
- * @returns {import('flast/src/types.js').ASTNode | null}
+ * @returns {ASTNode | null}
  */
 export function decodeNodePath(arborist, nodePath) {
   if (!arborist?.ast?.length || !Array.isArray(nodePath) || nodePath.length < 2) {

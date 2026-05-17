@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, getMemberName} from './common.js';
 
 /**
@@ -6,7 +7,7 @@ import {makeMatch, getMemberName} from './common.js';
  *   window.eval('...')
  *   window['eval']('...')
  *
- * @param {import('flast/src/types.js').ASTNode} n CallExpression
+ * @param {ASTNode} n CallExpression
  */
 export function matcher(n) {
   if (n.callee?.type === 'Identifier' && n.callee.name === 'eval') return makeMatch(n);

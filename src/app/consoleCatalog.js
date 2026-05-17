@@ -1,3 +1,4 @@
+/** @import {ASTNode, Arborist} from '../flastTypes.js' */
 import {
   runKnownStructureMatcher,
   runKnownStructureTransform,
@@ -47,9 +48,9 @@ export function createConsoleCatalog(store, restringerSafe) {
     },
 
     /**
-     * @param {import('flast/src/arborist.js').Arborist} arb
+     * @param {Arborist} arb
      * @param {string} structureId
-     * @param {{candidateFilter?: (node: import('flast/src/types.js').ASTNode) => boolean}} [options]
+     * @param {{candidateFilter?: (node: ASTNode) => boolean}} [options]
      */
     runMatcher(arb, structureId, options = {}) {
       const structure = store.getKnownStructureById(structureId);
@@ -61,7 +62,7 @@ export function createConsoleCatalog(store, restringerSafe) {
     },
 
     /**
-     * @param {import('flast/src/arborist.js').Arborist} arb
+     * @param {Arborist} arb
      * @param {string} structureId
      * @param {unknown} match
      */
@@ -75,9 +76,9 @@ export function createConsoleCatalog(store, restringerSafe) {
     },
 
     /**
-     * @param {import('flast/src/arborist.js').Arborist} arb
+     * @param {Arborist} arb
      * @param {string} structureId
-     * @param {{candidateFilter?: (node: import('flast/src/types.js').ASTNode) => boolean}} [options]
+     * @param {{candidateFilter?: (node: ASTNode) => boolean}} [options]
      */
     runTransformSession(arb, structureId, options = {}) {
       const structure = store.getKnownStructureById(structureId);

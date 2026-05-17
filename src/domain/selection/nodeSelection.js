@@ -1,9 +1,10 @@
+/** @import {ASTNode, Arborist} from '../../flastTypes.js' */
 /**
  * @typedef {{ structureId: string, index: number } | null} KnownStructureMatchSelection
  */
 
 /**
- * @param {import('flast/src/types.js').ASTNode | null | undefined} node
+ * @param {ASTNode | null | undefined} node
  * @returns {number | null}
  */
 export function getNodeId(node) {
@@ -14,10 +15,10 @@ export function getNodeId(node) {
  * Resolves the selected node on the current Arborist flat AST, or null when the
  * selection is missing, not on the AST, or tied to a different parse run.
  *
- * @param {import('flast/src/arborist.js').Arborist | { ast?: import('flast/src/types.js').ASTNode[] } | null | undefined} arborist
+ * @param {Arborist | { ast?: ASTNode[] } | null | undefined} arborist
  * @param {number | null} selectedNodeId
  * @param {{ selectionParseRunId: number | null, currentParseRunId: number }} session
- * @returns {import('flast/src/types.js').ASTNode | null}
+ * @returns {ASTNode | null}
  */
 export function resolveSelectedNode(arborist, selectedNodeId, session) {
   const {selectionParseRunId, currentParseRunId} = session;
@@ -142,7 +143,7 @@ export function structureMatchDisplayIndex(matches, structureId, globalSelectedM
  * When selecting a known-structure match, the node to bind for inspection / editor
  * highlight — null when the match has no relevant node.
  *
- * @param {{ relevantNode?: import('flast/src/types.js').ASTNode | null } | null | undefined} match
+ * @param {{ relevantNode?: ASTNode | null } | null | undefined} match
  */
 export function nodeForMatchSelection(match) {
   return match?.relevantNode ?? null;

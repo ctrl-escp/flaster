@@ -1,3 +1,4 @@
+/** @import {Arborist} from '../../flastTypes.js' */
 import {stripLeadingComments} from './exportModel.js';
 import {
   getCustomStepMaxIterations,

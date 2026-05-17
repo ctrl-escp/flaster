@@ -1,3 +1,4 @@
+/** @import {Arborist} from '../../flastTypes.js' */
 import {Arborist} from 'flast/src/arborist.js';
 
 /**
@@ -11,7 +12,7 @@ import {Arborist} from 'flast/src/arborist.js';
  * @typedef {object} ParseResult
  * @property {boolean} ok
  * @property {string} source
- * @property {import('flast/src/arborist.js').Arborist | null} arborist
+ * @property {Arborist | null} arborist
  * @property {Error | null} error
  * @property {number} parseRunId
  * @property {ParseDiagnostic[]} diagnostics
@@ -69,7 +70,7 @@ export function nextParseRunId(current) {
 
 /**
  * @param {string} script
- * @returns {import('flast/src/arborist.js').Arborist}
+ * @returns {Arborist}
  */
 export function createArborist(script) {
   return new Arborist(script);

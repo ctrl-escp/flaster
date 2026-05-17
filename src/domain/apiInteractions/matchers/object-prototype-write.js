@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, slot, getMemberName, isAssignmentTarget} from './common.js';
 
 /**
@@ -11,7 +12,7 @@ import {makeMatch, slot, getMemberName, isAssignmentTarget} from './common.js';
  *         property: Identifier('prototype') / ['prototype']
  *       property: Identifier / ['someProperty']
  *
- * @param {import('flast/src/types.js').ASTNode} n MemberExpression
+ * @param {ASTNode} n MemberExpression
  */
 export function matcher(n) {
   const protoExpr = n.object;

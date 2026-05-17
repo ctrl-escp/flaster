@@ -1,9 +1,7 @@
 import {loadRestringerIntegration} from './integrationLoader.js';
 import {liteKnownStructures} from './knownStructuresLite.js';
 
-/**
- * @typedef {import('flast/src/arborist.js').Arborist} Arborist
- */
+/** @import {Arborist} from '../../flastTypes.js' */
 
 /**
  * @typedef {typeof liteKnownStructures[number]} KnownStructureDescriptor

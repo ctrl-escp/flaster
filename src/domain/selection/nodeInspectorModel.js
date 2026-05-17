@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../flastTypes.js' */
 const ATTRIBUTES_TO_IGNORE = ['parentNode', 'children', 'loc', 'range', 'src'];
 
 const relationLabelMap = {
@@ -9,7 +10,7 @@ const relationLabelMap = {
 };
 
 /**
- * @param {import('flast/src/types.js').ASTNode | null | undefined} node
+ * @param {ASTNode | null | undefined} node
  * @param {'parent' | 'child' | 'elderSibling' | 'self' | 'youngerSibling'} relationKind
  */
 function createRelatedNodeEntry(node, relationKind) {
@@ -25,7 +26,7 @@ function createRelatedNodeEntry(node, relationKind) {
 }
 
 /**
- * @param {import('flast/src/types.js').ASTNode | null | undefined} node
+ * @param {ASTNode | null | undefined} node
  */
 export function createNodeAttributeEntries(node) {
   if (!node || typeof node !== 'object') {
@@ -43,7 +44,7 @@ export function createNodeAttributeEntries(node) {
 }
 
 /**
- * @param {import('flast/src/types.js').ASTNode | null | undefined} node
+ * @param {ASTNode | null | undefined} node
  */
 export function listNodeParentChain(node) {
   const chain = [];
@@ -58,7 +59,7 @@ export function listNodeParentChain(node) {
 }
 
 /**
- * @param {import('flast/src/types.js').ASTNode | null | undefined} node
+ * @param {ASTNode | null | undefined} node
  */
 export function listNodeScopeChain(node) {
   const chain = [];
@@ -76,8 +77,8 @@ export function listNodeScopeChain(node) {
 }
 
 /**
- * @param {readonly import('flast/src/types.js').ASTNode[] | null | undefined} flatAst
- * @param {import('flast/src/types.js').ASTNode | null | undefined} parentNode
+ * @param {readonly ASTNode[] | null | undefined} flatAst
+ * @param {ASTNode | null | undefined} parentNode
  */
 export function listChildNodesFromFlatAst(flatAst, parentNode) {
   if (!parentNode) {
@@ -88,8 +89,8 @@ export function listChildNodesFromFlatAst(flatAst, parentNode) {
 }
 
 /**
- * @param {readonly import('flast/src/types.js').ASTNode[] | null | undefined} flatAst
- * @param {import('flast/src/types.js').ASTNode | null | undefined} node
+ * @param {readonly ASTNode[] | null | undefined} flatAst
+ * @param {ASTNode | null | undefined} node
  */
 export function buildRelatedNodeEntries(flatAst, node) {
   if (!node) {

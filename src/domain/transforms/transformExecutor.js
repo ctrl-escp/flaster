@@ -1,3 +1,4 @@
+/** @import {Arborist} from '../../flastTypes.js' */
 /**
  * Built-in (known-structure) transform execution against a live Arborist.
  *
@@ -13,7 +14,7 @@
 /**
  * Runs a safe known-structure transform session and applies pending edits when present.
  *
- * @param {import('flast/src/arborist.js').Arborist} arborist
+ * @param {Arborist} arborist
  * @param {string} structureId
  * @returns {Promise<TransformResult>}
  */

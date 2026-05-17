@@ -1,3 +1,4 @@
+/** @import {ASTNode, Arborist} from '../../../flastTypes.js' */
 import {loadRestringerIntegration} from '../../../integrations/restringer/index.js';
 import {buildHydratedKnownStructureCatalog} from '../../../domain/apiInteractions/index.js';
 import {cloneValue, normalizeScriptLabel} from '../storeUtils.js';
@@ -111,11 +112,11 @@ export function createScriptHistorySection() {
       await this.runApiInteractionsMatcher();
     },
     /**
-     * Syncs a flAST {@link import('flast/src/arborist.js').Arborist} (e.g. edited in the devtools console)
+     * Syncs a flAST {@link Arborist} (e.g. edited in the devtools console)
      * into the input editor, workspace `arb`, filters, known-structure results, and parse/selection metadata.
      * Invoked from `flast.applyArboristToUI` when debug globals are installed.
      *
-     * @param {import('flast/src/arborist.js').Arborist | {ast?: import('flast/src/types.js').ASTNode[], script?: string}} arborist
+     * @param {Arborist | {ast?: ASTNode[], script?: string}} arborist
      * @returns {Promise<boolean>}
      */
     async applyArboristToWorkspace(arborist) {

@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, slot, getMemberName, resolveStrings} from './common.js';
 
 /**
@@ -13,7 +14,7 @@ import {makeMatch, slot, getMemberName, resolveStrings} from './common.js';
  *   canvas.getContext('2d')
  *   canvas['getContext']('2d')
  *
- * @param {import('flast/src/types.js').ASTNode} n CallExpression
+ * @param {ASTNode} n CallExpression
  */
 export function matcher(n) {
   if (n.callee?.type !== 'MemberExpression') return null;

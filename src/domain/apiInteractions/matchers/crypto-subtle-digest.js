@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, slot, getMemberName, resolveAlgorithm} from './common.js';
 
 /**
@@ -9,7 +10,7 @@ import {makeMatch, slot, getMemberName, resolveAlgorithm} from './common.js';
  *   crypto.subtle.digest('SHA-256', data)
  *   crypto['subtle']['digest']({ name: 'SHA-256' }, data)
  *
- * @param {import('flast/src/types.js').ASTNode} n CallExpression
+ * @param {ASTNode} n CallExpression
  */
 export function matcher(n) {
   if (n.callee?.type !== 'MemberExpression') return null;

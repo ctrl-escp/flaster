@@ -1,3 +1,4 @@
+/** @import {ASTNode, Arborist} from '../../../flastTypes.js' */
 /**
  * Shared utilities for API interaction matcher functions.
  *
@@ -12,7 +13,7 @@
 // ── match construction ────────────────────────────────────────────────────────
 
 /**
- * @param {import('flast/src/types.js').ASTNode} node
+ * @param {ASTNode} node
  * @param {Record<string, import('../detectorDefinition.js').DetectorExtractionSlot>} [extractions]
  * @returns {import('../detectorDefinition.js').DetectorMatch}
  */
@@ -24,7 +25,7 @@ export function makeMatch(node, extractions = {}) {
  * Creates one extraction slot — the value side of an entry in the extractions map.
  *
  * @param {string[]} values  Resolved strings. Pass [] when not statically known.
- * @param {import('flast/src/types.js').ASTNode[]} nodes  Contributing AST nodes.
+ * @param {ASTNode[]} nodes  Contributing AST nodes.
  * @returns {import('../detectorDefinition.js').DetectorExtractionSlot}
  */
 export function slot(values, nodes) {
@@ -39,7 +40,7 @@ export function slot(values, nodes) {
  *   obj['prop']    → 'prop'   (computed with a string literal)
  *   obj[variable]  → null     (computed with a non-literal — not resolved here)
  *
- * @param {import('flast/src/types.js').ASTNode} node  MemberExpression
+ * @param {ASTNode} node  MemberExpression
  * @returns {string | null}
  */
 export function getMemberName(node) {
@@ -57,7 +58,7 @@ export function getMemberName(node) {
  * Returns true when a MemberExpression represents `objectName.propertyName`
  * in either dot or bracket-string notation.
  *
- * @param {import('flast/src/types.js').ASTNode} node  MemberExpression
+ * @param {ASTNode} node  MemberExpression
  * @param {string} objectName
  * @param {string} propertyName
  * @returns {boolean}
@@ -70,7 +71,7 @@ export function isMemberExpression(node, objectName, propertyName) {
  * Returns true when a CallExpression calls `objectName.methodName(...)` in either
  * dot or bracket-string notation.
  *
- * @param {import('flast/src/types.js').ASTNode} node  CallExpression
+ * @param {ASTNode} node  CallExpression
  * @param {string} objectName
  * @param {string} methodName
  * @returns {boolean}
@@ -98,7 +99,7 @@ export function isMethodCall(node, objectName, methodName) {
  * This is intentionally broad — a false positive on an unusual object with a
  * property named `document` is acceptable given the rarity of that pattern.
  *
- * @param {import('flast/src/types.js').ASTNode | undefined} node
+ * @param {ASTNode | undefined} node
  * @returns {boolean}
  */
 export function isDocumentNode(node) {
@@ -114,7 +115,7 @@ export function isDocumentNode(node) {
 /**
  * Returns true when the node is on the left side of an AssignmentExpression.
  *
- * @param {import('flast/src/types.js').ASTNode} node
+ * @param {ASTNode} node
  * @returns {boolean}
  */
 export function isAssignmentTarget(node) {
@@ -134,7 +135,7 @@ const TEST_CLAUSE_PARENT_TYPES = new Set([
  * True when `node` is the entire condition of a test clause (ternary, if, loop).
  * Patterns like `document.cookie ? parse() : []` only probe API availability.
  *
- * @param {import('flast/src/types.js').ASTNode} node
+ * @param {ASTNode} node
  * @returns {boolean}
  */
 export function isDirectTestClause(node) {
@@ -153,8 +154,8 @@ export function isDirectTestClause(node) {
  * the flAST declaration link. Both VariableDeclarator and direct Identifier
  * declaration nodes are handled defensively.
  *
- * @param {import('flast/src/types.js').ASTNode} identNode  Identifier
- * @returns {import('flast/src/types.js').ASTNode[]}
+ * @param {ASTNode} identNode  Identifier
+ * @returns {ASTNode[]}
  */
 function getDeclRefs(identNode) {
   const declNode = identNode.declNode;
@@ -180,7 +181,7 @@ function getDeclRefs(identNode) {
  * resolve the value of a referenced variable's own declaration. This is enough for
  * code that is not obfuscated.
  *
- * @param {import('flast/src/types.js').ASTNode | undefined} node
+ * @param {ASTNode | undefined} node
  * @param {number} [depth]
  * @returns {string[]}
  */
@@ -218,7 +219,7 @@ export function resolveStrings(node, depth = 0) {
  * Returns the first string resolved by `resolveStrings`, or null.
  * Use when only one value is expected (e.g. a condition check, not an extraction slot).
  *
- * @param {import('flast/src/types.js').ASTNode | undefined} node
+ * @param {ASTNode | undefined} node
  * @returns {string | null}
  */
 function resolveString(node) {
@@ -229,7 +230,7 @@ function resolveString(node) {
  * Returns the first static numeric value of a node as a string, or null.
  * Follows one level of variable reference through declaration and assignments.
  *
- * @param {import('flast/src/types.js').ASTNode | undefined} node
+ * @param {ASTNode | undefined} node
  * @returns {string | null}
  */
 export function resolveNumber(node) {
@@ -260,7 +261,7 @@ export function resolveNumber(node) {
  * or an object with a `name` property ({ name: 'SHA-256' }) — returning the
  * algorithm name or null. Follows one level of variable reference.
  *
- * @param {import('flast/src/types.js').ASTNode | undefined} node
+ * @param {ASTNode | undefined} node
  * @returns {string | null}
  */
 export function resolveAlgorithm(node) {

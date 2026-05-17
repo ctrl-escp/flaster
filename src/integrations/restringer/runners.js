@@ -1,12 +1,6 @@
 import {normalizeStructureMatch} from './normalizers.js';
 
-/**
- * @typedef {import('flast/src/arborist.js').Arborist} Arborist
- */
-
-/**
- * @typedef {import('flast/src/types.js').ASTNode} ASTNode
- */
+/** @import {Arborist, ASTNode} from '../../flastTypes.js' */
 
 /**
  * @param {object} structure

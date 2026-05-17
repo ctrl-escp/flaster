@@ -1,3 +1,4 @@
+/** @import {Arborist} from '../../flastTypes.js' */
 import {sortStrings} from './exportModel.js';
 import {
   getCustomStepRunMode,

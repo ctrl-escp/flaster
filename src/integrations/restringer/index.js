@@ -62,13 +62,7 @@ import {
   getTransformSessionRunner,
 } from './runners.js';
 
-/**
- * @typedef {import('flast/src/arborist.js').Arborist} Arborist
- */
-
-/**
- * @typedef {import('flast/src/types.js').ASTNode} ASTNode
- */
+/** @import {Arborist, ASTNode} from '../../flastTypes.js' */
 
 /**
  * @typedef {'no-eval' | 'iframe-sandbox' | 'node-only'} KnownStructureExecutionMode

@@ -1,3 +1,4 @@
+/** @import {Arborist} from '../../flastTypes.js' */
 /**
  * Single-pass API detector engine.
  *
@@ -43,7 +44,7 @@ const nodeTypeIndex = (() => {
 /**
  * Runs all API detectors against a parsed script.
  *
- * @param {import('flast/src/arborist.js').Arborist} arb
+ * @param {Arborist} arb
  * @returns {DetectorResults}
  */
 export function runApiDetectors(arb) {

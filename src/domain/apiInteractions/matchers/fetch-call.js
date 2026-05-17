@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, slot, getMemberName, resolveStrings} from './common.js';
 
 /**
@@ -6,7 +7,7 @@ import {makeMatch, slot, getMemberName, resolveStrings} from './common.js';
  *   window.fetch('/api/data')
  *   window['fetch']('/api/data')
  *
- * @param {import('flast/src/types.js').ASTNode} n CallExpression
+ * @param {ASTNode} n CallExpression
  */
 export function matcher(n) {
   const isBare = n.callee?.type === 'Identifier' && n.callee.name === 'fetch';

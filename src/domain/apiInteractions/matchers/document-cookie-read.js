@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {
   makeMatch,
   getMemberName,
@@ -13,7 +14,7 @@ import {
  *   iframeEl.contentDocument.cookie
  *   iframeEl.contentWindow.document.cookie
  *
- * @param {import('flast/src/types.js').ASTNode} n MemberExpression
+ * @param {ASTNode} n MemberExpression
  */
 export function matcher(n) {
   if (!isDocumentNode(n.object)) return null;

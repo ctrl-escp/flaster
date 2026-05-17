@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../../flastTypes.js' */
 import {makeMatch, slot, getMemberName, isDocumentNode, isAssignmentTarget, resolveStrings} from './common.js';
 
 /**
@@ -6,7 +7,7 @@ import {makeMatch, slot, getMemberName, isDocumentNode, isAssignmentTarget, reso
  *   window.document['cookie'] = cookieStr;
  *   iframeEl.contentDocument.cookie = cookieStr;
  *
- * @param {import('flast/src/types.js').ASTNode} n MemberExpression
+ * @param {ASTNode} n MemberExpression
  */
 export function matcher(n) {
   if (!isDocumentNode(n.object)) return null;

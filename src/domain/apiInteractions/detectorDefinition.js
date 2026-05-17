@@ -1,3 +1,4 @@
+/** @import {ASTNode} from '../../flastTypes.js' */
 /**
  * A single atomic API-interaction detector — describes one specific browser/JS API
  * surface and how it's accessed. Matchers are not stored here; this is catalog-only.
@@ -23,7 +24,7 @@
  *
  * @typedef {object} DetectorExtractionSlot
  * @property {string[]} values  Statically resolved strings. Empty when not resolvable.
- * @property {import('flast/src/types.js').ASTNode[]} nodes  Contributing AST nodes.
+ * @property {ASTNode[]} nodes  Contributing AST nodes.
  */
 
 /**
@@ -33,7 +34,7 @@
  * An empty object means the match is purely structural with nothing to extract.
  *
  * @typedef {object} DetectorMatch
- * @property {import('flast/src/types.js').ASTNode} node
+ * @property {ASTNode} node
  * @property {Record<string, DetectorExtractionSlot>} extractions
  */
 
