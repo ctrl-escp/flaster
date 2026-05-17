@@ -96,7 +96,9 @@ function openTab(tabId) {
       </button>
     </div>
 
-    <component :is="activePanel" />
+    <KeepAlive>
+      <component :is="activePanel" />
+    </KeepAlive>
   </section>
 </template>
 
