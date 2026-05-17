@@ -1,13 +1,34 @@
 <script setup>
-import {computed} from 'vue';
+import {computed, ref} from 'vue';
 import store from '../store';
 import {apiDetectorRegistry} from '../domain/apiInteractions/index.js';
+import {buildApiDetectorCodeExample} from '../domain/apiInteractions/codeExampleBuilder.js';
 
 const status = computed(() => store.apiInteractionsStatus);
 const inferences = computed(() => store.apiInferences);
 const hits = computed(() => store.apiDetectorHits);
 
 const detectorById = Object.fromEntries(apiDetectorRegistry.map(r => [r.id, r]));
+const expandedExampleId = ref('');
+
+function codeExampleFor(row) {
+  return store.getKnownStructureById(row.id)?.codeExample || buildApiDetectorCodeExample(row);
+}
+
+function toggleExample(detectorId) {
+  expandedExampleId.value = expandedExampleId.value === detectorId ? '' : detectorId;
+}
+
+async function copyDetectorExample(row) {
+  const text = codeExampleFor(row);
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    store.logMessage(`Copied example for ${row.title}`, 'success');
+  } catch (error) {
+    store.logMessage(`Unable to copy example: ${error.message}`, 'error');
+  }
+}
 
 const firedDetectors = computed(() => {
   const h = hits.value;
@@ -120,6 +141,26 @@ function openDetectorInExplorer(detectorId) {
                 <span v-for="v in values" :key="v" class="extraction-value">{{ v }}</span>
               </div>
             </template>
+            <div class="example-actions">
+              <button
+                class="example-toggle"
+                type="button"
+                :aria-expanded="expandedExampleId === row.id"
+                @click="toggleExample(row.id)"
+              >
+                {{ expandedExampleId === row.id ? 'Hide example' : 'Show example' }}
+              </button>
+              <button
+                class="example-copy"
+                type="button"
+                title="Copy example code"
+                aria-label="Copy example code"
+                @click="copyDetectorExample(row)"
+              >
+                Copy
+              </button>
+            </div>
+            <pre v-if="expandedExampleId === row.id" class="detector-example"><code>{{ codeExampleFor(row) }}</code></pre>
           </li>
         </ul>
       </div>
@@ -349,5 +390,45 @@ function openDetectorInExplorer(detectorId) {
   border-radius: 4px;
   padding: 0.05rem 0.35rem;
   color: #c8e6c9;
+}
+
+.example-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.15rem;
+}
+
+.example-toggle,
+.example-copy {
+  font-size: 0.65rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.example-toggle:hover,
+.example-copy:hover,
+.example-toggle:focus-visible,
+.example-copy:focus-visible {
+  color: #d7f0ff;
+  border-color: rgba(126, 202, 255, 0.28);
+  outline: none;
+}
+
+.detector-example {
+  margin: 0.25rem 0 0;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  overflow-x: auto;
+  white-space: pre;
+  font-family: var(--font-mono, monospace);
+  color: #d7f0ff;
 }
 </style>

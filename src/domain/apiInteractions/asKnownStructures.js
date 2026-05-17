@@ -11,6 +11,7 @@
  */
 
 import {buildApiDetectorDefinition} from './detectorDefinition.js';
+import {buildApiDetectorCodeExample} from './codeExampleBuilder.js';
 import {apiDetectorRegistry} from './detectorRegistry.js';
 import {apiDetectorMatchers} from './matchers/index.js';
 
@@ -44,7 +45,7 @@ function buildStructureForDetector(row) {
     description: meta.description,
     executionMode: 'no-eval',
     noEval: true,
-    codeExample: '',
+    codeExample: buildApiDetectorCodeExample(row),
     searchText: meta.searchText,
     matcherAvailable: true,
     transformAvailable: false,
