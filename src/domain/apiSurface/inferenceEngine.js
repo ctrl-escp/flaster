@@ -16,7 +16,7 @@
  * @property {string} title
  * @property {string} category
  * @property {import('./inferenceDefinition.js').InferenceRisk} risk
- * @property {string} riskReason
+ * @property {string} [riskReason]
  * @property {string} description
  * @property {string[]} firedDetectorIds  Which detectors contributed to this capability firing.
  */
@@ -84,7 +84,7 @@ export function runInferences(detectorResults) {
       title: row.title,
       category: row.category,
       risk: row.risk,
-      riskReason: row.riskReason,
+      ...(row.riskReason ? {riskReason: row.riskReason} : {}),
       description: row.description,
       firedDetectorIds: [...firedSet],
     });

@@ -205,11 +205,15 @@ function browseCapability(finding) {
           >
             <template v-if="finding.kind === 'capability'">
               <div class="finding-head">
-                <span class="risk-badge" :class="finding.risk">{{ finding.risk }}</span>
+                <span
+                  v-if="finding.risk !== 'informational'"
+                  class="risk-badge"
+                  :class="finding.risk"
+                >{{ finding.risk }}</span>
                 <span class="finding-title">{{ finding.title }}</span>
               </div>
               <p class="finding-desc">{{ finding.description }}</p>
-              <p class="risk-reason">{{ finding.riskReason }}</p>
+              <p v-if="finding.riskReason" class="risk-reason">{{ finding.riskReason }}</p>
               <div class="contributing-detectors">
                 <button
                   v-for="detectorId in finding.firedDetectorIds"

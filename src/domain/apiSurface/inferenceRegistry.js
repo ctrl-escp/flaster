@@ -211,12 +211,11 @@ const _registry = [
     title: 'Dynamic Code Execution',
     categoryGroup: 'capabilities',
     category: 'dynamic-execution',
-    risk: 'risky',
-    riskReason: 'Security: executes code constructed at runtime, bypassing static analysis — the primary mechanism for delivering obfuscated payloads and injecting malicious logic.',
+    risk: 'informational',
     inferenceKind: 'co-occurrence',
     description:
-      'Script uses eval() or the Function constructor to execute dynamically built code. ' +
-      'A primary indicator of obfuscated payloads or runtime code generation.',
+      'Script uses eval() or the Function constructor — runtime code-from-string primitives ' +
+      'detected for static analysis and deobfuscation triage.',
     requires: [
       {
         detectorIds: ['eval-call', 'function-constructor'],

@@ -11,7 +11,7 @@
  *
  * All clauses in the `requires` array must be satisfied for the capability to fire.
  *
- * @typedef {'risky' | 'benign'} InferenceRisk
+ * @typedef {'risky' | 'benign' | 'informational'} InferenceRisk
  * @typedef {'co-occurrence' | 'value-pattern' | 'frequency'} InferenceKind
  *
  * @typedef {object} RequirementClause
@@ -24,14 +24,14 @@
  * @property {string} title
  * @property {string} categoryGroup    Always 'capabilities'.
  * @property {string} category         Subgroup slug (anti-debugging, fingerprinting, tracking, …).
- * @property {InferenceRisk} risk      Whether the pattern poses a privacy or security risk.
- * @property {string} riskReason       Plain-language explanation of why this is or isn't risky.
+ * @property {InferenceRisk} risk      Risk posture for UI: risky, benign, or informational (primitive report only).
+ * @property {string} [riskReason]   Plain-language note for risky/benign rows; omitted for informational.
  * @property {InferenceKind} inferenceKind
  * @property {string} description
  * @property {RequirementClause[]} requires  All clauses must pass for the capability to fire.
  */
 
-const VALID_RISKS = new Set(['risky', 'benign']);
+const VALID_RISKS = new Set(['risky', 'benign', 'informational']);
 const VALID_INFERENCE_KINDS = new Set(['co-occurrence', 'value-pattern', 'frequency']);
 const VALID_CLAUSE_MODES = new Set(['any', 'all']);
 
@@ -52,10 +52,18 @@ export function validateApiInferenceRegistry(registry, detectorIds) {
       throw new Error('Each capability row must be a plain object');
     }
 
-    for (const key of ['id', 'title', 'category', 'risk', 'riskReason', 'inferenceKind', 'description']) {
+    for (const key of ['id', 'title', 'category', 'risk', 'inferenceKind', 'description']) {
       if (typeof row[key] !== 'string' || !row[key].trim().length) {
         throw new Error(`Capability row "${row.id ?? '<unknown>'}" needs a non-empty string for "${key}"`);
       }
+    }
+
+    if (row.risk === 'informational') {
+      if (row.riskReason !== undefined && typeof row.riskReason !== 'string') {
+        throw new Error(`Capability row "${row.id}" riskReason must be a string when provided`);
+      }
+    } else if (typeof row.riskReason !== 'string' || !row.riskReason.trim().length) {
+      throw new Error(`Capability row "${row.id ?? '<unknown>'}" needs a non-empty string for "riskReason"`);
     }
 
     if (!VALID_RISKS.has(row.risk)) {
