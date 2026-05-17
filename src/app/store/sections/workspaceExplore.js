@@ -31,6 +31,12 @@ export function createWorkspaceExploreSection() {
     /** @type {number | null} Parse run id (`parseRunSequence`) that owns `selectedNodeId`. */
     selectionParseRunId: null,
     selectedNodeSource: null,
+    /** Related view: anchor node whose relatives are listed (independent of peek highlight). */
+    relatedFocusNodeId: null,
+    /** Related view: previous focus anchor for the back control (one level). */
+    relatedFocusBackNodeId: null,
+    /** Related view: node highlighted in the editor without changing the related list. */
+    relatedPeekNodeId: null,
     selectedPipelineStepIndex: -1,
     advancedToolsOpen: true,
     automatePanelOpen: false,
@@ -69,11 +75,95 @@ export function createWorkspaceExploreSection() {
         sourceRangesOverlap(match.relevantNode?.range, node.range),
       );
     },
-    getRelatedNodeEntries(node = this.getSelectedNode()) {
-      return buildRelatedNodeEntries(this.arb?.ast, node);
+    getRelatedFocusNode() {
+      if (this.activeResultMode !== 'related') {
+        return this.getSelectedNode();
+      }
+
+      const focusId = this.relatedFocusNodeId ?? this.selectedNodeId;
+      return resolveSelectedNode(this.arb, focusId, {
+        selectionParseRunId: this.selectionParseRunId,
+        currentParseRunId: this.parseRunSequence,
+      });
     },
-    getRelatedNodes(node = this.getSelectedNode()) {
+    getRelatedNodeEntries(node) {
+      const anchor = this.activeResultMode === 'related'
+        ? this.getRelatedFocusNode()
+        : (node ?? this.getSelectedNode());
+
+      return buildRelatedNodeEntries(this.arb?.ast, anchor);
+    },
+    getRelatedNodes(node) {
       return this.getRelatedNodeEntries(node).map((entry) => entry.node);
+    },
+    clearRelatedBrowseState() {
+      this.relatedFocusNodeId = null;
+      this.relatedFocusBackNodeId = null;
+      this.relatedPeekNodeId = null;
+    },
+    syncRelatedFocusFromSelection() {
+      this.relatedFocusNodeId = getNodeId(this.getSelectedNode());
+      this.relatedFocusBackNodeId = null;
+      this.relatedPeekNodeId = null;
+    },
+    canRestoreRelatedFocusBack() {
+      return Number.isInteger(this.relatedFocusBackNodeId);
+    },
+    getRelatedFocusBackNode() {
+      if (!Number.isInteger(this.relatedFocusBackNodeId)) {
+        return null;
+      }
+
+      return this.getNodeById(this.relatedFocusBackNodeId);
+    },
+    highlightNodeInEditor(node) {
+      if (node?.range?.length >= 2) {
+        const editor = this.getEditor(this.editorIds.inputCodeEditor);
+        editor?.highlightRange?.(node.range[0], node.range[1]);
+      }
+    },
+    peekRelatedNode(node) {
+      const nodeId = getNodeId(node);
+      if (!Number.isInteger(nodeId)) {
+        return false;
+      }
+
+      this.relatedPeekNodeId = nodeId;
+      this.highlightNodeInEditor(node);
+      return true;
+    },
+    setRelatedFocusNode(node) {
+      const nextId = getNodeId(node);
+      if (!Number.isInteger(nextId)) {
+        return false;
+      }
+
+      const currentFocusId = this.relatedFocusNodeId ?? getNodeId(this.getSelectedNode());
+      if (Number.isInteger(currentFocusId) && currentFocusId !== nextId) {
+        this.relatedFocusBackNodeId = currentFocusId;
+      }
+
+      this.relatedFocusNodeId = nextId;
+      this.relatedPeekNodeId = null;
+      this.setSelectedNode(node, 'related');
+      return true;
+    },
+    restoreRelatedFocusBack() {
+      if (!Number.isInteger(this.relatedFocusBackNodeId)) {
+        return false;
+      }
+
+      const node = this.getNodeById(this.relatedFocusBackNodeId);
+      if (!node) {
+        this.relatedFocusBackNodeId = null;
+        return false;
+      }
+
+      this.relatedFocusNodeId = this.relatedFocusBackNodeId;
+      this.relatedFocusBackNodeId = null;
+      this.relatedPeekNodeId = null;
+      this.setSelectedNode(node, 'related');
+      return true;
     },
     hasResultModeContent(mode = 'ast') {
       if (mode === 'ast') {
@@ -134,7 +224,15 @@ export function createWorkspaceExploreSection() {
       this.activeInspectorPanel = 'templates';
     },
     setActiveResultMode(mode = 'ast') {
-      this.activeResultMode = this.getPreferredResultMode(mode);
+      const previousMode = this.activeResultMode;
+      const nextMode = this.getPreferredResultMode(mode);
+      this.activeResultMode = nextMode;
+
+      if (nextMode === 'related' && previousMode !== 'related') {
+        this.syncRelatedFocusFromSelection();
+      } else if (previousMode === 'related' && nextMode !== 'related') {
+        this.clearRelatedBrowseState();
+      }
     },
     setActiveTemplate(templateType = 'apply-known-transform') {
       this.activeTemplateType = this.templateCatalog.some((template) => template.type === templateType)
@@ -154,11 +252,7 @@ export function createWorkspaceExploreSection() {
       this.selectedNodeId = nodeId;
       this.selectedNodeSource = nodeId === null ? null : source;
       this.selectionParseRunId = nodeId === null ? null : this.parseRunSequence;
-
-      if (node?.range?.length >= 2) {
-        const editor = this.getEditor(this.editorIds.inputCodeEditor);
-        editor?.highlightRange?.(node.range[0], node.range[1]);
-      }
+      this.highlightNodeInEditor(node);
     },
     inspectNode(node, source = 'ast') {
       if (!node) {
@@ -167,7 +261,10 @@ export function createWorkspaceExploreSection() {
       }
 
       this.setSelectedNode(node, source);
-      this.activeResultMode = source === 'related' ? 'related' : this.activeResultMode;
+      if (source === 'related') {
+        this.activeResultMode = 'related';
+        this.syncRelatedFocusFromSelection();
+      }
       this.activeInspectorPanel = 'browser';
     },
     async loadSampleScript(sampleId = this.activeSampleScriptId) {

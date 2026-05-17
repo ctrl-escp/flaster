@@ -57,12 +57,47 @@ export function useResultBrowser() {
 
   const expandedItemKey = ref(null);
 
+  const isRelatedMode = computed(() => store.activeResultMode === 'related');
+
+  const canRestoreRelatedFocusBack = computed(() => store.canRestoreRelatedFocusBack());
+
+  const relatedFocusBackLabel = computed(() => {
+    const node = store.getRelatedFocusBackNode();
+    return node?.type ?? 'previous node';
+  });
+
+  function isActive(item) {
+    if (item.kind === 'match') {
+      return isKnownStructureMatchSelectionActive(store.selectedKnownStructureMatch, item.match);
+    }
+
+    if (isRelatedMode.value) {
+      if (Number.isInteger(store.relatedPeekNodeId)) {
+        return item.node?.nodeId === store.relatedPeekNodeId;
+      }
+
+      const focusId = store.relatedFocusNodeId ?? store.selectedNodeId;
+      return item.node?.nodeId === focusId;
+    }
+
+    return store.getSelectedNode()?.nodeId === item.node?.nodeId;
+  }
+
   function selectionMatchesItem(item) {
     if (item.kind === 'match') {
       return isKnownStructureMatchSelectionActive(store.selectedKnownStructureMatch, item.match);
     }
 
-    return store.getSelectedNode()?.nodeId === item.node?.nodeId;
+    return isActive(item);
+  }
+
+  function isRelatedFocusAnchor(item) {
+    if (!isRelatedMode.value || item.kind !== 'node') {
+      return false;
+    }
+
+    const focusId = store.relatedFocusNodeId ?? store.selectedNodeId;
+    return item.node?.nodeId === focusId;
   }
 
   function selectItem(item) {
@@ -78,7 +113,26 @@ export function useResultBrowser() {
       return;
     }
 
+    if (isRelatedMode.value) {
+      store.peekRelatedNode(item.node);
+      return;
+    }
+
     store.setSelectedNode(item.node, store.activeResultMode);
+  }
+
+  function focusRelatedItem(item) {
+    if (!item.node) {
+      return;
+    }
+
+    store.setActiveWorkspaceTab('results');
+    store.setActiveInspectorPanel('browser');
+    store.setRelatedFocusNode(item.node);
+  }
+
+  function restoreRelatedFocusBack() {
+    store.restoreRelatedFocusBack();
   }
 
   function toggleResultItemExpand(item) {
@@ -88,6 +142,12 @@ export function useResultBrowser() {
     }
 
     expandedItemKey.value = item.key;
+
+    if (isRelatedMode.value) {
+      store.peekRelatedNode(item.node);
+      return;
+    }
+
     selectItem(item);
   }
 
@@ -101,14 +161,6 @@ export function useResultBrowser() {
     }
 
     return store.activeResultMode;
-  }
-
-  function isActive(item) {
-    if (item.kind === 'match') {
-      return isKnownStructureMatchSelectionActive(store.selectedKnownStructureMatch, item.match);
-    }
-
-    return store.getSelectedNode()?.nodeId === item.node?.nodeId;
   }
 
   function nextPage() {
@@ -170,6 +222,9 @@ export function useResultBrowser() {
   return {
     store,
     modes,
+    isRelatedMode,
+    canRestoreRelatedFocusBack,
+    relatedFocusBackLabel,
     currentPage,
     visibleItems,
     totalItems,
@@ -179,10 +234,13 @@ export function useResultBrowser() {
     pageRange,
     canOpenMode,
     selectItem,
+    focusRelatedItem,
+    restoreRelatedFocusBack,
     toggleResultItemExpand,
     isResultItemExpanded,
     itemNodeSourceLabel,
     isActive,
+    isRelatedFocusAnchor,
     nextPage,
     prevPage,
   };

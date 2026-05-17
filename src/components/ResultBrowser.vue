@@ -14,11 +14,17 @@ const {
   pagedItems,
   pageRange,
   canOpenMode,
+  isRelatedMode,
+  canRestoreRelatedFocusBack,
+  relatedFocusBackLabel,
   selectItem,
+  focusRelatedItem,
+  restoreRelatedFocusBack,
   toggleResultItemExpand,
   isResultItemExpanded,
   itemNodeSourceLabel,
   isActive,
+  isRelatedFocusAnchor,
   nextPage,
   prevPage,
 } = useResultBrowser();
@@ -91,6 +97,17 @@ const {
       </button>
       <button class="mini-btn" type="button" :disabled="!canOpenMode('ast')" title="Show raw AST nodes in the result list" @click="store.setActiveResultMode('ast')">All</button>
       <button class="mini-btn" type="button" :disabled="!canOpenMode('related')" title="Show nodes related to the current selection" @click="store.setActiveResultMode('related')">Related</button>
+      <button
+        v-if="isRelatedMode && canRestoreRelatedFocusBack"
+        class="mini-btn related-back-btn"
+        type="button"
+        :title="`Return focus to ${relatedFocusBackLabel}`"
+        aria-label="Return to previous related focus"
+        @click="restoreRelatedFocusBack"
+      >
+        <icon-arrow-left />
+        <span>Back</span>
+      </button>
     </div>
 
     <div class="result-list">
@@ -98,19 +115,34 @@ const {
         v-for="item in pagedItems"
         :key="item.key"
         class="result-item"
-        :class="{active: isActive(item), expanded: isResultItemExpanded(item)}"
+        :class="{
+          active: isActive(item),
+          expanded: isResultItemExpanded(item),
+          'focus-anchor': isRelatedFocusAnchor(item),
+        }"
       >
         <div class="result-item-top">
           <button
             class="result-item-main"
             type="button"
-            :title="item.summary"
+            :title="isRelatedMode ? 'Show this node in the editor' : item.summary"
             @click="selectItem(item)"
           >
             <strong>{{ item.label }}</strong>
             <small v-if="item.relationLabel" class="relation-tag">{{ item.relationLabel }}</small>
+            <span v-if="isRelatedFocusAnchor(item)" class="focus-anchor-tag">Focus</span>
             <span>{{ item.summary }}</span>
             <small>{{ item.meta }}</small>
+          </button>
+          <button
+            v-if="isRelatedMode && item.node"
+            class="mini-btn related-focus-btn"
+            type="button"
+            title="Use this node as the related-list anchor"
+            aria-label="Set related focus to this node"
+            @click.stop="focusRelatedItem(item)"
+          >
+            Focus
           </button>
           <button
             class="result-item-caret mini-btn icon-btn"
@@ -293,13 +325,41 @@ const {
   color: var(--text-muted);
 }
 
-.relation-tag {
+.relation-tag,
+.focus-anchor-tag {
   align-self: flex-start;
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+}
+
+.relation-tag {
   color: #eef8ff;
   background: rgba(126, 202, 255, 0.18);
   border: 1px solid rgba(126, 202, 255, 0.3);
-  border-radius: 999px;
-  padding: 0.12rem 0.5rem;
+}
+
+.focus-anchor-tag {
+  color: #ffe9b8;
+  background: rgba(255, 191, 102, 0.16);
+  border: 1px solid rgba(255, 191, 102, 0.34);
+}
+
+.related-back-btn,
+.related-focus-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex: 0 0 auto;
+}
+
+.related-focus-btn {
+  align-self: center;
+  font-size: 0.72rem;
+  padding: 0.3rem 0.5rem;
+}
+
+.result-item.focus-anchor:not(.active) {
+  border-color: rgba(255, 191, 102, 0.28);
 }
 
 .result-item.active {
