@@ -4,9 +4,12 @@ import store from '../store';
 import StructureExplorer from './StructureExplorer.vue';
 import ResultBrowser from './ResultBrowser.vue';
 import ApiSurfacePanel from './ApiSurfacePanel.vue';
+import ReportPanel from './ReportPanel.vue';
 import IconBrowse from './icons/IconBrowse.vue';
 import IconListChecks from './icons/IconListChecks.vue';
 import IconEye from './icons/IconEye.vue';
+import IconReport from './icons/IconReport.vue';
+import {buildReportModel} from '../domain/report/index.js';
 
 const hasResults = computed(() =>
   store.getKnownStructureMatches().length > 0 ||
@@ -20,6 +23,11 @@ const hasApiResults = computed(() =>
   store.apiSurfaceStatus === 'done' &&
   (store.capabilities.length > 0 || Object.keys(store.apiDetectorHits).length > 0),
 );
+
+const hasReportResults = computed(() => {
+  const report = buildReportModel(store);
+  return report.status === 'done' && report.totalFindings > 0;
+});
 
 const tabs = computed(() => [
   {
@@ -35,6 +43,13 @@ const tabs = computed(() => [
     enabled: hasResults.value,
   },
   {
+    id: 'report',
+    label: 'Report',
+    icon: IconReport,
+    enabled: true,
+    highlight: hasReportResults.value,
+  },
+  {
     id: 'api',
     label: 'API Surface',
     icon: IconEye,
@@ -45,12 +60,14 @@ const tabs = computed(() => [
 
 const activeSubview = computed(() => {
   if (store.activeWorkspaceTab === 'results' && hasResults.value) return 'results';
+  if (store.activeWorkspaceTab === 'report') return 'report';
   if (store.activeWorkspaceTab === 'api') return 'api';
   return 'structures';
 });
 
 const activePanel = computed(() => {
   if (activeSubview.value === 'results') return ResultBrowser;
+  if (activeSubview.value === 'report') return ReportPanel;
   if (activeSubview.value === 'api') return ApiSurfacePanel;
   return StructureExplorer;
 });
@@ -58,6 +75,10 @@ const activePanel = computed(() => {
 function openTab(tabId) {
   if (tabId === 'results') {
     store.setActiveWorkspaceTab('results');
+    return;
+  }
+  if (tabId === 'report') {
+    store.setActiveWorkspaceTab('report');
     return;
   }
   if (tabId === 'api') {
@@ -78,7 +99,7 @@ function openTab(tabId) {
         class="subtab-btn"
         :class="{
           active: activeSubview === tab.id,
-          highlighted: tab.id === 'api' && tab.highlight && activeSubview !== 'api',
+          highlighted: tab.highlight && activeSubview !== tab.id,
           pulsating: tab.id === 'structures' && shouldPulseStructures,
         }"
         type="button"

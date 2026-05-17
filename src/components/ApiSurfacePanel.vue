@@ -3,16 +3,14 @@ import {computed, ref} from 'vue';
 import store from '../store';
 import {apiDetectorRegistry} from '../domain/apiSurface/index.js';
 import {buildApiDetectorCodeExample} from '../domain/apiSurface/codeExampleBuilder.js';
-import {
-  advanceStructureMatchOrdinal,
-  structureMatchDisplayIndex,
-} from '../domain/selection/nodeSelection.js';
-import IconArrowLeft from './icons/IconArrowLeft.vue';
-import IconArrowRight from './icons/IconArrowRight.vue';
+import {mergeDetectorExtractions} from '../domain/report/index.js';
+import {useFindingMatchNav} from '../ui/composables/useFindingMatchNav.js';
+import FindingMatchNav from './FindingMatchNav.vue';
 
 const status = computed(() => store.apiSurfaceStatus);
 const capabilities = computed(() => store.capabilities);
 const hits = computed(() => store.apiDetectorHits);
+const matchNav = useFindingMatchNav();
 
 const detectorById = Object.fromEntries(apiDetectorRegistry.map(r => [r.id, r]));
 const expandedExampleId = ref('');
@@ -46,79 +44,9 @@ const firedDetectors = computed(() => {
   return result;
 });
 
-function allExtractions(matches) {
-  const byRole = {};
-  for (let i = 0; i < matches.length; i++) {
-    const extractions = matches[i].extractions;
-    const roles = Object.keys(extractions);
-    for (let j = 0; j < roles.length; j++) {
-      const role = roles[j];
-      const slot = extractions[role];
-      if (!byRole[role]) byRole[role] = new Set();
-      for (let p = 0; p < slot.values.length; p++) byRole[role].add(slot.values[p]);
-    }
-  }
-  return Object.entries(byRole).map(([role, vals]) => ({role, values: [...vals]}));
-}
-
 const isEmpty = computed(() =>
   status.value === 'done' && capabilities.value.length === 0 && firedDetectors.value.length === 0,
 );
-
-function ensureDetectorSelected(detectorId) {
-  if (!store.selectedKnownStructureIds.includes(detectorId)) {
-    store.setSelectedKnownStructureIds([
-      ...new Set([...store.selectedKnownStructureIds, detectorId]),
-    ]);
-  }
-}
-
-function openDetectorInExplorer(detectorId) {
-  ensureDetectorSelected(detectorId);
-  store.setActiveKnownStructure(detectorId);
-  store.setActiveWorkspaceTab('explorer');
-}
-
-function detectorMatchCount(detectorId) {
-  return store.getKnownStructureMatches(detectorId).length;
-}
-
-function detectorMatchPosition(detectorId) {
-  return structureMatchDisplayIndex(
-    store.getKnownStructureMatches(detectorId),
-    detectorId,
-    store.selectedKnownStructureMatch,
-    store.knownStructureSelectionById[detectorId],
-  );
-}
-
-function isDetectorMatchActive(detectorId) {
-  return store.selectedKnownStructureMatch?.structureId === detectorId;
-}
-
-function stepDetectorMatch(detectorId, direction = 1) {
-  const matches = store.getKnownStructureMatches(detectorId);
-  if (!matches.length) {
-    return;
-  }
-
-  ensureDetectorSelected(detectorId);
-  store.setActiveKnownStructure(detectorId);
-
-  const nextOrdinal = advanceStructureMatchOrdinal(
-    matches,
-    detectorId,
-    store.selectedKnownStructureMatch,
-    store.knownStructureSelectionById[detectorId],
-    direction,
-  );
-
-  if (!Number.isInteger(nextOrdinal)) {
-    return;
-  }
-
-  store.setSelectedKnownStructureMatch(detectorId, nextOrdinal);
-}
 </script>
 
 <template>
@@ -152,7 +80,6 @@ function stepDetectorMatch(detectorId, direction = 1) {
     </div>
 
     <template v-else>
-      <!-- ── Capabilities ──────────────────────────────────── -->
       <div v-if="capabilities.length" class="section">
         <h3 class="section-title">Capabilities</h3>
         <ul class="capability-list">
@@ -174,7 +101,6 @@ function stepDetectorMatch(detectorId, direction = 1) {
         </ul>
       </div>
 
-      <!-- ── API surface ──────────────────────────────────── -->
       <div v-if="firedDetectors.length" class="section">
         <h3 class="section-title">API Surface</h3>
         <ul class="detector-list">
@@ -182,7 +108,7 @@ function stepDetectorMatch(detectorId, direction = 1) {
             <div class="detector-head">
               <span class="detector-title">{{ row.title }}</span>
             </div>
-            <template v-for="{ role, values } in allExtractions(matches)" :key="role">
+            <template v-for="{ role, values } in mergeDetectorExtractions(matches)" :key="role">
               <div v-if="values.length" class="extraction-row">
                 <span class="extraction-role">{{ role }}</span>
                 <span v-for="v in values" :key="v" class="extraction-value">{{ v }}</span>
@@ -194,7 +120,7 @@ function stepDetectorMatch(detectorId, direction = 1) {
                 class="example-structure"
                 type="button"
                 :title="`Show ${row.title} in Code Structures`"
-                @click="openDetectorInExplorer(row.id)"
+                @click="matchNav.openInExplorer(row.id)"
               >
                 Code structure
               </button>
@@ -216,37 +142,13 @@ function stepDetectorMatch(detectorId, direction = 1) {
                 Copy
               </button>
               </div>
-              <div
-                v-if="detectorMatchCount(row.id) > 0"
-                class="detector-match-nav"
-                :class="{active: isDetectorMatchActive(row.id)}"
-              >
-                <button
-                  class="detector-nav-btn"
-                  type="button"
-                  title="Jump to the previous match in the editor"
-                  aria-label="Previous match"
-                  @click="stepDetectorMatch(row.id, -1)"
-                >
-                  <icon-arrow-left />
-                  <span>Prev</span>
-                </button>
-                <div class="detector-match-status" aria-live="polite">
-                  <strong>{{ detectorMatchPosition(row.id) }}</strong>
-                  <span>/</span>
-                  <span>{{ detectorMatchCount(row.id) }}</span>
-                </div>
-                <button
-                  class="detector-nav-btn"
-                  type="button"
-                  title="Jump to the next match in the editor"
-                  aria-label="Next match"
-                  @click="stepDetectorMatch(row.id, 1)"
-                >
-                  <span>Next</span>
-                  <icon-arrow-right />
-                </button>
-              </div>
+              <finding-match-nav
+                :active="matchNav.isMatchActive(row.id)"
+                :position="matchNav.matchPosition(row.id)"
+                :total="matchNav.matchCount(row.id)"
+                @prev="matchNav.stepMatch(row.id, -1)"
+                @next="matchNav.stepMatch(row.id, 1)"
+              />
             </div>
             <pre v-if="expandedExampleId === row.id" class="detector-example"><code>{{ codeExampleFor(row) }}</code></pre>
           </li>
@@ -310,8 +212,6 @@ function stepDetectorMatch(detectorId, direction = 1) {
   letter-spacing: 0.05em;
   margin: 0;
 }
-
-/* ── Capabilities ──────────────────────────────────── */
 
 .capability-list {
   list-style: none;
@@ -397,8 +297,6 @@ function stepDetectorMatch(detectorId, direction = 1) {
   color: rgba(126, 202, 255, 0.85);
 }
 
-/* ── Detectors ──────────────────────────────────── */
-
 .detector-list {
   list-style: none;
   margin: 0;
@@ -461,62 +359,6 @@ function stepDetectorMatch(detectorId, direction = 1) {
   border-radius: 4px;
   padding: 0.05rem 0.35rem;
   color: #c8e6c9;
-}
-
-.detector-match-nav {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.1rem 0.25rem;
-  margin-left: auto;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.18);
-  flex-shrink: 0;
-}
-
-.detector-match-nav.active {
-  border-color: rgba(126, 202, 255, 0.28);
-  background: rgba(126, 202, 255, 0.08);
-}
-
-.detector-nav-btn {
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.65rem;
-  padding: 0.12rem 0.4rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-muted);
-  cursor: pointer;
-}
-
-.detector-nav-btn svg {
-  width: 0.72rem;
-  height: 0.72rem;
-}
-
-.detector-nav-btn:hover,
-.detector-nav-btn:focus-visible {
-  color: #d7f0ff;
-  border-color: rgba(126, 202, 255, 0.28);
-  outline: none;
-}
-
-.detector-match-status {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.2rem;
-  font-size: 0.65rem;
-  color: var(--text-muted);
-}
-
-.detector-match-status strong {
-  color: #d7f0ff;
-  font-weight: 600;
 }
 
 .example-actions {
