@@ -12,11 +12,6 @@ const hasResults = computed(() =>
   store.getKnownStructureMatches().length > 0 ||
   (store.areFiltersActive ? store.filteredNodes : store.arb?.ast ?? []).length > 0,
 );
-const shouldHighlightResults = computed(() =>
-  hasResults.value &&
-  !store.hasVisitedExploreNodes &&
-  !store.shouldPulseCodeStructuresStage,
-);
 const shouldPulseStructures = computed(() =>
   store.shouldPulseCodeStructuresStage,
 );
@@ -83,7 +78,7 @@ function openTab(tabId) {
         class="subtab-btn"
         :class="{
           active: activeSubview === tab.id,
-          highlighted: (tab.id === 'results' && shouldHighlightResults) || (tab.id === 'api' && tab.highlight && activeSubview !== 'api'),
+          highlighted: tab.id === 'api' && tab.highlight && activeSubview !== 'api',
           pulsating: tab.id === 'structures' && shouldPulseStructures,
         }"
         type="button"

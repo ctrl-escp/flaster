@@ -22,7 +22,6 @@ export function createWorkspaceExploreSection() {
     filteredNodes: [],
     areFiltersActive: true,
     activeWorkspaceTab: 'explorer',
-    hasVisitedExploreNodes: false,
     shouldPulseCodeStructuresStage: false,
     activeResultMode: 'ast',
     activeInspectorPanel: 'browser',
@@ -191,7 +190,6 @@ export function createWorkspaceExploreSection() {
       this.activeWorkspaceTab = tabName;
 
       if (tabName === 'results') {
-        this.hasVisitedExploreNodes = true;
         this.activeResultMode = this.getPreferredResultMode(this.activeResultMode);
       }
     },

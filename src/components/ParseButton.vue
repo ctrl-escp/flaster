@@ -45,7 +45,6 @@ function resetParsedState() {
   store.arb = {ast: [], script: ''};
   store.clearKnownStructureResults();
   store.parsedContentVersion = -1;
-  store.hasVisitedExploreNodes = false;
   store.shouldPulseCodeStructuresStage = false;
   setContentUnparsed();
   store.page = 0;
