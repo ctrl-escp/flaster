@@ -142,7 +142,8 @@ export function isDirectTestClause(node) {
   const parent = node.parentNode;
   return (
     node.parentKey === 'test' &&
-    parent != null &&
+    parent !== null &&
+    parent !== undefined &&
     TEST_CLAUSE_PARENT_TYPES.has(parent.type)
   );
 }
