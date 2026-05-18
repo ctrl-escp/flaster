@@ -4,7 +4,7 @@
  * Orchestration (after parse / arborist apply):
  *   runApiDetectors → runInferences → apiDetectorHits / capabilities → sync → highlights
  *
- * @see ../apiSurfaceSync.js
+ * @see ../../../domain/apiSurface/syncDetectorHits.js
  */
 
 import {
@@ -12,7 +12,7 @@ import {
   runApiDetectors,
   runInferences,
 } from '../../../domain/apiSurface/index.js';
-import {syncApiDetectorHitsToKnownStructureMatches} from '../apiSurfaceSync.js';
+import {syncDetectorHits} from '../../../domain/apiSurface/syncDetectorHits.js';
 
 /**
  * @typedef {import('../../../domain/apiSurface/inferenceEngine.js').InferenceResult} InferenceResult
@@ -43,7 +43,7 @@ export function createApiSurfaceSection() {
     },
 
     syncApiDetectorHitsToKnownStructureMatches() {
-      syncApiDetectorHitsToKnownStructureMatches(this);
+      syncDetectorHits(this);
     },
 
     /**

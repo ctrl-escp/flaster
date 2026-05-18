@@ -10,7 +10,7 @@ import {
   groupStructureMatches,
   normalizeStructureMatch,
 } from '../../integrations/restringer/index.js';
-import {apiDetectorRegistry} from '../../domain/apiSurface/detectorRegistry.js';
+import {apiDetectorRegistry} from './detectorRegistry.js';
 
 /**
  * Merges API detector hits into the known-structure match store so API patterns
@@ -31,7 +31,7 @@ import {apiDetectorRegistry} from '../../domain/apiSurface/detectorRegistry.js';
  *   getKnownStructureById: (id: string) => {id: string} | null,
  * }} store
  */
-export function syncApiDetectorHitsToKnownStructureMatches(store) {
+export function syncDetectorHits(store) {
   const apiStructureIds = new Set(
     store.availableKnownStructures
       .filter((structure) => structure.categoryGroup === 'api-surface')

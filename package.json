@@ -47,6 +47,13 @@
 	"bugs": {
 		"url": "https://github.com/ctrl-escp/flaster/issues"
 	},
+	"bin": {
+		"flaster": "./bin/flaster.js"
+	},
+	"files": [
+		"bin",
+		"src"
+	],
 	"engines": {
 		"node": ">=20.19"
 	}

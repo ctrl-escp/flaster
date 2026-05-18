@@ -12,6 +12,7 @@ const matchingEngineConsumerAllowlist = new Set([
   path.normalize(path.resolve(srcRoot, 'app/createAppStore.js')),
   path.normalize(path.resolve(srcRoot, 'app/store/storeBlueprint.js')),
   path.normalize(path.resolve(srcRoot, 'app/store/sections/knownStructures.js')),
+  path.normalize(path.resolve(srcRoot, 'domain/cli/runAnalysis.js')),
 ]);
 
 /**

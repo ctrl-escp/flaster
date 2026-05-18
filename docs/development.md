@@ -48,6 +48,45 @@ After parse, flASTer runs **API Surface** analysis: static matchers find browser
 | Domain code | `src/domain/apiSurface/` — see [README](../../src/domain/apiSurface/README.md) for architecture, matcher contract, and how to add detectors/capabilities. |
 | App store | `runApiSurfaceMatcher()` in `src/app/store/sections/apiSurface.js`; results in `apiDetectorHits` and `capabilities`. |
 | UI | **API Surface** tab (`ApiSurfacePanel.vue`) — **Capabilities** section plus per-detector **API Surface** hits. |
-| Known structures | Detectors hydrate into the structure catalog (`categoryGroup: 'api-surface'`) and sync via `apiSurfaceSync.js` for Code Structures / Explore Nodes. |
+| Known structures | Detectors hydrate into the structure catalog (`categoryGroup: 'api-surface'`) and sync via `src/domain/apiSurface/syncDetectorHits.js` for Code Structures / Explore Nodes. |
 
 Tests: `tests/domain/apiSurface/matchers.spec.js`.
+
+## CLI (`bin/flaster.js`)
+
+The CLI entry point lives at `bin/flaster.js` and delegates to `src/domain/cli/runCli.js`. All CLI logic is under `src/domain/cli/` — no Vue/Pinia dependency.
+
+### Module map
+
+| File | Role |
+|------|------|
+| `cliOptions.js` | `parseArgs` wrapper, `expandListArgs`, `validateCliOptions`, `printCliHelp` |
+| `readInput.js` | File or stdin reading |
+| `createAnalysisStore.js` | Headless duck-type store for `buildReportModel` |
+| `resolveStructureSelection.js` | Maps `--section` / `--structures` options to engine calls |
+| `resolveReportSections.js` | Applies `--only-section` / `--exclude-section` filters |
+| `runAnalysis.js` | Full analysis pipeline (parse → catalog → match → sync → model) |
+| `runCli.js` | Entry flow: parse flags → validate → read input → analyse → format → write |
+| `enrichReportFindings.js` | Attaches `evidence[]` locations (and `--full` fields) to findings |
+| `formatReportJson.js` | JSON serializer |
+
+### `runCli` flow
+
+```
+parseArgs + expandListArgs
+  → --help / --version (exit 0)
+  → validateCliOptions (exit 1 before any I/O)
+  → readInput
+  → runAnalysis (parse → catalog → createStore → select → match → sync → buildReportModel → resolveReportSections)
+  → enrichReportFindings
+  → formatReportJson | formatReportHtml
+  → write stdout or file
+```
+
+### Boundaries
+
+`runAnalysis.js` imports `detectStructures` from `integrations/restringer/matchingEngine.js` and is listed in `matchingEngineConsumerAllowlist` in `scripts/check-boundaries.mjs`. All other CLI modules import only from `src/domain/` or `src/integrations/restringer/index.js` (the public adapter).
+
+### Evidence locations
+
+`src/domain/report/evidenceFromNode.js` converts a flAST node's `range` (char offsets) to `{ line, column, endLine, endColumn, charStart, charEnd }` using a binary-search line index. Used by `enrichReportFindings` for both structure and capability findings.
