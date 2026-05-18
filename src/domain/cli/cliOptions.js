@@ -19,7 +19,7 @@ import {getToolVersions} from './toolVersions.js';
  */
 
 export const ANALYSIS_SECTION_IDS = ['obfuscation', 'api-surface'];
-export const REPORT_SECTION_IDS = ['obfuscation', 'api-surface', 'capabilities'];
+const REPORT_SECTION_IDS = ['obfuscation', 'api-surface', 'capabilities'];
 
 const PARSE_ARGS_CONFIG = {
   allowPositionals: true,
