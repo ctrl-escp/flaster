@@ -1,4 +1,4 @@
-/** @import {ASTNode} from '../../../flastTypes.js' */
+/** @import {ASTNode} */
 import {makeMatch, isMemberExpression} from './common.js';
 
 /** @param {ASTNode} n MemberExpression */

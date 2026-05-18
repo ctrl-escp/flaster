@@ -65,7 +65,7 @@ export function resolveReportStatus(store) {
  * @param {readonly { extractions?: Record<string, { values?: string[] }> }[]} matches
  * @returns {ReportExtractionGroup[]}
  */
-export function mergeDetectorExtractions(matches) {
+function mergeDetectorExtractions(matches) {
   const byRole = {};
 
   for (let i = 0; i < matches.length; i++) {
