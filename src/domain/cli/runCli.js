@@ -10,6 +10,7 @@ import {readInput, CliInputError} from './readInput.js';
 import {runAnalysis, ParseFailedError} from './runAnalysis.js';
 import {enrichReportFindings} from './enrichReportFindings.js';
 import {formatReportJson} from './formatReportJson.js';
+import {formatReportHtml} from './formatReportHtml.js';
 import {CliValidationError} from './resolveStructureSelection.js';
 
 /**
@@ -90,7 +91,9 @@ export async function runCli(argv) {
   enrichReportFindings(reportEnvelope.sections, _store, input.source, options.full);
 
   // Step 7 — format
-  const formatted = formatReportJson(reportEnvelope);
+  const formatted = options.format === 'html'
+    ? formatReportHtml(reportEnvelope)
+    : formatReportJson(reportEnvelope);
 
   // Step 8 — write output
   if (options.stdout) {
