@@ -1,8 +1,5 @@
 import {parseArgs} from 'node:util';
-import {createRequire} from 'node:module';
-
-const require = createRequire(import.meta.url);
-const {version} = require('../../../package.json');
+import {getToolVersions} from './toolVersions.js';
 
 /**
  * @typedef {{
@@ -17,8 +14,12 @@ const {version} = require('../../../package.json');
  *   full: boolean,
  *   help: boolean,
  *   version: boolean,
+ *   list: boolean,
  * }} CliOptions
  */
+
+export const ANALYSIS_SECTION_IDS = ['obfuscation', 'api-surface'];
+export const REPORT_SECTION_IDS = ['obfuscation', 'api-surface', 'capabilities'];
 
 const PARSE_ARGS_CONFIG = {
   allowPositionals: true,
@@ -33,6 +34,7 @@ const PARSE_ARGS_CONFIG = {
     full:            {type: 'boolean'},
     help:            {type: 'boolean', short: 'h'},
     version:         {type: 'boolean', short: 'v'},
+    list:            {type: 'boolean'},
   },
 };
 
@@ -71,11 +73,9 @@ export function parseCliArgs(argv) {
     full: values.full ?? false,
     help: values.help ?? false,
     version: values.version ?? false,
+    list: values.list ?? false,
   };
 }
-
-const VALID_ANALYSIS_SECTION_IDS = ['obfuscation', 'api-surface'];
-const VALID_REPORT_SECTION_IDS   = ['obfuscation', 'api-surface', 'capabilities'];
 
 /**
  * Validates parsed CLI options. Returns null on success, or an error string on failure.
@@ -104,20 +104,20 @@ export function validateCliOptions(options) {
   }
 
   for (const id of options.section) {
-    if (!VALID_ANALYSIS_SECTION_IDS.includes(id)) {
-      return `Unknown analysis section id "${id}". Valid ids: ${VALID_ANALYSIS_SECTION_IDS.join(', ')}.`;
+    if (!ANALYSIS_SECTION_IDS.includes(id)) {
+      return `Unknown analysis section id "${id}". Valid ids: ${ANALYSIS_SECTION_IDS.join(', ')}.`;
     }
   }
 
   for (const id of options.onlySection) {
-    if (!VALID_REPORT_SECTION_IDS.includes(id)) {
-      return `Unknown report section id "${id}" in --only-section. Valid ids: ${VALID_REPORT_SECTION_IDS.join(', ')}.`;
+    if (!REPORT_SECTION_IDS.includes(id)) {
+      return `Unknown report section id "${id}" in --only-section. Valid ids: ${REPORT_SECTION_IDS.join(', ')}.`;
     }
   }
 
   for (const id of options.excludeSection) {
-    if (!VALID_REPORT_SECTION_IDS.includes(id)) {
-      return `Unknown report section id "${id}" in --exclude-section. Valid ids: ${VALID_REPORT_SECTION_IDS.join(', ')}.`;
+    if (!REPORT_SECTION_IDS.includes(id)) {
+      return `Unknown report section id "${id}" in --exclude-section. Valid ids: ${REPORT_SECTION_IDS.join(', ')}.`;
     }
   }
 
@@ -148,8 +148,9 @@ Output (combinable with any scope):
   --stdout                   Write report to stdout instead of a file.
   --full                     Include descriptions, snippets, and extractions.
 
+  --list                     List analysis sections, report sections, and structure ids.
   -h, --help                 Show this message.
-  -v, --version              Show package version.
+  -v, --version              Show flASTer, flAST, and REstringer versions.
 
 Exit codes:
   0  Parse OK; report written (including zero findings)
@@ -165,9 +166,13 @@ Examples:
   flaster script.js --section obfuscation --full --stdout
   echo 'window.innerWidth' | flaster - --stdout --format json
   flaster script.js --stdout --format html
+  flaster --list
 `);
 }
 
 export function printCliVersion() {
-  process.stdout.write(`${version}\n`);
+  const versions = getToolVersions();
+  process.stdout.write(
+    `flaster ${versions.flaster} (flAST ${versions.flast}, REstringer ${versions.restringer})\n`,
+  );
 }

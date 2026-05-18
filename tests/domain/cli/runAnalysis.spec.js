@@ -28,6 +28,9 @@ describe('runAnalysis integration', () => {
 
     expect(envelope.status).toBe('done');
     expect(envelope.meta.parse.ok).toBe(true);
+    expect(envelope.meta.flasterVersion).toBeTruthy();
+    expect(envelope.meta.flastVersion).toBeTruthy();
+    expect(envelope.meta.restringerVersion).toBeTruthy();
     expect(typeof envelope.totalFindings).toBe('number');
     expect(Array.isArray(envelope.sections)).toBe(true);
   });
@@ -55,6 +58,8 @@ describe('runAnalysis integration', () => {
       expect(typeof ev.line).toBe('number');
       expect(typeof ev.column).toBe('number');
       expect(typeof ev.charStart).toBe('number');
+      expect(typeof ev.snippet).toBe('string');
+      expect(ev.snippet.length).toBeGreaterThan(0);
     }
   });
 

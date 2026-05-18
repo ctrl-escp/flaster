@@ -1,8 +1,5 @@
-import {createRequire} from 'node:module';
 import {parseSource} from '../../domain/parse/parseSource.js';
-
-const require = createRequire(import.meta.url);
-const {version: flasterVersion} = require('../../../package.json');
+import {getToolVersions} from './toolVersions.js';
 import {
   buildHydratedKnownStructureCatalog,
   runApiDetectors,
@@ -123,9 +120,13 @@ export async function runAnalysis(input, options) {
     ...(includeApiSurface ? ['api-surface'] : []),
   ];
 
+  const versions = getToolVersions();
+
   return {
     meta: {
-      flasterVersion,
+      flasterVersion: versions.flaster,
+      flastVersion: versions.flast,
+      restringerVersion: versions.restringer,
       input: {
         kind: inputKind,
         path: inputPath,

@@ -65,6 +65,10 @@ describe('parseCliArgs', () => {
   it('sets full flag', () => {
     expect(parseCliArgs(['--full']).full).toBe(true);
   });
+
+  it('sets list flag', () => {
+    expect(parseCliArgs(['--list']).list).toBe(true);
+  });
 });
 
 describe('validateCliOptions', () => {

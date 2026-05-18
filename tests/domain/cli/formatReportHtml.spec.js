@@ -5,6 +5,8 @@ function makeEnvelope(overrides = {}) {
   return {
     meta: {
       flasterVersion: '1.0.2',
+      flastVersion: '2.0.0',
+      restringerVersion: '2.2.0',
       input: {kind: 'file', path: '/tmp/sample.js', label: '/tmp/sample.js'},
       analyzedAt: '2026-01-01T00:00:00.000Z',
       parse: {ok: true, diagnostics: []},
@@ -128,7 +130,34 @@ describe('formatReportHtml', () => {
     expect(html).toContain('&lt;script&gt;');
   });
 
-  it('renders snippets in evidence rows when present (--full mode)', () => {
+  it('renders report sections as collapsed details elements', () => {
+    const finding = makeStructureFinding();
+    const envelope = makeEnvelope({
+      totalFindings: 1,
+      sections: [{id: 'obfuscation', filterId: 'obfuscation', title: 'Obfuscation', helperCopy: 'Helper', findings: [finding]}],
+    });
+    const html = formatReportHtml(envelope);
+    expect(html).toContain('<details class="report-section"');
+    expect(html).not.toMatch(/<details class="report-section"[^>]* open/);
+  });
+
+  it('renders structure guide and illustrative example when present', () => {
+    const finding = makeStructureFinding({
+      description: 'Matches large array literals used for indirection.',
+      codeExample: 'const table = [1, 2, 3];',
+    });
+    const envelope = makeEnvelope({
+      totalFindings: 1,
+      sections: [{id: 'obfuscation', filterId: 'obfuscation', title: 'Obfuscation', helperCopy: '', findings: [finding]}],
+    });
+    const html = formatReportHtml(envelope);
+    expect(html).toContain('What this is');
+    expect(html).toContain('Illustrative example');
+    expect(html).toContain('Matches large array literals');
+    expect(html).toContain('const table = [1, 2, 3];');
+  });
+
+  it('renders snippets in evidence rows when present', () => {
     const finding = makeStructureFinding({
       evidence: [{
         line: 1, column: 5, endLine: 1, endColumn: 20, charStart: 4, charEnd: 19,
@@ -156,8 +185,10 @@ describe('formatReportHtml', () => {
     expect(html).toContain('7000');
   });
 
-  it('includes the flasterVersion in the meta block', () => {
+  it('includes tool versions in the meta block', () => {
     const html = formatReportHtml(makeEnvelope());
     expect(html).toContain('1.0.2');
+    expect(html).toContain('2.0.0');
+    expect(html).toContain('2.2.0');
   });
 });

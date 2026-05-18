@@ -6,6 +6,7 @@ import {
   printCliHelp,
   printCliVersion,
 } from './cliOptions.js';
+import {printCliList} from './printCliList.js';
 import {readInput, CliInputError} from './readInput.js';
 import {runAnalysis, ParseFailedError} from './runAnalysis.js';
 import {enrichReportFindings} from './enrichReportFindings.js';
@@ -37,6 +38,18 @@ export async function runCli(argv) {
 
   if (options.version) {
     printCliVersion();
+    process.exit(0);
+    return;
+  }
+
+  if (options.list) {
+    try {
+      await printCliList();
+    } catch (err) {
+      process.stderr.write(`flaster: failed to load structure catalog — ${err.message}\n`);
+      process.exit(3);
+      return;
+    }
     process.exit(0);
     return;
   }
@@ -88,7 +101,10 @@ export async function runCli(argv) {
 
   // Step 6 — enrich findings (evidence locations + --full fields)
   const {_store, ...reportEnvelope} = envelope;
-  enrichReportFindings(reportEnvelope.sections, _store, input.source, options.full);
+  enrichReportFindings(reportEnvelope.sections, _store, input.source, {
+    full: options.full,
+    includeFindingGuide: options.format === 'html',
+  });
 
   // Step 7 — format
   const formatted = options.format === 'html'
