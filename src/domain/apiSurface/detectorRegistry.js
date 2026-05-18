@@ -442,7 +442,7 @@ const _registry = [
     apiObject: 'performance',
     apiName: 'now',
     apiKind: 'method-call',
-    description: 'Reads a high-resolution timestamp. Used in timing attacks and DevTools detection via execution speed probing.',
+    description: 'Reads a high-resolution timestamp from the Performance API.',
     extractsValue: false,
     extractedValueLabel: null,
   },

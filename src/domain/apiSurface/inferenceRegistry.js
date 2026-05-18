@@ -39,25 +39,6 @@ const _registry = [
     ],
   },
   {
-    id: 'devtools-timing-probe',
-    title: 'DevTools Timing Probe',
-    categoryGroup: 'capabilities',
-    category: 'anti-debugging',
-    risk: 'benign',
-    riskReason: 'Probes debugger presence via execution timing. Does not collect or transmit user data.',
-    inferenceKind: 'co-occurrence',
-    description:
-      'Script uses high-resolution timing (performance.now or setInterval) alongside ' +
-      'conditional logic that may slow down significantly when DevTools is open due to ' +
-      'debugger statement evaluation overhead.',
-    requires: [
-      {
-        detectorIds: ['performance-now', 'set-interval'],
-        mode: 'any',
-      },
-    ],
-  },
-  {
     id: 'automation-detection',
     title: 'Automation / Bot Detection',
     categoryGroup: 'capabilities',
