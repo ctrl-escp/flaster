@@ -1,9 +1,5 @@
 /** @import {ASTNode, Arborist} from '../flastTypes.js' */
-import {
-  runKnownStructureMatcher,
-  runKnownStructureTransform,
-  runKnownStructureTransformSession,
-} from '../integrations/restringer/index.js';
+import {loadRestringerIntegration} from '../integrations/restringer/integrationLoader.js';
 
 /**
  * Browser-console catalog: matchers and transforms available in the current workspace
@@ -11,9 +7,11 @@ import {
  * REstringer integration object for utilities and frozen registry metadata.
  *
  * @param {object} store reactive app store
- * @param {object} restringerSafe `restringerSafe` default export from the integration barrel
  */
-export function createConsoleCatalog(store, restringerSafe) {
+export async function createConsoleCatalog(store) {
+  const integration = await loadRestringerIntegration();
+  const restringerSafe = integration.default;
+
   return Object.freeze({
     get restringer() {
       return restringerSafe;
@@ -58,7 +56,7 @@ export function createConsoleCatalog(store, restringerSafe) {
         throw new Error(`Unknown structure id: ${structureId}`);
       }
 
-      return runKnownStructureMatcher(arb, structure, options);
+      return restringerSafe.runKnownStructureMatcher(arb, structure, options);
     },
 
     /**
@@ -72,7 +70,7 @@ export function createConsoleCatalog(store, restringerSafe) {
         throw new Error(`Unknown structure id: ${structureId}`);
       }
 
-      return runKnownStructureTransform(arb, structure, match);
+      return restringerSafe.runKnownStructureTransform(arb, structure, match);
     },
 
     /**
@@ -86,7 +84,7 @@ export function createConsoleCatalog(store, restringerSafe) {
         throw new Error(`Unknown structure id: ${structureId}`);
       }
 
-      return runKnownStructureTransformSession(arb, structure, options);
+      return restringerSafe.runKnownStructureTransformSession(arb, structure, options);
     },
   });
 }

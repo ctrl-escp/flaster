@@ -1,5 +1,7 @@
+import * as inlineOperatorObjectsModule from 'restringer/src/modules/safe/inlineOperatorObjects.js';
 import * as normalizeComputedModule from 'restringer/src/modules/safe/normalizeComputed.js';
 import * as normalizeEmptyStatementsModule from 'restringer/src/modules/safe/normalizeEmptyStatements.js';
+import * as normalizeRedundantNotOperatorModule from 'restringer/src/modules/safe/normalizeRedundantNotOperator.js';
 import * as parseTemplateLiteralsIntoStringLiteralsModule from 'restringer/src/modules/safe/parseTemplateLiteralsIntoStringLiterals.js';
 import * as rearrangeSequencesModule from 'restringer/src/modules/safe/rearrangeSequences.js';
 import * as rearrangeSwitchesModule from 'restringer/src/modules/safe/rearrangeSwitches.js';
@@ -14,13 +16,19 @@ import * as replaceIdentifierWithFixedAssignedValueModule from 'restringer/src/m
 import * as replaceIdentifierWithFixedValueNotAssignedAtDeclarationModule from 'restringer/src/modules/safe/replaceIdentifierWithFixedValueNotAssignedAtDeclaration.js';
 import * as replaceNewFuncCallsWithLiteralContentModule from 'restringer/src/modules/safe/replaceNewFuncCallsWithLiteralContent.js';
 import * as replaceSequencesWithExpressionsModule from 'restringer/src/modules/safe/replaceSequencesWithExpressions.js';
+import * as resolveDefiniteMemberExpressionsModule from 'restringer/src/modules/safe/resolveDefiniteMemberExpressions.js';
+import * as resolveDeterministicConditionalExpressionsModule from 'restringer/src/modules/safe/resolveDeterministicConditionalExpressions.js';
 import * as resolveDeterministicIfStatementsModule from 'restringer/src/modules/safe/resolveDeterministicIfStatements.js';
+import * as resolveDeterministicWhileStatementsModule from 'restringer/src/modules/safe/resolveDeterministicWhileStatements.js';
 import * as resolveFunctionConstructorCallsModule from 'restringer/src/modules/safe/resolveFunctionConstructorCalls.js';
 import * as resolveMemberExpressionReferencesToArrayIndexModule from 'restringer/src/modules/safe/resolveMemberExpressionReferencesToArrayIndex.js';
 import * as resolveMemberExpressionsWithDirectAssignmentModule from 'restringer/src/modules/safe/resolveMemberExpressionsWithDirectAssignment.js';
+import * as resolveMinimalAlphabetModule from 'restringer/src/modules/safe/resolveMinimalAlphabet.js';
+import * as resolveNestedBinaryExpressionsModule from 'restringer/src/modules/safe/resolveNestedBinaryExpressions.js';
 import * as resolveProxyCallsModule from 'restringer/src/modules/safe/resolveProxyCalls.js';
 import * as resolveProxyReferencesModule from 'restringer/src/modules/safe/resolveProxyReferences.js';
 import * as resolveProxyVariablesModule from 'restringer/src/modules/safe/resolveProxyVariables.js';
+import * as resolvePureLiteralMethodCallsModule from 'restringer/src/modules/safe/resolvePureLiteralMethodCalls.js';
 import * as resolveRedundantLogicalExpressionsModule from 'restringer/src/modules/safe/resolveRedundantLogicalExpressions.js';
 import * as separateChainedDeclaratorsModule from 'restringer/src/modules/safe/separateChainedDeclarators.js';
 import * as simplifyCallsModule from 'restringer/src/modules/safe/simplifyCalls.js';
@@ -69,8 +77,10 @@ import {
  */
 
 const safeModules = Object.freeze({
+  inlineOperatorObjects: inlineOperatorObjectsModule,
   normalizeComputed: normalizeComputedModule,
   normalizeEmptyStatements: normalizeEmptyStatementsModule,
+  normalizeRedundantNotOperator: normalizeRedundantNotOperatorModule,
   parseTemplateLiteralsIntoStringLiterals: parseTemplateLiteralsIntoStringLiteralsModule,
   rearrangeSequences: rearrangeSequencesModule,
   rearrangeSwitches: rearrangeSwitchesModule,
@@ -85,13 +95,19 @@ const safeModules = Object.freeze({
   replaceIdentifierWithFixedValueNotAssignedAtDeclaration: replaceIdentifierWithFixedValueNotAssignedAtDeclarationModule,
   replaceNewFuncCallsWithLiteralContent: replaceNewFuncCallsWithLiteralContentModule,
   replaceSequencesWithExpressions: replaceSequencesWithExpressionsModule,
+  resolveDefiniteMemberExpressions: resolveDefiniteMemberExpressionsModule,
+  resolveDeterministicConditionalExpressions: resolveDeterministicConditionalExpressionsModule,
   resolveDeterministicIfStatements: resolveDeterministicIfStatementsModule,
+  resolveDeterministicWhileStatements: resolveDeterministicWhileStatementsModule,
   resolveFunctionConstructorCalls: resolveFunctionConstructorCallsModule,
   resolveMemberExpressionReferencesToArrayIndex: resolveMemberExpressionReferencesToArrayIndexModule,
   resolveMemberExpressionsWithDirectAssignment: resolveMemberExpressionsWithDirectAssignmentModule,
+  resolveMinimalAlphabet: resolveMinimalAlphabetModule,
+  resolveNestedBinaryExpressions: resolveNestedBinaryExpressionsModule,
   resolveProxyCalls: resolveProxyCallsModule,
   resolveProxyReferences: resolveProxyReferencesModule,
   resolveProxyVariables: resolveProxyVariablesModule,
+  resolvePureLiteralMethodCalls: resolvePureLiteralMethodCallsModule,
   resolveRedundantLogicalExpressions: resolveRedundantLogicalExpressionsModule,
   separateChainedDeclarators: separateChainedDeclaratorsModule,
   simplifyCalls: simplifyCallsModule,

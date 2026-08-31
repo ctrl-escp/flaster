@@ -1,4 +1,4 @@
-import {getKnownStructure} from '../../integrations/restringer/index.js';
+import {getKnownStructure} from '../../integrations/restringer/matchingEngine.js';
 
 /**
  * Resolves the REstringer implementation metadata needed for generated code.

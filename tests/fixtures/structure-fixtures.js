@@ -312,4 +312,84 @@ export const STRUCTURE_FIXTURE_MANIFEST = Object.freeze([
       },
     ],
   },
+  {
+    structureName: 'inline-operator-objects',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/inline-operator-objects.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'redundant-not-operators',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/redundant-not-operators.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'definite-member-expressions',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/definite-member-expressions.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'deterministic-ternaries',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/deterministic-ternaries.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'deterministic-while-statements',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/deterministic-while-statements.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'minimal-alphabet',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/minimal-alphabet.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'nested-binary-expressions',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/nested-binary-expressions.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
+  {
+    structureName: 'pure-literal-method-calls',
+    fixtures: [
+      {
+        path: 'tests/fixtures/structure-sources/pure-literal-method-calls.js',
+        expectsMatches: true,
+        expectedMinMatches: 1,
+      },
+    ],
+  },
 ]);

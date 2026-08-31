@@ -1,7 +1,7 @@
 import {reportSectionRegistry} from '../report/reportSectionRegistry.js';
 import {apiDetectorRegistry} from '../apiSurface/detectorRegistry.js';
 import {buildHydratedKnownStructureCatalog} from '../apiSurface/index.js';
-import {loadRestringerIntegration} from '../../integrations/restringer/index.js';
+import {loadRestringerIntegration} from '../../integrations/restringer/integrationLoader.js';
 import {ANALYSIS_SECTION_IDS} from './cliOptions.js';
 
 const ANALYSIS_SECTION_HELP = {

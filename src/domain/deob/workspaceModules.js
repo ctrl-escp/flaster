@@ -1,6 +1,8 @@
+import * as customMod from '../transforms/customTransformRuntime.js';
+
 /**
- * Single entry for lazy-loading parse (flAST) plus REstringer and transform helpers.
- * Used by the pipeline runner and other surfaces that need the deobfuscation stack.
+ * Single entry for lazy-loading parse (flAST) plus REstringer and built-in transforms.
+ * Custom-transform helpers stay eager: the store already imports that module statically.
  */
 
 /** @type {Promise<DeobWorkspaceModules> | null} */
@@ -25,8 +27,7 @@ export function loadDeobWorkspaceModules() {
     import('../parse/parseSource.js'),
     import('../../integrations/restringer/index.js'),
     import('../transforms/transformExecutor.js'),
-    import('../transforms/customTransformRuntime.js'),
-  ]).then(([parseMod, integrationMod, transformMod, customMod]) => ({
+  ]).then(([parseMod, integrationMod, transformMod]) => ({
     createArborist: parseMod.createArborist,
     parseSource: parseMod.parseSource,
     runKnownStructureMatcher: integrationMod.runKnownStructureMatcher,

@@ -9,7 +9,7 @@
 import {
   groupStructureMatches,
   normalizeStructureMatch,
-} from '../../integrations/restringer/index.js';
+} from '../../integrations/restringer/matchingEngine.js';
 import {apiDetectorRegistry} from './detectorRegistry.js';
 
 /**

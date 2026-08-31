@@ -1,5 +1,5 @@
 /** @import {ASTNode, Arborist} from '../../../flastTypes.js' */
-import {loadRestringerIntegration} from '../../../integrations/restringer/index.js';
+import {loadRestringerIntegration} from '../../../integrations/restringer/integrationLoader.js';
 import {buildHydratedKnownStructureCatalog} from '../../../domain/apiSurface/index.js';
 import {cloneValue, normalizeScriptLabel} from '../storeUtils.js';
 

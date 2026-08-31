@@ -1,7 +1,7 @@
 <script setup>
 import store from '../store';
 import {buildHydratedKnownStructureCatalog} from '../domain/apiSurface/index.js';
-import {loadRestringerIntegration} from '../integrations/restringer/index.js';
+import {loadRestringerIntegration} from '../integrations/restringer/integrationLoader.js';
 import {computed, onMounted, ref} from 'vue';
 import IconParse from './icons/IconParse.vue';
 

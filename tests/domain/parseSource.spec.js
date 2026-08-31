@@ -69,4 +69,15 @@ describe('parseSource', () => {
     });
     expect(result.ok).toBe(true);
   });
+
+  it('parses with compact scopes and without retained tokens', () => {
+    const result = parseSource('const x = 1;\n', {parseRunId: 1});
+    expect(result.ok).toBe(true);
+    const root = result.arborist.ast[0];
+    expect(!root.tokens || root.tokens.length === 0).toBe(true);
+    expect(root.typeMap?.Identifier?.length).toBeGreaterThan(0);
+    const ident = root.typeMap.Identifier.find((node) => node.name === 'x');
+    expect(ident).toBeTruthy();
+    expect(root.allScopes).toBeTruthy();
+  });
 });

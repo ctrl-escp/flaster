@@ -7,7 +7,7 @@ import {
   syncDetectorHits,
   apiDetectorRegistry,
 } from '../../domain/apiSurface/index.js';
-import {loadRestringerIntegration} from '../../integrations/restringer/index.js';
+import {loadRestringerIntegration} from '../../integrations/restringer/integrationLoader.js';
 import {detectStructures} from '../../integrations/restringer/matchingEngine.js';
 import {buildReportModel} from '../../domain/report/reportModel.js';
 import {createAnalysisStore} from './createAnalysisStore.js';

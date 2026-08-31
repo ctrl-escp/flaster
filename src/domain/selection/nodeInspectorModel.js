@@ -85,6 +85,10 @@ export function listChildNodesFromFlatAst(flatAst, parentNode) {
     return [];
   }
 
+  if (Array.isArray(parentNode.childNodes)) {
+    return parentNode.childNodes;
+  }
+
   return flatAst?.filter((candidate) => candidate.parentNode?.nodeId === parentNode.nodeId) ?? [];
 }
 

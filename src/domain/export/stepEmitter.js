@@ -6,6 +6,7 @@ import {
   isNoTransformStep,
   isStructureSelectionStep,
 } from './pipelineStepKinds.js';
+import {DEFAULT_ARBORIST_OPTIONS_LITERAL} from '../parse/parseSource.js';
 import {
   maybeResolveKnownStructureImplementation,
   resolveKnownStructureImplementation,
@@ -72,7 +73,7 @@ function createCustomStepBlock(step, stepNumber, combineFilters) {
 
       return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
 function ${transformFuncVar}(arb, matches) {${transformationCode}}
-let arb${stepNumber} = new Arborist(script);
+let arb${stepNumber} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 let appliedChanges${stepNumber} = 0;
 let iterations${stepNumber} = 0;
 
@@ -103,11 +104,15 @@ if (appliedChanges${stepNumber} > 0) {
 
     return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
 script = applyIteratively(script, [
-  treeModifier(
-    (n, arb) => {return ${filter};},
-    (n, arb) => {${transformationCode}}
-  ),
-]);
+  (arb) => {
+    const match = (n, arb) => {return ${filter};};
+    for (const n of arb.ast ?? []) {
+      if (match(n, arb)) {
+        ${transformationCode}
+      }
+    }
+  },
+], {arboristOptions: ${DEFAULT_ARBORIST_OPTIONS_LITERAL}});
 logger.setLogLevelLog();`;
   }
 
@@ -122,7 +127,7 @@ logger.setLogLevelLog();`;
   if (implementation?.matcherName && implementation?.namespaceImport) {
     return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
 function ${transformFuncVar}(arb, matches) {${transformationCode}}
-let ${arbVar} = new Arborist(script);
+let ${arbVar} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 let ${changesVar} = 0;
 let ${iterationsVar} = 0;
 
@@ -154,7 +159,7 @@ if (${changesVar} > 0) {
   return `// Step ${stepNumber}: ${step?.label ?? 'Custom transform'}
 const ${matchFuncVar} = (n, arb) => ${filter};
 function ${transformFuncVar}(n, arb) {${transformationCode}}
-let ${arbVar} = new Arborist(script);
+let ${arbVar} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 let ${changesVar} = 0;
 let ${iterationsVar} = 0;
 
@@ -214,7 +219,7 @@ function ${transformFuncVar}(arb, matches) {
   // Intentionally empty. Edit this after export.
   return arb;
 }
-let ${arbVar} = new Arborist(script);
+let ${arbVar} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 const ${rawMatchesVar} = ${implementation.namespaceImport}.${implementation.matcherName}(${arbVar}, () => true);
 
 ${transformFuncVar}(${arbVar}, ${rawMatchesVar});
@@ -241,7 +246,7 @@ function ${transformFuncVar}(arb, matches) {
   // Intentionally empty. Edit this after export.
   return arb;
 }
-let ${arbVar} = new Arborist(script);
+let ${arbVar} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 const ${rawMatchesVar} = ${matchFuncVar}(${arbVar});
 
 ${transformFuncVar}(${arbVar}, ${rawMatchesVar});
@@ -304,7 +309,7 @@ function createStructureSelectionStepBlock(step, stepNumber, resolveStructureFil
 
       return `// Step ${stepNumber}: ${step?.label ?? `Delete ${structureTitle} matches`}
 const customMatchFunc${stepNumber} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
-let ${arbVar} = new Arborist(script);
+let ${arbVar} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 let ${appliedChangesVar} = 0;
 let ${iterationsVar} = 0;
 
@@ -339,7 +344,7 @@ if (${appliedChangesVar} > 0) {
     }
 
     return `// Step ${stepNumber}: ${step?.label ?? `Delete ${structureTitle} matches`}
-let ${arbVar} = new Arborist(script);
+let ${arbVar} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 let ${appliedChangesVar} = 0;
 let ${iterationsVar} = 0;
 
@@ -408,7 +413,7 @@ function getOutermostMatchedNodes(matches = []) {
 }
 
 const customMatchFunc${stepNumber} = (arb) => (arb.ast ?? []).filter((n) => ${filterSrc});
-let ${arbVar} = new Arborist(script);
+let ${arbVar} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 const ${matchesVar} = customMatchFunc${stepNumber}(${arbVar});
 const ${outermostMatchesVar} = getOutermostMatchedNodes(${matchesVar})
   .filter(Boolean);
@@ -462,7 +467,7 @@ function getOutermostMatchedNodes(matches = []) {
   return matches.filter((node) => node && !hasMatchedAncestor(node, matchedNodes));
 }
 
-let ${arbVar} = new Arborist(script);
+let ${arbVar} = new Arborist(script, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
 const ${rawMatchesVar} = ${matcherVar}(${arbVar});
 const ${matchesVar} = collectKnownStructureMatchNodes(${rawMatchesVar});
 const ${outermostMatchesVar} = getOutermostMatchedNodes(${matchesVar})

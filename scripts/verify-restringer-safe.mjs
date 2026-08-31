@@ -33,7 +33,8 @@ for (const {filePath, content} of sourceEntries) {
     continue;
   }
 
-  if (/from\s+['"]restringer(?:\/|['"])/.test(content)) {
+  // package.json is version metadata, not REstringer runtime (unsafe eval lives in src/).
+  if (/from\s+['"]restringer(?!\/package\.json['"])(?:\/|['"])/.test(content)) {
     throw new Error(`Direct REstringer import found outside adapter: ${path.relative(projectRoot, filePath)}`);
   }
 }
@@ -388,8 +389,8 @@ const generatedScript = scriptGeneratorModule.composeTransformationScript({
   },
 });
 
-if (!generatedScript.includes("import {applyIteratively, Arborist, logger, treeModifier} from 'flast';") &&
-  !generatedScript.includes("import {Arborist, applyIteratively, logger, treeModifier} from 'flast';")) {
+if (!generatedScript.includes("import {Arborist, applyIteratively, logger} from 'flast';") &&
+  !generatedScript.includes("import {applyIteratively, Arborist, logger} from 'flast';")) {
   throw new Error('composeTransformationScript did not include the expected flAST imports');
 }
 

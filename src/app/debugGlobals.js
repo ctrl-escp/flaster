@@ -1,6 +1,5 @@
 import flastPackage from 'flast/package.json' with {type: 'json'};
 import {watchEffect} from 'vue';
-import {createConsoleCatalog} from './consoleCatalog.js';
 import store from '../store.js';
 
 function shouldInstallDebugGlobals() {
@@ -16,12 +15,10 @@ export async function installDebugGlobals() {
     return;
   }
 
-  const [flastNs, integrationMod] = await Promise.all([
+  const [flastNs, {createConsoleCatalog}] = await Promise.all([
     import('flast/src/index.js'),
-    import('../integrations/restringer/index.js'),
+    import('./consoleCatalog.js'),
   ]);
-
-  const restringerSafe = integrationMod.default;
 
   window.flast = {
     ...flastNs,
@@ -31,8 +28,7 @@ export async function installDebugGlobals() {
     },
   };
 
-  const catalog = createConsoleCatalog(store, restringerSafe);
-  window.catalog = catalog;
+  window.catalog = await createConsoleCatalog(store);
 
   window.store = store;
 

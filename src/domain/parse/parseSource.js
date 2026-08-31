@@ -2,6 +2,19 @@
 import {Arborist} from 'flast/src/arborist.js';
 
 /**
+ * Shared Arborist parse/rebuild options. Compact scopes drop undocumented
+ * eslint-scope internals; releasing tokens after comment attach cuts retained
+ * AST memory. Keep `detailed` and `includeSrc` at flAST defaults (true).
+ */
+export const DEFAULT_ARBORIST_OPTIONS = Object.freeze({
+  compactScopes: true,
+  retainTokens: false,
+});
+
+/** Literal form for generated Node scripts (must stay in sync with DEFAULT_ARBORIST_OPTIONS). */
+export const DEFAULT_ARBORIST_OPTIONS_LITERAL = '{compactScopes: true, retainTokens: false}';
+
+/**
  * @typedef {object} ParseDiagnostic
  * @property {'error' | 'warning' | 'info'} [severity]
  * @property {string} [code]
@@ -73,7 +86,7 @@ export function nextParseRunId(current) {
  * @returns {Arborist}
  */
 export function createArborist(script) {
-  return new Arborist(script);
+  return new Arborist(script, DEFAULT_ARBORIST_OPTIONS);
 }
 
 /**
@@ -101,7 +114,7 @@ export function parseSource(source, options = {}) {
   }
 
   try {
-    const arborist = new ArboristCtor(str);
+    const arborist = new ArboristCtor(str, DEFAULT_ARBORIST_OPTIONS);
 
     if (!arborist.ast?.length) {
       return {

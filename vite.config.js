@@ -17,7 +17,11 @@ export default defineConfig({
             retValue = 'codemirror';
           }
 
-          if (id.includes('node_modules/restringer/') || id.includes('node_modules/flast/')) {
+          const isDeobfuscatorPkg = id.includes('node_modules/restringer/') ||
+            id.includes('node_modules/flast/');
+          // package.json is imported for version labels; keep it out of this
+          // chunk so the heavy parser/transform graph can stay lazy.
+          if (isDeobfuscatorPkg && !id.endsWith('package.json')) {
             retValue = 'deobfuscator';
           }
           return retValue;
@@ -28,7 +32,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
-      'node:crypto': fileURLToPath(new URL('./src/shims/node-crypto.js', import.meta.url)),
+      'node:worker_threads': fileURLToPath(new URL('./src/shims/node-worker-threads.js', import.meta.url)),
     },
   },
   optimizeDeps: {

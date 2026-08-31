@@ -6,11 +6,9 @@ import {
 import {sourceRangesOverlap} from '../../../domain/structures/matchNormalization.js';
 import {
   collectKnownStructureMatchNodes,
-  describeKnownStructureMatchShape,
-} from '../../../integrations/restringer/index.js';
-import {
   createEmptyMatchGroups,
   createExecutionStatus,
+  describeKnownStructureMatchShape,
   detectStructures,
   groupStructureMatches,
 } from '../../../integrations/restringer/matchingEngine.js';

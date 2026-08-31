@@ -89,7 +89,6 @@ export function createImportPlan(steps) {
       needsCustomRuntime = true;
       flastSpecifiers.add('applyIteratively');
       flastSpecifiers.add('logger');
-      flastSpecifiers.add('treeModifier');
     } else {
       flastSpecifiers.add('Arborist');
     }

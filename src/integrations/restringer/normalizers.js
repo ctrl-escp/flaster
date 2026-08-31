@@ -43,6 +43,8 @@ function findNodeInMatch(match, seen = new Set()) {
     'callNode',
     'calleeNode',
     'parentNode',
+    'declarator',
+    'objectExpr',
   ];
 
   for (const key of preferredKeys) {

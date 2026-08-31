@@ -59,6 +59,9 @@ describe('domain/export scriptGenerator', () => {
 
     expect(script).toContain("import fs from 'node:fs';");
     expect(script).toContain("from 'flast'");
+    expect(script).not.toContain('treeModifier');
+    expect(script).toContain('compactScopes: true');
+    expect(script).toContain('retainTokens: false');
     expect(script).toContain("from 'restringer/src/modules/safe/normalizeComputed.js'");
     expect(script).toContain('Generated via flASTer');
     expect(script).toContain('applyKnownStructureTransformStep(script, normalizeComputed)');

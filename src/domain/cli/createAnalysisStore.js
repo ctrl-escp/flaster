@@ -1,4 +1,4 @@
-import {groupStructureMatches} from '../../integrations/restringer/index.js';
+import {groupStructureMatches} from '../../integrations/restringer/matchingEngine.js';
 
 /**
  * Creates a headless duck-type store compatible with `buildReportModel` and the sync/enrich pipeline.

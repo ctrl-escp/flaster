@@ -1,6 +1,7 @@
 <script setup>
 import {computed, onBeforeUnmount, onMounted, ref} from 'vue';
 import flastPackage from 'flast/package.json' with {type: 'json'};
+import restringerPackage from 'restringer/package.json' with {type: 'json'};
 import store from '../store';
 import FileLoader from './FileLoader.vue';
 import ParseButton from './ParseButton.vue';
@@ -11,8 +12,6 @@ import IconReset from './icons/IconReset.vue';
 import IconTrash from './icons/IconTrash.vue';
 
 const emit = defineEmits(['open-help']);
-
-const restringerVersion = ref('…');
 
 const BANDAID_ROTATIONS = [90, 180, 270];
 const BANDAID_ANIMATION_MS = 30000;
@@ -25,7 +24,7 @@ const dependencyVersions = computed(() => ([
   },
   {
     label: 'REstringer',
-    version: restringerVersion.value,
+    version: restringerPackage.version,
     href: 'https://github.com/ctrl-escp/restringer',
   },
 ]));
@@ -68,13 +67,6 @@ function refreshBandaidAnimation() {
 
 onMounted(() => {
   bandaidAnimationTimer = window.setInterval(refreshBandaidAnimation, BANDAID_ANIMATION_MS);
-  void import('../integrations/restringer/index.js')
-    .then((mod) => {
-      restringerVersion.value = mod.default.version;
-    })
-    .catch(() => {
-      restringerVersion.value = '?';
-    });
 });
 
 onBeforeUnmount(() => {

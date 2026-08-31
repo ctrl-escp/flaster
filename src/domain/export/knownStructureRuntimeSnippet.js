@@ -1,4 +1,6 @@
 /** @import {Arborist} from '../../flastTypes.js' */
+import {DEFAULT_ARBORIST_OPTIONS_LITERAL} from '../parse/parseSource.js';
+
 /**
  * Emits the reusable helper used by generated built-in transform steps.
  *
@@ -36,6 +38,8 @@ function findNodeInKnownStructureMatch(match, seen = new Set()) {
     'calleeNode',
     'parentNode',
     'declaratorNode',
+    'declarator',
+    'objectExpr',
     'proxyIdentifier',
   ];
 
@@ -74,7 +78,7 @@ function collectKnownStructureMatchNodes(matches = []) {
 }
 
 function applyKnownStructureTransformStep(inputScript, runStep) {
-  const arb = new Arborist(inputScript);
+  const arb = new Arborist(inputScript, ${DEFAULT_ARBORIST_OPTIONS_LITERAL});
   runStep(arb, () => true);
   const appliedChanges = arb.applyChanges();
 

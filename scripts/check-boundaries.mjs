@@ -7,23 +7,28 @@ const projectRoot = path.resolve(__dirname, '..');
 const srcRoot = path.resolve(projectRoot, 'src');
 const integrationRoot = path.resolve(srcRoot, 'integrations/restringer');
 const matchingEngineEntry = path.normalize(path.join(integrationRoot, 'matchingEngine.js'));
+const integrationLoaderEntry = path.normalize(path.join(integrationRoot, 'integrationLoader.js'));
 const matchingEngineConsumerAllowlist = new Set([
   path.normalize(path.resolve(srcRoot, 'store.js')),
   path.normalize(path.resolve(srcRoot, 'app/createAppStore.js')),
   path.normalize(path.resolve(srcRoot, 'app/store/storeBlueprint.js')),
   path.normalize(path.resolve(srcRoot, 'app/store/sections/knownStructures.js')),
+  path.normalize(path.resolve(srcRoot, 'domain/apiSurface/syncDetectorHits.js')),
+  path.normalize(path.resolve(srcRoot, 'domain/cli/createAnalysisStore.js')),
   path.normalize(path.resolve(srcRoot, 'domain/cli/runAnalysis.js')),
+  path.normalize(path.resolve(srcRoot, 'domain/export/resolution.js')),
 ]);
 
 /**
  * Layering checks for `src/`:
  *
  * 1. Application/UI code must not import REstringer integration internals
- *    (anything under `integrations/restringer/` other than `index.js` or the
- *    allowlisted `matchingEngine.js`) without going through the public adapter
- *    (`index.js`). The app store facade and its `app/store/sections/knownStructures.js`
- *    module may import `matchingEngine.js` for `detectStructures`, `createKnownStructureState`,
- *    and session grouping.
+ *    (anything under `integrations/restringer/` other than `index.js`,
+ *    `integrationLoader.js`, or the allowlisted `matchingEngine.js`) without
+ *    going through those public entries. `index.js` is the full adapter;
+ *    `integrationLoader.js` lazy-loads it. The app store facade, CLI analysis
+ *    helpers, API-hit sync, and export resolution may import `matchingEngine.js`
+ *    for detection, grouping, and lite-catalog lookups.
  *
  * 2. Root-level `src/*.vue` is limited to the app shell (`App.vue`) and an
  *    explicit allowlist so feature SFCs stay under `src/components/`.
@@ -80,7 +85,8 @@ function isForbiddenIntegrationDeepImport(targetPath) {
     return false;
   }
 
-  if (targetPath === path.join(integrationRoot, 'index.js')) {
+  if (targetPath === path.join(integrationRoot, 'index.js') ||
+    targetPath === integrationLoaderEntry) {
     return false;
   }
 

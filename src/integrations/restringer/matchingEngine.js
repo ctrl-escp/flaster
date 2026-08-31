@@ -1,5 +1,11 @@
 import {loadRestringerIntegration} from './integrationLoader.js';
 import {liteKnownStructures} from './knownStructuresLite.js';
+import {normalizeStructureMatch as normalizeStructureMatchForStructure} from './normalizers.js';
+
+export {
+  collectKnownStructureMatchNodes,
+  describeKnownStructureMatchShape,
+} from './normalizers.js';
 
 /** @import {Arborist} from '../../flastTypes.js' */
 
@@ -55,6 +61,40 @@ export function getDefaultSelectedStructureIds(structures = liteKnownStructures)
   return structures
     .filter(Boolean)
     .map((structure) => structure.id);
+}
+
+/**
+ * Lite-catalog lookup used by export resolution before the heavy adapter loads.
+ * Pass a structure object through unchanged (API-detector rows, hydrated entries).
+ *
+ * @param {string | KnownStructureDescriptor | null | undefined} structureOrId
+ * @returns {KnownStructureDescriptor | object | null}
+ */
+export function getKnownStructure(structureOrId) {
+  if (!structureOrId) {
+    return null;
+  }
+
+  if (typeof structureOrId !== 'string') {
+    return structureOrId;
+  }
+
+  return liteKnownStructures.find((structure) => structure.id === structureOrId) ?? null;
+}
+
+/**
+ * @param {string | KnownStructureDescriptor} structureOrId
+ * @param {unknown} match
+ * @param {number} [index=0]
+ */
+export function normalizeStructureMatch(structureOrId, match, index = 0) {
+  const structure = getKnownStructure(structureOrId);
+
+  if (!structure) {
+    throw new Error(`Unknown known structure: ${structureOrId}`);
+  }
+
+  return normalizeStructureMatchForStructure(structure, match, index);
 }
 
 /**
